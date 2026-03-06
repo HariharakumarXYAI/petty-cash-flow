@@ -1,3 +1,4 @@
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, FileImage, GitCompare, ShieldCheck, Clock, Link2, Printer } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -181,4 +182,3 @@ export default function ClaimDetail() {
   );
 }
 
-import React from "react";
