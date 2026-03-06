@@ -1,5 +1,6 @@
 import { AlertTriangle, Copy, Ban, TrendingUp } from "lucide-react";
-import type { Alert } from "@/lib/mock-data";
+import type { AlertRecord } from "@/lib/mock-data";
+import { SeverityBadge } from "@/components/StatusBadge";
 
 const alertIcons = {
   anomaly: TrendingUp,
@@ -8,27 +9,38 @@ const alertIcons = {
   prohibited: Ban,
 };
 
-const severityColors = {
-  high: "border-l-status-hold",
-  medium: "border-l-status-alert",
+const severityBorder = {
+  critical: "border-l-status-hold",
+  high: "border-l-status-alert",
+  medium: "border-l-status-validating",
   low: "border-l-status-draft",
 };
 
-export function AlertItem({ alert }: { alert: Alert }) {
+export function AlertItem({ alert, selected, onClick }: { alert: AlertRecord; selected?: boolean; onClick?: () => void }) {
   const Icon = alertIcons[alert.type];
 
   return (
-    <div className={`flex items-start gap-3 p-3 border-l-2 ${severityColors[alert.severity]} bg-card rounded-r-md hover:bg-muted/50 transition-colors cursor-pointer`}>
-      <div className={`mt-0.5 h-7 w-7 rounded flex items-center justify-center shrink-0 ${
-        alert.severity === "high" ? "bg-status-hold/10" : "bg-status-alert/10"
+    <div
+      onClick={onClick}
+      className={`flex items-start gap-3 p-3 border-l-[3px] ${severityBorder[alert.severity]} bg-card rounded-r-md transition-all cursor-pointer ${
+        selected ? "ring-1 ring-primary shadow-sm" : "hover:bg-muted/50"
+      }`}
+    >
+      <div className={`mt-0.5 h-8 w-8 rounded-lg flex items-center justify-center shrink-0 ${
+        alert.severity === "critical" || alert.severity === "high" ? "bg-status-hold/8" : "bg-status-validating/8"
       }`}>
-        <Icon className={`h-3.5 w-3.5 ${
-          alert.severity === "high" ? "text-status-hold" : "text-status-alert"
+        <Icon className={`h-4 w-4 ${
+          alert.severity === "critical" || alert.severity === "high" ? "text-status-hold" : "text-status-validating"
         }`} />
       </div>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium text-foreground leading-tight">{alert.title}</p>
-        <p className="text-xs text-muted-foreground mt-0.5">{alert.store} · {alert.country}</p>
+        <div className="flex items-center gap-2 mt-1 flex-wrap">
+          <span className="text-xs text-muted-foreground">{alert.store}</span>
+          <span className="text-xs text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground">{alert.expenseCategory}</span>
+          <SeverityBadge severity={alert.severity} />
+        </div>
       </div>
     </div>
   );
