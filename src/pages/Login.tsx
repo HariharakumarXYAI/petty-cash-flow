@@ -2,13 +2,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { DollarSign, Shield, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { roleLabels, type AppRole } from "@/lib/roles";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, switchRole } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    login();
+  const handleLogin = (role?: AppRole) => {
+    if (role) switchRole(role);
+    else login();
     navigate("/dashboard");
   };
 
@@ -66,7 +68,7 @@ export default function Login() {
 
           {/* Microsoft SSO button */}
           <Button
-            onClick={handleLogin}
+            onClick={() => handleLogin()}
             className="w-full h-12 text-sm font-medium gap-3 bg-foreground text-background hover:bg-foreground/90 rounded-lg"
           >
             <svg className="h-5 w-5" viewBox="0 0 21 21" fill="none">
@@ -99,30 +101,13 @@ export default function Login() {
           <div className="border-t pt-6">
             <p className="text-[10px] text-muted-foreground uppercase tracking-widest mb-3">Demo: Quick Login As</p>
             <div className="grid grid-cols-2 gap-2">
-              {([
-                ["store_user", "Store User"],
-                ["store_manager", "Store Manager"],
-                ["regional_manager", "Regional Mgr"],
-                ["ho_finance", "HO Finance"],
-                ["internal_audit", "Internal Audit"],
-                ["system_admin", "System Admin"],
-              ] as const).map(([role, label]) => (
+              {(["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit", "system_admin"] as AppRole[]).map((role) => (
                 <button
                   key={role}
-                  onClick={() => {
-                    const { switchRole } = useAuth as any;
-                    // We'll handle this via the auth context
-                    import("@/lib/roles").then(({ mockUsers }) => {
-                      const found = mockUsers.find(u => u.role === role);
-                      if (found) {
-                        // Direct login simulation
-                        handleLogin();
-                      }
-                    });
-                  }}
+                  onClick={() => handleLogin(role)}
                   className="text-[11px] text-muted-foreground hover:text-foreground hover:bg-muted rounded-md px-3 py-2 text-left transition-colors border border-transparent hover:border-border"
                 >
-                  {label}
+                  {roleLabels[role]}
                 </button>
               ))}
             </div>
