@@ -1,63 +1,19 @@
-import {
-  LayoutDashboard, FilePlus, FileText, Wallet, BookOpen,
-  AlertTriangle, Search as SearchIcon, ClipboardCheck,
-  DollarSign, Store, ShieldCheck, BarChart3, TrendingUp,
-  Scale, Clock, FileSearch, Home,
-} from "lucide-react";
+import { DollarSign } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent,
   SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem,
   SidebarHeader, SidebarFooter, useSidebar,
 } from "@/components/ui/sidebar";
-
-const navGroups = [
-  {
-    label: "",
-    items: [
-      { title: "Home", url: "/dashboard", icon: Home },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
-      { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-      { title: "New Claim", url: "/claims/new", icon: FilePlus },
-      { title: "Claims", url: "/claims", icon: FileText },
-      { title: "Advances", url: "/advances", icon: Wallet },
-      { title: "Cashbook", url: "/cashbook", icon: BookOpen },
-    ],
-  },
-  {
-    label: "Control",
-    items: [
-      { title: "Alerts", url: "/alerts", icon: AlertTriangle },
-      { title: "Investigations", url: "/investigations", icon: SearchIcon },
-      { title: "Audit", url: "/audit", icon: ClipboardCheck },
-    ],
-  },
-  {
-    label: "Master Data",
-    items: [
-      { title: "Expense Types", url: "/masters/expense-types", icon: DollarSign },
-      { title: "Stores & Floats", url: "/masters/stores", icon: Store },
-      { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
-    ],
-  },
-  {
-    label: "Reports",
-    items: [
-      { title: "Spend Trends", url: "/reports/spend-trends", icon: TrendingUp },
-      { title: "Store Benchmarking", url: "/reports/benchmarking", icon: Scale },
-      { title: "Advance Aging", url: "/reports/advance-aging", icon: Clock },
-      { title: "Audit Findings", url: "/reports/audit-findings", icon: FileSearch },
-    ],
-  },
-];
+import { useAuth } from "@/contexts/AuthContext";
+import { getNavForRole, roleLabels } from "@/lib/roles";
 
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const { user } = useAuth();
+
+  const navGroups = user ? getNavForRole(user.role) : [];
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -91,7 +47,7 @@ export function AppSidebar() {
                     <SidebarMenuButton asChild>
                       <NavLink
                         to={item.url}
-                        end={item.url === "/dashboard"}
+                        end={item.end}
                         className="text-sidebar-foreground/60 hover:text-sidebar-primary hover:bg-sidebar-accent/60 transition-colors rounded-md text-[13px]"
                         activeClassName="bg-sidebar-accent text-sidebar-primary font-medium"
                       >
@@ -108,9 +64,9 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="p-3">
-        {!collapsed && (
+        {!collapsed && user && (
           <div className="text-[10px] text-sidebar-foreground/30 text-center">
-            v1.0 · Multi-Country · {new Date().getFullYear()}
+            {roleLabels[user.role]} · v1.0
           </div>
         )}
       </SidebarFooter>
