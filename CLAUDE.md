@@ -2,11 +2,33 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Company Profile
+
+**Organisation:** CP AXTRA Public Company Limited — operating as **Makro**
+**Rollout order:** Thailand first (180 stores, `cpaxtra.co.th` tenant), then Cambodia → Myanmar → Philippines progressively
+**Legal entities:** Siam Makro PCL (TH) · Makro Cambodia Co Ltd (KH) · Makro Myanmar Ltd (MM)
+**Currencies:** THB (TH) · USD (KH) · MMK (MM) · PHP (PH — future)
+
+**Enterprise systems:**
+| System | Purpose | Notes |
+|---|---|---|
+| Microsoft Entra ID / Azure AD | Authentication & SSO | Tenant: `cpaxtra.co.th`. Owner: `hrathina@cpaxtra.co.th`. Already live — use this for all auth. |
+| Microsoft Teams | All internal communication | Use Teams webhooks for notifications, not Slack |
+| Oracle EBS | Finance / accounting / payments | ERP integration target for approved claim payouts |
+| Oracle Retail | Store master data | Source of truth for store codes, regions, legal entities |
+| Home-grown Back Office (BO) | Internal ops | Potential future integration |
+| POS / eCommerce | Store transactions | Potential future integration |
+| GitHub | Source control (current) | Repo: `HariharakumarXYAI/petty-cash-flow` — migrate to company GitLab later |
+
+**Working directory:** `/Users/hrathina/Documents/Development/Petty_cash/` — always work from here, not the OneDrive sync path.
+
+---
+
 ## Project Context
 
-PettyCash 360 is a multi-country petty cash management platform for Makro (Thailand, Cambodia, Myanmar). The BRD and functional spec live in `../Documents/`. The full architecture and skills plan is in `../Documents/pettycash360_architecture_and_skills_plan.md`.
+PettyCash 360 is a multi-country petty cash management platform for Makro. The BRD and functional spec live in `../Documents/`. The full architecture and skills plan is in `../Documents/pettycash360_architecture_and_skills_plan.md`.
 
-**Current state:** The `petty-cash-flow/` directory is a UI-only Lovable prototype. All data is hardcoded in `src/lib/mock-data.ts`. There is no backend.
+**Current state:** This repo is a UI-only Lovable prototype. All data is hardcoded in `src/lib/mock-data.ts`. There is no backend.
 
 **Target state:** NestJS backend + Next.js frontend + PostgreSQL + Microsoft Entra ID SSO. The Lovable prototype components are kept and migrated to Next.js.
 
