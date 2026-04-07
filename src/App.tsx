@@ -81,6 +81,7 @@ const App = () => (
                       <Route path="/reports/benchmarking" element={<Reports />} />
                       <Route path="/reports/advance-aging" element={<Reports />} />
                       <Route path="/reports/audit-findings" element={<Reports />} />
+                      <Route path="/admin" element={<Navigate to="/admin/entities" replace />} />
                       <Route path="/admin/access" element={<AdminAccess />} />
                       <Route path="/admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
                       <Route path="/admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
