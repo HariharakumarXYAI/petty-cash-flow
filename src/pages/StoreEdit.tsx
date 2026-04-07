@@ -124,8 +124,8 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">เลขที่</Label>
-              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" />
+              <Label className="text-sm">เลขที่ <span className="text-destructive">*</span></Label>
+              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" required />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">หมู่</Label>
