@@ -83,8 +83,8 @@ export default function StoreEdit() {
         <p className="section-label">Store Information</p>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai)</Label>
-            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} />
+            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai) <span className="text-destructive">*</span></Label>
+            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} required />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Legal Entity</Label>
