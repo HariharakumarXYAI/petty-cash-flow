@@ -133,6 +133,14 @@ export default function StoreEdit() {
             </div>
           </div>
           <div className="space-y-1.5">
+            <Label className="text-sm">ตรอก/ซอย</Label>
+            <Input className="h-9" value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">ถนน</Label>
+            <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
+          </div>
+          <div className="space-y-1.5">
             <Label className="text-sm">ตำบล/แขวง</Label>
             <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" />
           </div>
@@ -146,6 +154,12 @@ export default function StoreEdit() {
               <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-sm">รหัสไปรษณีย์</Label>
+              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <Label className="text-sm">Country</Label>
               <Select defaultValue={store.country}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
@@ -156,6 +170,7 @@ export default function StoreEdit() {
                 </SelectContent>
               </Select>
             </div>
+            <div />
           </div>
         </div>
       </div>
