@@ -154,8 +154,8 @@ export default function StoreEdit() {
               <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" required />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm">รหัสไปรษณีย์</Label>
-              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} />
+              <Label className="text-sm">รหัสไปรษณีย์ <span className="text-destructive">*</span></Label>
+              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} required />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
