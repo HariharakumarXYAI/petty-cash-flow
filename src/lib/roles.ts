@@ -164,6 +164,12 @@ const hoFinanceNav: NavGroup[] = [
       { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
     ],
   },
+  {
+    label: "Admin",
+    items: [
+      { title: "Admin Settings", url: "/admin/entities", icon: Settings },
+    ],
+  },
 ];
 
 const auditNav: NavGroup[] = [
