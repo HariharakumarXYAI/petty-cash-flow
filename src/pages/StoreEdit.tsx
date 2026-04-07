@@ -141,8 +141,8 @@ export default function StoreEdit() {
             <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-sm">ตำบล/แขวง</Label>
-            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" />
+            <Label className="text-sm">ตำบล/แขวง <span className="text-destructive">*</span></Label>
+            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">อำเภอ/เขต</Label>
