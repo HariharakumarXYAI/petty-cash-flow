@@ -1,8 +1,9 @@
+import type { ReactNode } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
 import { AdminLayout } from "@/components/AdminLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
@@ -39,15 +40,27 @@ import AdminStoresPage from "./pages/admin/AdminStoresPage";
 
 const queryClient = new QueryClient();
 
-function AuthGuard({ children }: { children: React.ReactNode }) {
+function ProtectedLayout() {
   const { isAuthenticated } = useAuth();
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
-  return <>{children}</>;
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  );
 }
 
-function LoginGuard({ children }: { children: React.ReactNode }) {
+function LoginGuard({ children }: { children: ReactNode }) {
   const { isAuthenticated } = useAuth();
-  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
+
+  if (isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
   return <>{children}</>;
 }
 
@@ -55,52 +68,43 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginGuard><Login /></LoginGuard>} />
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route
-        path="/*"
-              element={
-                <AuthGuard>
-                  <AppLayout>
-                    <Routes>
-                      <Route path="/dashboard" element={<Dashboard />} />
-                      <Route path="/claims" element={<ClaimsList />} />
-                      <Route path="/claims/new" element={<NewClaim />} />
-                      <Route path="/claims/:id" element={<ClaimDetail />} />
-                      <Route path="/advances" element={<Advances />} />
-                      <Route path="/cashbook" element={<Cashbook />} />
-                      <Route path="/alerts" element={<AlertsPage />} />
-                      <Route path="/investigations" element={<Investigations />} />
-                      <Route path="/audit" element={<AuditPage />} />
-                      <Route path="/masters/expense-types" element={<ExpenseTypes />} />
-                      <Route path="/masters/stores" element={<StoresPage />} />
-                      <Route path="/masters/stores/:storeId/edit" element={<StoreEdit />} />
-                      <Route path="/masters/rules" element={<RulesPage />} />
-                      <Route path="/reports/spend-trends" element={<Reports />} />
-                      <Route path="/reports/benchmarking" element={<Reports />} />
-                      <Route path="/reports/advance-aging" element={<Reports />} />
-                      <Route path="/reports/audit-findings" element={<Reports />} />
-                      <Route path="/admin" element={<Navigate to="/admin/entities" replace />} />
-                      <Route path="/admin/access" element={<AdminAccess />} />
-                      <Route path="/admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
-                      <Route path="/admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
-                      <Route path="/admin/branches" element={<AdminLayout><BranchesPage /></AdminLayout>} />
-                      <Route path="/admin/departments" element={<AdminLayout><DepartmentsPage /></AdminLayout>} />
-                      <Route path="/admin/stores" element={<AdminLayout><AdminStoresPage /></AdminLayout>} />
-                      <Route path="/admin/employees" element={<AdminLayout><EmployeesPage /></AdminLayout>} />
-                      <Route path="/admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
-                      <Route path="/admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
-                      <Route path="/admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
-                      <Route path="/admin/policy" element={<AdminLayout><PolicyPage /></AdminLayout>} />
-                      <Route path="/admin/notifications/invoice-email" element={<AdminLayout><PendingInvoiceEmailPage /></AdminLayout>} />
-                      <Route path="/admin/notifications/approval-email" element={<AdminLayout><PendingApprovalEmailPage /></AdminLayout>} />
-                      <Route path="/admin/notifications/month-end-report" element={<AdminLayout><MonthEndReportPage /></AdminLayout>} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </AppLayout>
-                </AuthGuard>
-              }
-            />
-          </Routes>
+      <Route path="/" element={<ProtectedLayout />}>
+        <Route index element={<Navigate to="dashboard" replace />} />
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="claims" element={<ClaimsList />} />
+        <Route path="claims/new" element={<NewClaim />} />
+        <Route path="claims/:id" element={<ClaimDetail />} />
+        <Route path="advances" element={<Advances />} />
+        <Route path="cashbook" element={<Cashbook />} />
+        <Route path="alerts" element={<AlertsPage />} />
+        <Route path="investigations" element={<Investigations />} />
+        <Route path="audit" element={<AuditPage />} />
+        <Route path="masters/expense-types" element={<ExpenseTypes />} />
+        <Route path="masters/stores" element={<StoresPage />} />
+        <Route path="masters/stores/:storeId/edit" element={<StoreEdit />} />
+        <Route path="masters/rules" element={<RulesPage />} />
+        <Route path="reports/spend-trends" element={<Reports />} />
+        <Route path="reports/benchmarking" element={<Reports />} />
+        <Route path="reports/advance-aging" element={<Reports />} />
+        <Route path="reports/audit-findings" element={<Reports />} />
+        <Route path="admin" element={<Navigate to="entities" replace />} />
+        <Route path="admin/access" element={<AdminAccess />} />
+        <Route path="admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
+        <Route path="admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
+        <Route path="admin/branches" element={<AdminLayout><BranchesPage /></AdminLayout>} />
+        <Route path="admin/departments" element={<AdminLayout><DepartmentsPage /></AdminLayout>} />
+        <Route path="admin/stores" element={<AdminLayout><AdminStoresPage /></AdminLayout>} />
+        <Route path="admin/employees" element={<AdminLayout><EmployeesPage /></AdminLayout>} />
+        <Route path="admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
+        <Route path="admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
+        <Route path="admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
+        <Route path="admin/policy" element={<AdminLayout><PolicyPage /></AdminLayout>} />
+        <Route path="admin/notifications/invoice-email" element={<AdminLayout><PendingInvoiceEmailPage /></AdminLayout>} />
+        <Route path="admin/notifications/approval-email" element={<AdminLayout><PendingApprovalEmailPage /></AdminLayout>} />
+        <Route path="admin/notifications/month-end-report" element={<AdminLayout><MonthEndReportPage /></AdminLayout>} />
+        <Route path="*" element={<NotFound />} />
+      </Route>
+    </Routes>
   );
 }
 
