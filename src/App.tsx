@@ -51,18 +51,13 @@ function LoginGuard({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/login" element={<LoginGuard><Login /></LoginGuard>} />
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route
-              path="/*"
+function AppRoutes() {
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginGuard><Login /></LoginGuard>} />
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route
+        path="/*"
               element={
                 <AuthGuard>
                   <AppLayout>
