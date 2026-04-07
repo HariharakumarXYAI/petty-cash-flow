@@ -4,7 +4,7 @@ import { stores } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
@@ -202,28 +202,6 @@ export default function StoreEdit() {
         </div>
       </div>
 
-      <Separator />
-
-      {/* Tax & Identification */}
-      <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <p className="section-label">Tax & Identification</p>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Fusion Code</Label>
-              <Input className="h-9" readOnly placeholder="e.g. 010001" defaultValue="010001" />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">VAT Registration No. (ภ.พ.20)</Label>
-              <Input className="h-9" placeholder="e.g. 00001" defaultValue="00001" />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Full Address</Label>
-            <Textarea rows={3} placeholder="e.g. 3498 ถ.ลาดพร้าว แขวงคลองจั่น เขตบางกะปิ กรุงเทพ 10240" defaultValue="3498 ถ.ลาดพร้าว แขวงคลองจั่น เขตบางกะปิ กรุงเทพ 10240" />
-          </div>
-        </div>
-      </div>
 
       <div className="pb-6">
         <Button className="w-full">Save Changes</Button>
