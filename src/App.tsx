@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { AdminLayout } from "@/components/AdminLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
 import ClaimsList from "./pages/ClaimsList";
@@ -22,6 +23,16 @@ import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
+import EntitiesPage from "./pages/admin/EntitiesPage";
+import OcrRulesPage from "./pages/admin/OcrRulesPage";
+import EmployeesPage from "./pages/admin/EmployeesPage";
+import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
+import DocumentsPage from "./pages/admin/DocumentsPage";
+import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
+import PolicyPage from "./pages/admin/PolicyPage";
+import PendingInvoiceEmailPage from "./pages/admin/PendingInvoiceEmailPage";
+import PendingApprovalEmailPage from "./pages/admin/PendingApprovalEmailPage";
+import MonthEndReportPage from "./pages/admin/MonthEndReportPage";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +82,16 @@ const App = () => (
                       <Route path="/reports/advance-aging" element={<Reports />} />
                       <Route path="/reports/audit-findings" element={<Reports />} />
                       <Route path="/admin/access" element={<AdminAccess />} />
+                      <Route path="/admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
+                      <Route path="/admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
+                      <Route path="/admin/employees" element={<AdminLayout><EmployeesPage /></AdminLayout>} />
+                      <Route path="/admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
+                      <Route path="/admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
+                      <Route path="/admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
+                      <Route path="/admin/policy" element={<AdminLayout><PolicyPage /></AdminLayout>} />
+                      <Route path="/admin/notifications/invoice-email" element={<AdminLayout><PendingInvoiceEmailPage /></AdminLayout>} />
+                      <Route path="/admin/notifications/approval-email" element={<AdminLayout><PendingApprovalEmailPage /></AdminLayout>} />
+                      <Route path="/admin/notifications/month-end-report" element={<AdminLayout><MonthEndReportPage /></AdminLayout>} />
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </AppLayout>
