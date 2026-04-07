@@ -167,7 +167,7 @@ const hoFinanceNav: NavGroup[] = [
   {
     label: "Admin",
     items: [
-      { title: "Admin Settings", url: "/admin/entities", icon: Settings },
+      { title: "Admin Settings", url: "/admin", icon: Settings },
     ],
   },
 ];
