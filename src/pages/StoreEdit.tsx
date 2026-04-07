@@ -160,8 +160,8 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Country</Label>
-              <Select defaultValue={store.country}>
+              <Label className="text-sm">Country <span className="text-destructive">*</span></Label>
+              <Select defaultValue={store.country} required>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="TH">Thailand</SelectItem>
