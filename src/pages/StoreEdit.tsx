@@ -108,21 +108,20 @@ export default function StoreEdit() {
               </Select>
             </div>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">รหัส PP20</Label>
-            <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">รหัส PP20</Label>
+              <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm">รหัส Fusion</Label>
+              <Input className="h-9" readOnly placeholder="e.g. 010002" defaultValue="010001" />
+            </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">ที่อยู่ (Full Address)</Label>
             <Input className="h-9 bg-amber-50 border-amber-200 text-foreground" readOnly value={composedAddress} />
             <p className="text-[10px] text-muted-foreground">Auto-composed from address fields below</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">รหัส Fusion</Label>
-              <Input className="h-9" readOnly placeholder="e.g. 010002" defaultValue="010001" />
-            </div>
-            <div />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
