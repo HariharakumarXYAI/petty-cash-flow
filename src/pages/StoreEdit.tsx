@@ -86,17 +86,6 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Country</Label>
-              <Select defaultValue={store.country}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TH">Thailand</SelectItem>
-                  <SelectItem value="KH">Cambodia</SelectItem>
-                  <SelectItem value="MM">Myanmar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
               <Label className="text-sm">Type</Label>
               <Select defaultValue={store.type}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
@@ -107,6 +96,7 @@ export default function StoreEdit() {
                 </SelectContent>
               </Select>
             </div>
+            <div />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
