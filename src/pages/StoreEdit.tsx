@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { useState, useMemo } from "react";
 import { stores } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,25 @@ export default function StoreEdit() {
   const { storeId } = useParams();
   const navigate = useNavigate();
   const store = stores.find(s => s.id === storeId);
+
+  const [thaiName, setThaiName] = useState("แม็คโคร ลาดพร้าว");
+  const [pp20Code, setPp20Code] = useState("00002");
+  const [houseNo, setHouseNo] = useState("34/54");
+  const [moo, setMoo] = useState("1");
+  const [subDistrict, setSubDistrict] = useState("คลองเกลือ");
+  const [district, setDistrict] = useState("ปากเกร็ด");
+  const [province, setProvince] = useState("นนทบุรี");
+
+  const composedAddress = useMemo(() => {
+    const parts = [
+      houseNo,
+      moo ? `หมู่ที่ ${moo}` : "",
+      subDistrict ? `ต.${subDistrict}` : "",
+      district ? `อ.${district}` : "",
+      province ? `จ.${province}` : "",
+    ].filter(Boolean);
+    return parts.join(" ");
+  }, [houseNo, moo, subDistrict, district, province]);
 
   if (!store) {
     return (
@@ -60,6 +80,10 @@ export default function StoreEdit() {
             <Label className="text-sm">Store Name</Label>
             <Input className="h-9" defaultValue={store.name} />
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai)</Label>
+            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">Country</Label>
@@ -87,6 +111,44 @@ export default function StoreEdit() {
           <div className="space-y-1.5">
             <Label className="text-sm">Legal Entity</Label>
             <Input className="h-9" defaultValue={store.legalEntity} />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">รหัส PP20</Label>
+            <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">ที่อยู่ (Full Address)</Label>
+            <Input className="h-9 bg-amber-50 border-amber-200 text-foreground" readOnly value={composedAddress} />
+            <p className="text-[10px] text-muted-foreground">Auto-composed from address fields below</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">รหัส Fusion</Label>
+              <Input className="h-9" readOnly placeholder="e.g. 010002" defaultValue="010001" />
+            </div>
+            <div />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">เลขที่</Label>
+              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm">หมู่</Label>
+              <Input className="h-9" value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">ตำบล/แขวง</Label>
+            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">อำเภอ/เขต</Label>
+            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">จังหวัด</Label>
+            <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
           </div>
         </div>
       </div>
