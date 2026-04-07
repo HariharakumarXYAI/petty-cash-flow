@@ -86,17 +86,6 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Country</Label>
-              <Select defaultValue={store.country}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TH">Thailand</SelectItem>
-                  <SelectItem value="KH">Cambodia</SelectItem>
-                  <SelectItem value="MM">Myanmar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
               <Label className="text-sm">Type</Label>
               <Select defaultValue={store.type}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
@@ -107,6 +96,7 @@ export default function StoreEdit() {
                 </SelectContent>
               </Select>
             </div>
+            <div />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
@@ -141,9 +131,22 @@ export default function StoreEdit() {
             <Label className="text-sm">อำเภอ/เขต</Label>
             <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" />
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">จังหวัด</Label>
-            <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className="text-sm">จังหวัด</Label>
+              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-sm">Country</Label>
+              <Select defaultValue={store.country}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="TH">Thailand</SelectItem>
+                  <SelectItem value="KH">Cambodia</SelectItem>
+                  <SelectItem value="MM">Myanmar</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </div>
       </div>
