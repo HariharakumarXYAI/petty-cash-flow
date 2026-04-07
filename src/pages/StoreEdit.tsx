@@ -145,8 +145,8 @@ export default function StoreEdit() {
             <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-sm">อำเภอ/เขต</Label>
-            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" />
+            <Label className="text-sm">อำเภอ/เขต <span className="text-destructive">*</span></Label>
+            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
