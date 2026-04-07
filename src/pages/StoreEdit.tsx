@@ -124,8 +124,8 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">เลขที่</Label>
-              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" />
+              <Label className="text-sm">เลขที่ <span className="text-destructive">*</span></Label>
+              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" required />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">หมู่</Label>
@@ -141,27 +141,27 @@ export default function StoreEdit() {
             <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-sm">ตำบล/แขวง</Label>
-            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" />
+            <Label className="text-sm">ตำบล/แขวง <span className="text-destructive">*</span></Label>
+            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-sm">อำเภอ/เขต</Label>
-            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" />
+            <Label className="text-sm">อำเภอ/เขต <span className="text-destructive">*</span></Label>
+            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" required />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">จังหวัด</Label>
-              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
+              <Label className="text-sm">จังหวัด <span className="text-destructive">*</span></Label>
+              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" required />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm">รหัสไปรษณีย์</Label>
-              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} />
+              <Label className="text-sm">รหัสไปรษณีย์ <span className="text-destructive">*</span></Label>
+              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} required />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Country</Label>
-              <Select defaultValue={store.country}>
+              <Label className="text-sm">Country <span className="text-destructive">*</span></Label>
+              <Select defaultValue={store.country} required>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="TH">Thailand</SelectItem>
