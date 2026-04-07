@@ -92,8 +92,8 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Type</Label>
-              <Select defaultValue={store.type}>
+              <Label className="text-sm">Type <span className="text-destructive">*</span></Label>
+              <Select defaultValue={store.type} required>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Hypermarket">Hypermarket</SelectItem>
