@@ -31,7 +31,7 @@ const adminNavGroups = [
     label: "EXPENSE CONFIGURATION",
     items: [
       { title: "Documents", url: "/admin/documents", icon: FileText },
-      { title: "Expense Type", url: "/admin/expense-types", icon: DollarSign },
+      { title: "Expense Type", url: "/masters/expense-types", icon: DollarSign },
       { title: "Policy Management", url: "/admin/policy", icon: Scale },
     ],
   },

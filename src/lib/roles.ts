@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, FilePlus, FileText, Wallet, BookOpen,
   AlertTriangle, Search as SearchIcon, ClipboardCheck,
-  DollarSign, ShieldCheck, TrendingUp, Scale, Clock, FileSearch,
+  ShieldCheck, TrendingUp, Scale, Clock, FileSearch,
   Home, CheckSquare, BarChart3, Users, Eye, Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -159,7 +159,6 @@ const hoFinanceNav: NavGroup[] = [
   {
     label: "Master Data",
     items: [
-      { title: "Expense Types", url: "/masters/expense-types", icon: DollarSign },
       { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
     ],
   },
@@ -195,7 +194,6 @@ const sysAdminNav: NavGroup[] = [
     label: "Administration",
     items: [
       { title: "Admin Settings", url: "/admin", icon: Settings },
-      { title: "Expense Types", url: "/masters/expense-types", icon: DollarSign },
       { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
     ],
   },
