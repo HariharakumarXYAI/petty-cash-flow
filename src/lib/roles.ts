@@ -196,7 +196,6 @@ const sysAdminNav: NavGroup[] = [
     items: [
       { title: "Admin Settings", url: "/admin", icon: Settings },
       { title: "Expense Types", url: "/masters/expense-types", icon: DollarSign },
-      { title: "Stores & Floats", url: "/masters/stores", icon: Store },
       { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
     ],
   },

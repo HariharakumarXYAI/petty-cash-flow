@@ -17,7 +17,7 @@ const adminNavGroups = [
     items: [
       { title: "Branches", url: "/admin/branches", icon: GitBranch },
       { title: "Departments", url: "/admin/departments", icon: Layers },
-      { title: "Stores & Floats", url: "/admin/stores", icon: Store },
+      { title: "Stores & Floats", url: "/masters/stores", icon: Store },
     ],
   },
   {
