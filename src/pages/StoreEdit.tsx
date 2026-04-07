@@ -80,6 +80,10 @@ export default function StoreEdit() {
             <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai)</Label>
             <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} />
           </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">Legal Entity</Label>
+            <Input className="h-9" defaultValue={store.legalEntity} />
+          </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">Country</Label>
@@ -103,10 +107,6 @@ export default function StoreEdit() {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Legal Entity</Label>
-            <Input className="h-9" defaultValue={store.legalEntity} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">รหัส PP20</Label>
