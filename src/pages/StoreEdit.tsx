@@ -83,8 +83,8 @@ export default function StoreEdit() {
         <p className="section-label">Store Information</p>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai)</Label>
-            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} />
+            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai) <span className="text-destructive">*</span></Label>
+            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} required />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Legal Entity</Label>
@@ -92,8 +92,8 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">Type</Label>
-              <Select defaultValue={store.type}>
+              <Label className="text-sm">Type <span className="text-destructive">*</span></Label>
+              <Select defaultValue={store.type} required>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Hypermarket">Hypermarket</SelectItem>
@@ -103,17 +103,17 @@ export default function StoreEdit() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm">TAX ID</Label>
-              <Input className="h-9" placeholder="e.g. 0107536000382" />
+              <Label className="text-sm">TAX ID <span className="text-destructive">*</span></Label>
+              <Input className="h-9" placeholder="e.g. 0107536000382" required />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">รหัส PP20</Label>
-              <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" />
+              <Label className="text-sm">รหัส PP20 <span className="text-destructive">*</span></Label>
+              <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" required />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm">รหัส Fusion</Label>
+              <Label className="text-sm">รหัส Fusion <span className="text-destructive">*</span></Label>
               <Input className="h-9" readOnly placeholder="e.g. 010002" defaultValue="010001" />
             </div>
           </div>
