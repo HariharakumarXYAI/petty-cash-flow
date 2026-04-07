@@ -18,20 +18,26 @@ export default function StoreEdit() {
   const [pp20Code, setPp20Code] = useState("00002");
   const [houseNo, setHouseNo] = useState("34/54");
   const [moo, setMoo] = useState("1");
+  const [soi, setSoi] = useState("");
+  const [street, setStreet] = useState("");
   const [subDistrict, setSubDistrict] = useState("คลองเกลือ");
   const [district, setDistrict] = useState("ปากเกร็ด");
   const [province, setProvince] = useState("นนทบุรี");
+  const [postalCode, setPostalCode] = useState("");
 
   const composedAddress = useMemo(() => {
     const parts = [
       houseNo,
       moo ? `หมู่ที่ ${moo}` : "",
+      soi,
+      street,
       subDistrict ? `ต.${subDistrict}` : "",
       district ? `อ.${district}` : "",
       province ? `จ.${province}` : "",
+      postalCode,
     ].filter(Boolean);
     return parts.join(" ");
-  }, [houseNo, moo, subDistrict, district, province]);
+  }, [houseNo, moo, soi, street, subDistrict, district, province, postalCode]);
 
   if (!store) {
     return (
