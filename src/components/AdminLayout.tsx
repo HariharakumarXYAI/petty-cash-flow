@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Building2, ScanSearch, Users, ShieldCheck, FileText, DollarSign,
-  Scale, Mail, Bell, BarChart3, Settings,
+  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store,
 } from "lucide-react";
 
 const adminNavGroups = [
@@ -10,6 +10,14 @@ const adminNavGroups = [
     items: [
       { title: "Entities", url: "/admin/entities", icon: Building2 },
       { title: "OCR Validation Rules", url: "/admin/ocr-rules", icon: ScanSearch },
+    ],
+  },
+  {
+    label: "COMPANY INFORMATION",
+    items: [
+      { title: "Branches", url: "/admin/branches", icon: GitBranch },
+      { title: "Departments", url: "/admin/departments", icon: Layers },
+      { title: "Stores & Floats", url: "/admin/stores", icon: Store },
     ],
   },
   {

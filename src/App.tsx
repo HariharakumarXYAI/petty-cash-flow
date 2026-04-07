@@ -33,6 +33,9 @@ import PolicyPage from "./pages/admin/PolicyPage";
 import PendingInvoiceEmailPage from "./pages/admin/PendingInvoiceEmailPage";
 import PendingApprovalEmailPage from "./pages/admin/PendingApprovalEmailPage";
 import MonthEndReportPage from "./pages/admin/MonthEndReportPage";
+import BranchesPage from "./pages/admin/BranchesPage";
+import DepartmentsPage from "./pages/admin/DepartmentsPage";
+import AdminStoresPage from "./pages/admin/AdminStoresPage";
 
 const queryClient = new QueryClient();
 
@@ -85,6 +88,9 @@ const App = () => (
                       <Route path="/admin/access" element={<AdminAccess />} />
                       <Route path="/admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
                       <Route path="/admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
+                      <Route path="/admin/branches" element={<AdminLayout><BranchesPage /></AdminLayout>} />
+                      <Route path="/admin/departments" element={<AdminLayout><DepartmentsPage /></AdminLayout>} />
+                      <Route path="/admin/stores" element={<AdminLayout><AdminStoresPage /></AdminLayout>} />
                       <Route path="/admin/employees" element={<AdminLayout><EmployeesPage /></AdminLayout>} />
                       <Route path="/admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
                       <Route path="/admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
