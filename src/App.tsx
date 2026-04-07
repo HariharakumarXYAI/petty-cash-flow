@@ -16,6 +16,7 @@ import Investigations from "./pages/Investigations";
 import AuditPage from "./pages/AuditPage";
 import ExpenseTypes from "./pages/ExpenseTypes";
 import StoresPage from "./pages/StoresPage";
+import StoreEdit from "./pages/StoreEdit";
 import RulesPage from "./pages/RulesPage";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
