@@ -160,7 +160,6 @@ const hoFinanceNav: NavGroup[] = [
     label: "Master Data",
     items: [
       { title: "Expense Types", url: "/masters/expense-types", icon: DollarSign },
-      { title: "Stores & Floats", url: "/masters/stores", icon: Store },
       { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
     ],
   },
