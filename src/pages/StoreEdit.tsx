@@ -18,20 +18,26 @@ export default function StoreEdit() {
   const [pp20Code, setPp20Code] = useState("00002");
   const [houseNo, setHouseNo] = useState("34/54");
   const [moo, setMoo] = useState("1");
+  const [soi, setSoi] = useState("");
+  const [street, setStreet] = useState("");
   const [subDistrict, setSubDistrict] = useState("คลองเกลือ");
   const [district, setDistrict] = useState("ปากเกร็ด");
   const [province, setProvince] = useState("นนทบุรี");
+  const [postalCode, setPostalCode] = useState("");
 
   const composedAddress = useMemo(() => {
     const parts = [
       houseNo,
       moo ? `หมู่ที่ ${moo}` : "",
+      soi,
+      street,
       subDistrict ? `ต.${subDistrict}` : "",
       district ? `อ.${district}` : "",
       province ? `จ.${province}` : "",
+      postalCode,
     ].filter(Boolean);
     return parts.join(" ");
-  }, [houseNo, moo, subDistrict, district, province]);
+  }, [houseNo, moo, soi, street, subDistrict, district, province, postalCode]);
 
   if (!store) {
     return (
@@ -127,6 +133,14 @@ export default function StoreEdit() {
             </div>
           </div>
           <div className="space-y-1.5">
+            <Label className="text-sm">ตรอก/ซอย</Label>
+            <Input className="h-9" value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-sm">ถนน</Label>
+            <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
+          </div>
+          <div className="space-y-1.5">
             <Label className="text-sm">ตำบล/แขวง</Label>
             <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" />
           </div>
@@ -140,6 +154,12 @@ export default function StoreEdit() {
               <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
             </div>
             <div className="space-y-1.5">
+              <Label className="text-sm">รหัสไปรษณีย์</Label>
+              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
               <Label className="text-sm">Country</Label>
               <Select defaultValue={store.country}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
@@ -150,6 +170,7 @@ export default function StoreEdit() {
                 </SelectContent>
               </Select>
             </div>
+            <div />
           </div>
         </div>
       </div>
