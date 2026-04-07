@@ -103,8 +103,8 @@ export default function StoreEdit() {
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm">TAX ID</Label>
-              <Input className="h-9" placeholder="e.g. 0107536000382" />
+              <Label className="text-sm">TAX ID <span className="text-destructive">*</span></Label>
+              <Input className="h-9" placeholder="e.g. 0107536000382" required />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
