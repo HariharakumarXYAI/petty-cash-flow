@@ -96,7 +96,10 @@ export default function StoreEdit() {
                 </SelectContent>
               </Select>
             </div>
-            <div />
+            <div className="space-y-1.5">
+              <Label className="text-sm">TAX ID</Label>
+              <Input className="h-9" placeholder="e.g. 0107536000382" />
+            </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
