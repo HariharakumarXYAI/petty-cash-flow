@@ -33,6 +33,9 @@ import PolicyPage from "./pages/admin/PolicyPage";
 import PendingInvoiceEmailPage from "./pages/admin/PendingInvoiceEmailPage";
 import PendingApprovalEmailPage from "./pages/admin/PendingApprovalEmailPage";
 import MonthEndReportPage from "./pages/admin/MonthEndReportPage";
+import BranchesPage from "./pages/admin/BranchesPage";
+import DepartmentsPage from "./pages/admin/DepartmentsPage";
+import AdminStoresPage from "./pages/admin/AdminStoresPage";
 
 const queryClient = new QueryClient();
 
