@@ -77,10 +77,6 @@ export default function StoreEdit() {
         <p className="section-label">Store Information</p>
         <div className="space-y-3">
           <div className="space-y-1.5">
-            <Label className="text-sm">Store Name</Label>
-            <Input className="h-9" defaultValue={store.name} />
-          </div>
-          <div className="space-y-1.5">
             <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai)</Label>
             <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} />
           </div>
