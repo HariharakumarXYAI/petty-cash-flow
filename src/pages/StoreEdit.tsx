@@ -109,7 +109,7 @@ export default function StoreEdit() {
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label className="text-sm">รหัส PP20 <span className="text-destructive">*</span></Label>
+              <Label className="text-sm">Branch Code <span className="text-destructive">*</span></Label>
               <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" required />
             </div>
             <div className="space-y-1.5">
