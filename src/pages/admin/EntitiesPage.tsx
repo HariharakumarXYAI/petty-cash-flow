@@ -296,10 +296,6 @@ export default function EntitiesPage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>LOA Table Reference</Label>
-              <Input value={form.loaRef} readOnly className="bg-muted cursor-not-allowed" placeholder="Auto-filled from Business Group" />
-            </div>
 
             <div className="space-y-1.5">
               <Label>Default Currency <span className="text-destructive">*</span></Label>
@@ -315,78 +311,6 @@ export default function EntitiesPage() {
             </div>
           </div>
 
-          {/* SECTION 3 — Approval Authority */}
-          <div className="space-y-4 pt-2">
-            <h3 className="text-sm font-semibold text-foreground border-b pb-1">Approval Authority</h3>
-
-            <div className="space-y-1.5">
-              <Label>Ultimate Approver</Label>
-              <div className="relative">
-                {form.ultimateApprover ? (
-                  <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2 text-sm">
-                    <span>{getEmployeeName(form.ultimateApprover)}</span>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => updateField("ultimateApprover", "")}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      value={employeeSearch}
-                      onChange={(e) => setEmployeeSearch(e.target.value)}
-                      placeholder="Search employee..."
-                      className="pl-9"
-                    />
-                    {employeeSearch && (
-                      <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md max-h-40 overflow-y-auto">
-                        {filteredEmployees(employeeSearch).map((emp) => (
-                          <button key={emp.id} className="w-full text-left px-3 py-2 text-sm hover:bg-accent" onClick={() => { updateField("ultimateApprover", emp.id); setEmployeeSearch(""); }}>
-                            {emp.name} <span className="text-muted-foreground">({emp.id})</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">Fallback approver when no one in chain has sufficient limit</p>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label>Finance Controller / CFO</Label>
-              <div className="relative">
-                {form.financeController ? (
-                  <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2 text-sm">
-                    <span>{getEmployeeName(form.financeController)}</span>
-                    <Button variant="ghost" size="icon" className="h-5 w-5 ml-auto" onClick={() => updateField("financeController", "")}>
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                ) : (
-                  <>
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      value={cfoSearch}
-                      onChange={(e) => setCfoSearch(e.target.value)}
-                      placeholder="Search employee..."
-                      className="pl-9"
-                    />
-                    {cfoSearch && (
-                      <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md max-h-40 overflow-y-auto">
-                        {filteredEmployees(cfoSearch).map((emp) => (
-                          <button key={emp.id} className="w-full text-left px-3 py-2 text-sm hover:bg-accent" onClick={() => { updateField("financeController", emp.id); setCfoSearch(""); }}>
-                            {emp.name} <span className="text-muted-foreground">({emp.id})</span>
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">Required co-signer for Over Budget and Tax Penalty items per LOA policy</p>
-            </div>
-          </div>
 
           <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
