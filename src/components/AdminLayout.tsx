@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Building2, ScanSearch, Users, ShieldCheck, FileText, DollarSign,
-  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store,
+  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store, Boxes,
 } from "lucide-react";
 
 const adminNavGroups = [

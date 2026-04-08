@@ -111,7 +111,7 @@ export default function BusinessUnitsPage() {
     } else {
       setData((prev) => [
         ...prev,
-        { id: crypto.randomUUID(), ...form },
+        { id: crypto.randomUUID(), ...form } as BusinessUnit,
       ]);
     }
     setDialogOpen(false);
