@@ -296,10 +296,6 @@ export default function EntitiesPage() {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>LOA Table Reference</Label>
-              <Input value={form.loaRef} readOnly className="bg-muted cursor-not-allowed" placeholder="Auto-filled from Business Group" />
-            </div>
 
             <div className="space-y-1.5">
               <Label>Default Currency <span className="text-destructive">*</span></Label>
