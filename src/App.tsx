@@ -38,6 +38,7 @@ import MonthEndReportPage from "./pages/admin/MonthEndReportPage";
 import BranchesPage from "./pages/admin/BranchesPage";
 import DepartmentsPage from "./pages/admin/DepartmentsPage";
 import AdminStoresPage from "./pages/admin/AdminStoresPage";
+import BusinessUnitsPage from "./pages/admin/BusinessUnitsPage";
 
 const queryClient = new QueryClient();
 
