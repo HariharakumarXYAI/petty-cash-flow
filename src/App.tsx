@@ -25,6 +25,7 @@ import Login from "./pages/Login";
 import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
 import EntitiesPage from "./pages/admin/EntitiesPage";
+import EntityDetailPage from "./pages/admin/EntityDetailPage";
 import OcrRulesPage from "./pages/admin/OcrRulesPage";
 import EmployeesPage from "./pages/admin/EmployeesPage";
 import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
