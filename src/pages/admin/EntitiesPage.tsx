@@ -291,7 +291,7 @@ export default function EntitiesPage() {
                   const v = e.target.value.replace(/\D/g, "").slice(0, 5);
                   updateField("oracleCode", v);
                 }} placeholder="e.g. 10001" maxLength={5} className="font-mono" />
-                <p className="text-xs text-muted-foreground">Must match Oracle Fusion COA Segment 1</p>
+                
                 {errors.oracleCode && <p className="text-xs text-destructive">{errors.oracleCode}</p>}
               </div>
             </div>
