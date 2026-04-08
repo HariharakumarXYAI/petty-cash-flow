@@ -61,9 +61,9 @@ const initialData: BusinessUnit[] = [
   },
 ];
 
-const emptyForm = {
+const emptyForm: Omit<BusinessUnit, "id"> = {
   buCode: "", buNameTH: "", buNameEN: "", entity: "CPA001",
-  buType: "Wholesale" as BUType, lobCode: "", status: "Active" as const,
+  buType: "Wholesale", lobCode: "", status: "Active",
 };
 
 export default function BusinessUnitsPage() {
