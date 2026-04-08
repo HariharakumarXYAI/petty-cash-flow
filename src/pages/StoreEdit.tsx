@@ -113,7 +113,7 @@ export default function StoreEdit() {
               <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" required />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm">รหัส Fusion <span className="text-destructive">*</span></Label>
+              <Label className="text-sm">Branch Accounting Code <span className="text-destructive">*</span></Label>
               <Input className="h-9" readOnly placeholder="e.g. 010002" defaultValue="010001" />
             </div>
           </div>
