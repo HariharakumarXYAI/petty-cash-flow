@@ -6,10 +6,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Eye, Pencil, Ban, Search } from "lucide-react";
 
+const bgColors: Record<string, string> = {
+  Wholesale: "bg-blue-100 text-blue-700 border-blue-200",
+  Retail: "bg-green-100 text-green-700 border-green-200",
+  "Food Service": "bg-amber-100 text-amber-700 border-amber-200",
+  Other: "bg-gray-100 text-gray-600 border-gray-200",
+};
+
 const mockEntities = [
-  { code: "CPA001", name: "บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)", taxId: "0105500000001", branch: "สำนักงานใหญ่", start: "2026-01-01", end: "2030-12-31", status: "Active" },
-  { code: "MKR002", name: "บริษัท แม็คโคร จำกัด (มหาชน)", taxId: "0105500000002", branch: "สำนักงานใหญ่", start: "2026-01-01", end: "2030-12-31", status: "Active" },
-  { code: "DEM003", name: "บริษัท เดโม จำกัด", taxId: "0105500000003", branch: "สาขา", start: "2025-06-01", end: "2026-12-31", status: "Inactive" },
+  { code: "CPA001", name: "บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)", nameEn: "CP Axtra Public Company Limited", businessGroup: "Wholesale", oracleCode: "10001", taxId: "0105500000001", entityType: "สำนักงานใหญ่", start: "2026-01-01", end: "2030-12-31", status: "Active" },
+  { code: "MKR002", name: "บริษัท แม็คโคร จำกัด (มหาชน)", nameEn: "Makro Public Company Limited", businessGroup: "Wholesale", oracleCode: "10002", taxId: "0105500000002", entityType: "สำนักงานใหญ่", start: "2026-01-01", end: "2030-12-31", status: "Active" },
+  { code: "DEM003", name: "บริษัท เดโม จำกัด", nameEn: "Demo Company Limited", businessGroup: "Retail", oracleCode: "13000", taxId: "0105500000003", entityType: "สาขา", start: "2025-06-01", end: "2026-12-31", status: "Inactive" },
 ];
 
 export default function EntitiesPage() {
@@ -18,7 +25,7 @@ export default function EntitiesPage() {
 
   const filtered = mockEntities.filter((e) => {
     if (statusFilter !== "all" && e.status.toLowerCase() !== statusFilter) return false;
-    if (search && !e.name.includes(search) && !e.code.toLowerCase().includes(search.toLowerCase()) && !e.taxId.includes(search)) return false;
+    if (search && !e.name.includes(search) && !e.nameEn.toLowerCase().includes(search.toLowerCase()) && !e.code.toLowerCase().includes(search.toLowerCase()) && !e.taxId.includes(search) && !e.oracleCode.includes(search)) return false;
     return true;
   });
 
@@ -53,12 +60,13 @@ export default function EntitiesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Company Code</TableHead>
+              <TableHead>Entity Code</TableHead>
               <TableHead>Legal Entity Name (TH)</TableHead>
+              <TableHead>Legal Entity Name (EN)</TableHead>
+              <TableHead>Business Group</TableHead>
+              <TableHead>Oracle Code</TableHead>
               <TableHead>Primary Tax ID</TableHead>
-              <TableHead>Branch Type</TableHead>
               <TableHead>Effective Start</TableHead>
-              <TableHead>Effective End</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -68,10 +76,17 @@ export default function EntitiesPage() {
               <TableRow key={e.code}>
                 <TableCell className="font-medium">{e.code}</TableCell>
                 <TableCell>{e.name}</TableCell>
+                <TableCell className="text-muted-foreground">{e.nameEn}</TableCell>
+                <TableCell>
+                  <Badge variant="outline" className={bgColors[e.businessGroup] || bgColors.Other}>
+                    {e.businessGroup}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="inline-block rounded bg-muted px-2 py-0.5 font-mono text-xs">{e.oracleCode}</span>
+                </TableCell>
                 <TableCell className="font-mono text-xs">{e.taxId}</TableCell>
-                <TableCell>{e.branch}</TableCell>
                 <TableCell>{e.start}</TableCell>
-                <TableCell>{e.end}</TableCell>
                 <TableCell>
                   <Badge variant={e.status === "Active" ? "default" : "secondary"} className={e.status === "Active" ? "bg-status-approved/10 text-status-approved border-status-approved/20" : ""}>
                     {e.status}
