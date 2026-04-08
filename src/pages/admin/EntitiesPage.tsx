@@ -67,6 +67,7 @@ const mockEntities = [
 ];
 
 export default function EntitiesPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
