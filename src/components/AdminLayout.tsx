@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Building2, ScanSearch, Users, ShieldCheck, FileText, DollarSign,
-  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store,
+  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store, Boxes,
 } from "lucide-react";
 
 const adminNavGroups = [
@@ -15,6 +15,7 @@ const adminNavGroups = [
   {
     label: "COMPANY INFORMATION",
     items: [
+      { title: "Business Units", url: "/admin/business-units", icon: Boxes },
       { title: "Branches", url: "/admin/branches", icon: GitBranch },
       { title: "Departments", url: "/admin/departments", icon: Layers },
       { title: "Stores & Floats", url: "/masters/stores", icon: Store },
