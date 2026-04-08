@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +67,7 @@ const mockEntities = [
 ];
 
 export default function EntitiesPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -198,7 +200,7 @@ export default function EntitiesPage() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/admin/entities/${e.code}`)}><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(i)}><Pencil className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Ban className="h-4 w-4" /></Button>
                   </div>
