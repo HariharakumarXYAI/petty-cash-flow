@@ -217,13 +217,6 @@ export default function EntitiesPage() {
           <DialogHeader>
             <DialogTitle>{editIndex !== null ? "Edit Company Identity" : "Add Company Identity"}</DialogTitle>
           </DialogHeader>
-
-          {/* Warning Banner */}
-          <div className="flex items-start gap-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800">
-            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0" />
-            <span>Oracle Company Code must exactly match Segment 1 in Oracle Fusion COA. Default for Makro Thailand is 10001.</span>
-          </div>
-
           {/* SECTION 1 — Basic Information */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-foreground border-b pb-1">Basic Information</h3>
