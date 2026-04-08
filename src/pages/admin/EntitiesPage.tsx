@@ -260,16 +260,6 @@ export default function EntitiesPage() {
               {errors.taxId && <p className="text-xs text-destructive">{errors.taxId}</p>}
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5">
-                <Label>Effective Start Date</Label>
-                <Input type="date" value={form.start} onChange={(e) => updateField("start", e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label>Effective End Date</Label>
-                <Input type="date" value={form.end} onChange={(e) => updateField("end", e.target.value)} />
-              </div>
-            </div>
 
             <div className="flex items-center gap-3">
               <Label>Status</Label>
