@@ -94,6 +94,7 @@ function AppRoutes() {
         <Route path="admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
         <Route path="admin/entities/:entityCode" element={<AdminLayout><EntityDetailPage /></AdminLayout>} />
         <Route path="admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
+        <Route path="admin/business-units" element={<AdminLayout><BusinessUnitsPage /></AdminLayout>} />
         <Route path="admin/branches" element={<AdminLayout><BranchesPage /></AdminLayout>} />
         <Route path="admin/departments" element={<AdminLayout><DepartmentsPage /></AdminLayout>} />
         <Route path="admin/stores" element={<AdminLayout><AdminStoresPage /></AdminLayout>} />
