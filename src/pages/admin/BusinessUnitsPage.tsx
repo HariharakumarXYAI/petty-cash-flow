@@ -1,32 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { format } from "date-fns";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
-} from "@/components/ui/dialog";
+  Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter,
+} from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
 import {
   Plus, Search, Eye, Pencil, Ban, Boxes, TrendingUp, Store, Building2,
+  CalendarIcon, Info,
 } from "lucide-react";
 
-type BUType = "Wholesale" | "Retail" | "DC" | "HQ" | "Food Service";
+type BUType = "Wholesale" | "Retail" | "DC" | "HQ" | "Food Service" | "Property-Mall" | "International";
 
 interface BusinessUnit {
   id: string;
   buCode: string;
   buNameTH: string;
   buNameEN: string;
+  description: string;
   entity: string;
   buType: BUType;
   lobCode: string;
+  loaTableRef: string;
+  areaManagerAllowed: boolean;
+  effectiveStart: string;
+  effectiveEnd: string;
   status: "Active" | "Inactive";
 }
 
@@ -36,42 +49,78 @@ const buTypeBadgeClass: Record<BUType, string> = {
   DC: "bg-amber-100 text-amber-700 border-amber-200",
   HQ: "bg-purple-100 text-purple-700 border-purple-200",
   "Food Service": "bg-orange-100 text-orange-700 border-orange-200",
+  "Property-Mall": "bg-pink-100 text-pink-700 border-pink-200",
+  International: "bg-cyan-100 text-cyan-700 border-cyan-200",
+};
+
+const entityOptions = [
+  { code: "CPA001", name: "บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)", oracleCode: "10001" },
+  { code: "MKR002", name: "บริษัท แม็คโคร จำกัด", oracleCode: "10002" },
+  { code: "DEM003", name: "บริษัท เดโม จำกัด", oracleCode: "13000" },
+];
+
+const lobDefaults: Record<string, string> = {
+  Wholesale: "1001",
+  Retail: "2001",
+  "Property-Mall": "3001",
+  HQ: "9999",
+  DC: "9999",
+  "Food Service": "9999",
+  International: "9999",
+};
+
+const loaTableDefaults: Record<string, string> = {
+  Wholesale: "LOA ตาราง 1 (Wholesale)",
+  Retail: "LOA ตาราง 1 (Retail)",
+  DC: "LOA ตาราง 2 (DC)",
+  HQ: "LOA ตาราง 3 (HQ)",
+  "Food Service": "LOA ตาราง 2 (Food Service)",
+  "Property-Mall": "LOA ตาราง 4 (Property-Mall)",
+  International: "LOA ตาราง 5 (International)",
 };
 
 const initialData: BusinessUnit[] = [
   {
     id: "1", buCode: "WS-MK-TH", buNameTH: "แม็คโคร ประเทศไทย",
-    buNameEN: "Makro Thailand", entity: "CPA001", buType: "Wholesale",
-    lobCode: "1001", status: "Active",
+    buNameEN: "Makro Thailand", description: "", entity: "CPA001",
+    buType: "Wholesale", lobCode: "1001", loaTableRef: "LOA ตาราง 1 (Wholesale)",
+    areaManagerAllowed: true, effectiveStart: "2024-01-01", effectiveEnd: "", status: "Active",
   },
   {
     id: "2", buCode: "RT-LT-TH", buNameTH: "โลตัส ประเทศไทย",
-    buNameEN: "Lotus Thailand", entity: "CPA001", buType: "Retail",
-    lobCode: "2001", status: "Active",
+    buNameEN: "Lotus Thailand", description: "", entity: "CPA001",
+    buType: "Retail", lobCode: "2001", loaTableRef: "LOA ตาราง 1 (Retail)",
+    areaManagerAllowed: false, effectiveStart: "2024-01-01", effectiveEnd: "", status: "Active",
   },
   {
     id: "3", buCode: "DC-MK-TH", buNameTH: "แม็คโคร ศูนย์กระจายสินค้า",
-    buNameEN: "Makro DC Thailand", entity: "CPA001", buType: "DC",
-    lobCode: "1001", status: "Active",
+    buNameEN: "Makro DC Thailand", description: "", entity: "CPA001",
+    buType: "DC", lobCode: "1001", loaTableRef: "LOA ตาราง 2 (DC)",
+    areaManagerAllowed: false, effectiveStart: "2024-01-01", effectiveEnd: "", status: "Active",
   },
   {
     id: "4", buCode: "HQ-CP", buNameTH: "ซีพี แอ็กซ์ตร้า สำนักงานใหญ่",
-    buNameEN: "CP Axtra HQ", entity: "CPA001", buType: "HQ",
-    lobCode: "9999", status: "Active",
+    buNameEN: "CP Axtra HQ", description: "", entity: "CPA001",
+    buType: "HQ", lobCode: "9999", loaTableRef: "LOA ตาราง 3 (HQ)",
+    areaManagerAllowed: false, effectiveStart: "2024-01-01", effectiveEnd: "", status: "Active",
   },
 ];
 
-const emptyForm: Omit<BusinessUnit, "id"> = {
-  buCode: "", buNameTH: "", buNameEN: "", entity: "CPA001",
-  buType: "Wholesale", lobCode: "", status: "Active",
+type FormState = Omit<BusinessUnit, "id">;
+
+const emptyForm: FormState = {
+  buCode: "", buNameTH: "", buNameEN: "", description: "",
+  entity: "CPA001", buType: "Wholesale", lobCode: "1001",
+  loaTableRef: "LOA ตาราง 1 (Wholesale)", areaManagerAllowed: true,
+  effectiveStart: "", effectiveEnd: "", status: "Active",
 };
 
 export default function BusinessUnitsPage() {
   const [data, setData] = useState<BusinessUnit[]>(initialData);
   const [search, setSearch] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<FormState>(emptyForm);
 
   const filtered = data.filter(
     (bu) =>
@@ -87,20 +136,39 @@ export default function BusinessUnitsPage() {
     retail: data.filter((b) => b.buType === "Retail").length,
   };
 
+  // Auto-fill logic when BU Type changes
+  useEffect(() => {
+    const lob = lobDefaults[form.buType] || "9999";
+    const loa = loaTableDefaults[form.buType] || "";
+    const areaManager = form.buType === "Wholesale";
+    setForm((prev) => ({
+      ...prev,
+      lobCode: lob,
+      loaTableRef: loa,
+      areaManagerAllowed: areaManager,
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.buType]);
+
+  const oracleCode = entityOptions.find((e) => e.code === form.entity)?.oracleCode || "—";
+
   const openAdd = () => {
     setEditingId(null);
     setForm(emptyForm);
-    setDialogOpen(true);
+    setSheetOpen(true);
   };
 
   const openEdit = (bu: BusinessUnit) => {
     setEditingId(bu.id);
     setForm({
       buCode: bu.buCode, buNameTH: bu.buNameTH, buNameEN: bu.buNameEN,
-      entity: bu.entity, buType: bu.buType, lobCode: bu.lobCode,
+      description: bu.description, entity: bu.entity, buType: bu.buType,
+      lobCode: bu.lobCode, loaTableRef: bu.loaTableRef,
+      areaManagerAllowed: bu.areaManagerAllowed,
+      effectiveStart: bu.effectiveStart, effectiveEnd: bu.effectiveEnd,
       status: bu.status,
     });
-    setDialogOpen(true);
+    setSheetOpen(true);
   };
 
   const handleSave = () => {
@@ -114,7 +182,7 @@ export default function BusinessUnitsPage() {
         { id: crypto.randomUUID(), ...form } as BusinessUnit,
       ]);
     }
-    setDialogOpen(false);
+    setSheetOpen(false);
   };
 
   const toggleStatus = (id: string) => {
@@ -236,66 +304,216 @@ export default function BusinessUnitsPage() {
         </CardContent>
       </Card>
 
-      {/* Add / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Business Unit" : "Add Business Unit"}</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-2">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>BU Code *</Label>
-                <Input value={form.buCode} onChange={(e) => setForm({ ...form, buCode: e.target.value })} />
-              </div>
-              <div>
-                <Label>LOB Code</Label>
-                <Input value={form.lobCode} onChange={(e) => setForm({ ...form, lobCode: e.target.value })} />
-              </div>
-            </div>
+      {/* Add / Edit Sheet (Side Panel) */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent className="w-[520px] sm:max-w-[520px] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{editingId ? "Edit Business Unit" : "Add Business Unit"}</SheetTitle>
+          </SheetHeader>
+
+          <div className="space-y-6 py-4">
+            {/* SECTION 1 — Basic Information */}
             <div>
-              <Label>BU Name (TH)</Label>
-              <Input value={form.buNameTH} onChange={(e) => setForm({ ...form, buNameTH: e.target.value })} />
-            </div>
-            <div>
-              <Label>BU Name (EN)</Label>
-              <Input value={form.buNameEN} onChange={(e) => setForm({ ...form, buNameEN: e.target.value })} />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Entity</Label>
-                <Select value={form.entity} onValueChange={(v) => setForm({ ...form, entity: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CPA001">CPA001 — CP Axtra</SelectItem>
-                    <SelectItem value="MKR002">MKR002 — Makro</SelectItem>
-                    <SelectItem value="DEM003">DEM003 — Demo</SelectItem>
-                  </SelectContent>
-                </Select>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Basic Information</h3>
+              <div className="space-y-3">
+                <div>
+                  <Label>BU Code *</Label>
+                  <Input
+                    value={form.buCode}
+                    onChange={(e) => setForm({ ...form, buCode: e.target.value.toUpperCase() })}
+                    placeholder="e.g. WS-MK-TH"
+                  />
+                  <p className="text-[11px] text-muted-foreground mt-1">Unique code for this business unit</p>
+                </div>
+                <div>
+                  <Label>BU Name (TH) *</Label>
+                  <Input
+                    value={form.buNameTH}
+                    onChange={(e) => setForm({ ...form, buNameTH: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>BU Name (EN) *</Label>
+                  <Input
+                    value={form.buNameEN}
+                    onChange={(e) => setForm({ ...form, buNameEN: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Description</Label>
+                  <Textarea
+                    value={form.description}
+                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                    placeholder="Optional description..."
+                    rows={2}
+                  />
+                </div>
               </div>
-              <div>
-                <Label>BU Type</Label>
-                <Select value={form.buType} onValueChange={(v) => setForm({ ...form, buType: v as BUType })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Wholesale">Wholesale</SelectItem>
-                    <SelectItem value="Retail">Retail</SelectItem>
-                    <SelectItem value="DC">DC (Distribution Center)</SelectItem>
-                    <SelectItem value="HQ">HQ / Head Office</SelectItem>
-                    <SelectItem value="Food Service">Food Service</SelectItem>
-                  </SelectContent>
-                </Select>
+            </div>
+
+            <Separator />
+
+            {/* SECTION 2 — Classification */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Classification</h3>
+              <div className="space-y-3">
+                <div>
+                  <Label>Parent Entity *</Label>
+                  <Select value={form.entity} onValueChange={(v) => setForm({ ...form, entity: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {entityOptions.map((e) => (
+                        <SelectItem key={e.code} value={e.code}>
+                          {e.code} — {e.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">Oracle Company Code (from Entity)</Label>
+                  <Input value={oracleCode} readOnly className="font-mono bg-muted/50" />
+                </div>
+                <div>
+                  <Label>BU Type *</Label>
+                  <Select value={form.buType} onValueChange={(v) => setForm({ ...form, buType: v as BUType })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Wholesale">Wholesale</SelectItem>
+                      <SelectItem value="Retail">Retail</SelectItem>
+                      <SelectItem value="DC">DC (Distribution Center)</SelectItem>
+                      <SelectItem value="HQ">HQ / Head Office</SelectItem>
+                      <SelectItem value="Food Service">Food Service</SelectItem>
+                      <SelectItem value="Property-Mall">Property-Mall</SelectItem>
+                      <SelectItem value="International">International</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-muted-foreground text-xs">LOA Table Reference (auto)</Label>
+                  <Input value={form.loaTableRef} readOnly className="bg-muted/50 text-sm" />
+                </div>
+                <div className="flex items-center justify-between rounded-md border p-3">
+                  <div>
+                    <Label className="text-sm">Area Manager Role Allowed</Label>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">
+                      Per LOA policy — Wholesale only
+                    </p>
+                  </div>
+                  <Switch
+                    checked={form.areaManagerAllowed}
+                    onCheckedChange={(v) => setForm({ ...form, areaManagerAllowed: v })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* SECTION 3 — Oracle Accounting (read-only) */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Oracle Accounting</h3>
+              <div className="rounded-lg border bg-muted/30 p-4 space-y-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <Info className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Oracle Fusion — Auto Values</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground text-xs">Oracle Company Code</span>
+                    <p className="font-mono font-medium text-foreground">{oracleCode}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">LOB Default</span>
+                    <p className="font-mono font-medium text-foreground">{form.lobCode}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">Channel Default</span>
+                    <p className="font-mono font-medium text-foreground">9999</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">Local Default</span>
+                    <p className="font-mono font-medium text-foreground">9999</p>
+                  </div>
+                </div>
+                <p className="text-[11px] text-muted-foreground pt-2 border-t border-border/50">
+                  These values auto-populate COA segments when employees under this BU submit expenses
+                </p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* SECTION 4 — Validity */}
+            <div>
+              <h3 className="text-sm font-semibold text-foreground mb-3">Validity</h3>
+              <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Effective Start Date *</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.effectiveStart && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {form.effectiveStart ? format(new Date(form.effectiveStart), "dd/MM/yyyy") : "Select date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={form.effectiveStart ? new Date(form.effectiveStart) : undefined}
+                          onSelect={(d) => setForm({ ...form, effectiveStart: d ? format(d, "yyyy-MM-dd") : "" })}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                  <div>
+                    <Label>Effective End Date</Label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !form.effectiveEnd && "text-muted-foreground")}>
+                          <CalendarIcon className="mr-2 h-4 w-4" />
+                          {form.effectiveEnd ? format(new Date(form.effectiveEnd), "dd/MM/yyyy") : "No end date"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={form.effectiveEnd ? new Date(form.effectiveEnd) : undefined}
+                          onSelect={(d) => setForm({ ...form, effectiveEnd: d ? format(d, "yyyy-MM-dd") : "" })}
+                          initialFocus
+                          className={cn("p-3 pointer-events-auto")}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between rounded-md border p-3">
+                  <Label className="text-sm">Status</Label>
+                  <div className="flex items-center gap-2">
+                    <span className={cn("text-xs font-medium", form.status === "Active" ? "text-status-approved" : "text-muted-foreground")}>
+                      {form.status}
+                    </span>
+                    <Switch
+                      checked={form.status === "Active"}
+                      onCheckedChange={(v) => setForm({ ...form, status: v ? "Active" : "Inactive" })}
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+
+          <SheetFooter className="pt-4 border-t gap-2">
+            <Button variant="outline" onClick={() => setSheetOpen(false)}>Cancel</Button>
             <Button variant="destructive" onClick={handleSave}>
-              {editingId ? "Save Changes" : "Add Business Unit"}
+              {editingId ? "Save Changes" : "Save Business Unit"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
