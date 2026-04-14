@@ -183,20 +183,25 @@ export default function StoreEdit() {
 
       {/* Store Information */}
       <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <p className="section-label">Store Information</p>
+        <div className="flex items-center justify-between">
+          <p className="section-label">Store Information</p>
+          {isInfoReadOnly && (
+            <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">Read-only for your role</span>
+          )}
+        </div>
         <div className="space-y-3">
           <div className="space-y-1.5">
             <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai) <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} required />
+            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">Legal Entity</Label>
-            <Input className="h-9" defaultValue={store.legalEntity} />
+            <Input className="h-9" defaultValue={store.legalEntity} readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">Type <span className="text-destructive">*</span></Label>
-              <Select defaultValue={store.type} required>
+              <Select defaultValue={store.type} required disabled={isInfoReadOnly}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="Hypermarket">Hypermarket</SelectItem>
@@ -218,6 +223,8 @@ export default function StoreEdit() {
                 }}
                 maxLength={13}
                 required
+                readOnly={isInfoReadOnly}
+                disabled={isInfoReadOnly}
               />
               {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
             </div>
@@ -225,11 +232,11 @@ export default function StoreEdit() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">Branch Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" required />
+              <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">Branch Accounting Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} required />
+              <Input className="h-9" value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -240,43 +247,43 @@ export default function StoreEdit() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">เลขที่ <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" required />
+              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">หมู่</Label>
-              <Input className="h-9" value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" />
+              <Input className="h-9" value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
             </div>
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">ตรอก/ซอย</Label>
-            <Input className="h-9" value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
+            <Input className="h-9" value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">ถนน</Label>
-            <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
+            <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">ตำบล/แขวง <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required />
+            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
           </div>
           <div className="space-y-1.5">
             <Label className="text-sm">อำเภอ/เขต <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" required />
+            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">จังหวัด <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" required />
+              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">รหัสไปรษณีย์ <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} required />
+              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label className="text-sm">Country <span className="text-destructive">*</span></Label>
-              <Select defaultValue={store.country} required>
+              <Select defaultValue={store.country} required disabled={isInfoReadOnly}>
                 <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="TH">Thailand</SelectItem>
