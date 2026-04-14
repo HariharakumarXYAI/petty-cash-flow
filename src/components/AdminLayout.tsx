@@ -15,8 +15,6 @@ const adminNavGroups = [
   {
     label: "COMPANY INFORMATION",
     items: [
-      { title: "Business Units", url: "/admin/business-units", icon: Boxes },
-      { title: "Branches", url: "/admin/branches", icon: GitBranch },
       { title: "Departments", url: "/admin/departments", icon: Layers },
       { title: "Stores & Petty Cash Fund", url: "/masters/stores", icon: Store },
     ],
