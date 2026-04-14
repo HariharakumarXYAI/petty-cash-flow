@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 
 export default function StoresPage() {
   const { country } = useGlobalFilter();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
@@ -32,7 +33,9 @@ export default function StoresPage() {
             )}
           </p>
         </div>
-        <Button size="sm"><Plus className="h-3.5 w-3.5 mr-1.5" />Add Store</Button>
+        {user?.role === "system_admin" && (
+          <Button size="sm" onClick={() => navigate("/masters/stores/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />Add Store</Button>
+        )}
       </div>
 
       <div className="relative max-w-xs">
