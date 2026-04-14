@@ -380,7 +380,7 @@ export default function Dashboard() {
                     </div>
                     <div className="flex items-center justify-between text-[10px] text-muted-foreground">
                       <span className="tabular-nums font-medium text-foreground">{s.currentBalance.toLocaleString()} {s.currency}</span>
-                      <span>Min: {s.minBalance.toLocaleString()} · Float: {s.floatLimit.toLocaleString()}</span>
+                      <span>Min: {s.minBalance.toLocaleString()} · Fund: {s.floatLimit.toLocaleString()}</span>
                     </div>
                   </div>
                 );

@@ -23,7 +23,7 @@ export default function StoresPage() {
     <div className="space-y-5">
       <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Stores & Float Limits</h1>
+          <h1 className="text-2xl font-bold text-foreground">Stores & Petty Cash Fund Limits</h1>
           <p className="text-sm text-muted-foreground">
             {filtered.length} stores configured
             {lowBalanceCount > 0 && (
@@ -46,11 +46,11 @@ export default function StoresPage() {
               <TableHead className="section-label w-[200px]">Store</TableHead>
               <TableHead className="section-label hidden md:table-cell">Type</TableHead>
               <TableHead className="section-label hidden lg:table-cell">Legal Entity</TableHead>
-              <TableHead className="section-label text-right">Float Limit</TableHead>
+              <TableHead className="section-label text-right">Fund Limit</TableHead>
               <TableHead className="section-label text-right hidden md:table-cell">Balance</TableHead>
               <TableHead className="section-label hidden lg:table-cell w-[140px]">Utilization</TableHead>
               <TableHead className="section-label text-right hidden xl:table-cell">Min Balance</TableHead>
-              <TableHead className="section-label text-right hidden xl:table-cell">Max Float</TableHead>
+              <TableHead className="section-label text-right hidden xl:table-cell">Max Fund</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

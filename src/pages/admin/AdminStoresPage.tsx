@@ -31,8 +31,8 @@ export default function AdminStoresPage() {
     <div>
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Stores & Floats</h1>
-          <p className="text-sm text-muted-foreground">Manage store locations and petty cash float allocations</p>
+          <h1 className="text-xl font-semibold text-foreground">Stores & Petty Cash Fund</h1>
+          <p className="text-sm text-muted-foreground">Manage store locations and petty cash fund allocations</p>
         </div>
         <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
           <Plus className="h-4 w-4 mr-1" /> Add Store
@@ -61,7 +61,7 @@ export default function AdminStoresPage() {
               <TableHead>Store Code</TableHead>
               <TableHead>Store Name</TableHead>
               <TableHead>Branch</TableHead>
-              <TableHead>Float Limit</TableHead>
+              <TableHead>Fund Limit</TableHead>
               <TableHead>Current Balance</TableHead>
               <TableHead>Utilization</TableHead>
               <TableHead>Active</TableHead>
