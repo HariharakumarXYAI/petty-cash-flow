@@ -155,7 +155,8 @@ export default function StoreEdit() {
     );
   }
 
-  const isLow = store.currentBalance <= store.minBalance * 1.3;
+  const isCritical = store.currentBalance <= store.minBalance;
+  const isWarning = !isCritical && store.currentBalance <= store.minBalance * 1.3;
 
   return (
     <div className="space-y-6 max-w-2xl">
@@ -170,8 +171,21 @@ export default function StoreEdit() {
         </div>
       </div>
 
-      {/* Low Balance Warning */}
-      {isLow && (
+      {/* Critical Balance Banner */}
+      {isCritical && (
+        <div className="flex items-start gap-2 rounded-md bg-destructive/5 border border-destructive/15 p-3">
+          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-destructive">Critical Balance</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Current balance ({store.currentBalance.toLocaleString()}) is below the minimum ({store.minBalance.toLocaleString()}). Immediate replenishment required.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Warning Balance Banner */}
+      {isWarning && (
         <div className="flex items-start gap-2 rounded-md bg-status-hold/5 border border-status-hold/15 p-3">
           <AlertTriangle className="h-4 w-4 text-status-hold mt-0.5 flex-shrink-0" />
           <div>
