@@ -120,13 +120,15 @@ export default function StoreEdit() {
 
   // --- Save handler ---
   const handleSave = () => {
-    // Fix 1: Tax ID validation (on save)
-    const digitsOnly = taxId.replace(/\D/g, "");
-    if (digitsOnly.length !== 13) {
-      setTaxIdError("Tax ID must be exactly 13 digits");
-      return;
+    // Fix 1: Tax ID validation (on save) — skip if field is read-only for this role
+    if (!isInfoReadOnly) {
+      const digitsOnly = taxId.replace(/\D/g, "");
+      if (digitsOnly.length !== 13) {
+        setTaxIdError("Tax ID must be exactly 13 digits");
+        return;
+      }
+      setTaxIdError("");
     }
-    setTaxIdError("");
 
     // Fix 3: All-zeros fund check
     if (pettyCashFund === 0 && maxFund === 0 && minBalance === 0 && replenishAt === 0) {
