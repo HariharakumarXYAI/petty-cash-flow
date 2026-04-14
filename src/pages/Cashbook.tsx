@@ -90,7 +90,7 @@ export default function Cashbook() {
           <div className="mt-5 space-y-2">
             <div className="flex items-center justify-between text-[10px] text-muted-foreground">
               <span>0</span>
-              <span>Float limit: {store.floatLimit.toLocaleString()}</span>
+              <span>Fund limit: {store.floatLimit.toLocaleString()}</span>
             </div>
             <div className="relative h-3 bg-muted rounded-full overflow-hidden">
               <div
@@ -119,7 +119,7 @@ export default function Cashbook() {
           {isOverMax && (
             <div className="mt-4 bg-status-validating/5 border border-status-validating/15 rounded-lg px-3 py-2 flex items-center gap-2">
               <AlertTriangle className="h-3.5 w-3.5 text-status-validating shrink-0" />
-              <p className="text-[11px] text-status-validating font-medium">Exceeds maximum float limit</p>
+              <p className="text-[11px] text-status-validating font-medium">Exceeds maximum petty cash fund limit</p>
             </div>
           )}
         </div>

@@ -179,17 +179,17 @@ export default function StoreEdit() {
 
       {/* Float Configuration */}
       <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <p className="section-label">Float Configuration</p>
+        <p className="section-label">Petty Cash Fund Configuration</p>
         <p className="text-xs text-muted-foreground">
-          Set the cash float range and replenishment trigger for this store.
+          Set the petty cash fund range and replenishment trigger for this store.
         </p>
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Petty Cash Float</Label>
+            <Label className="text-xs text-muted-foreground">Petty Cash Fund</Label>
             <Input className="h-9 tabular-nums" type="number" defaultValue={store.floatLimit} />
           </div>
           <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Maximum Float</Label>
+            <Label className="text-xs text-muted-foreground">Maximum Fund</Label>
             <Input className="h-9 tabular-nums" type="number" defaultValue={store.maxFloat} />
           </div>
           <div className="space-y-1">
@@ -206,7 +206,7 @@ export default function StoreEdit() {
         <div className="rounded-md bg-muted/50 p-3 space-y-1.5">
           <div className="flex justify-between text-[10px] text-muted-foreground">
             <span>Min: {store.minBalance.toLocaleString()}</span>
-            <span>Float: {store.floatLimit.toLocaleString()}</span>
+            <span>Fund: {store.floatLimit.toLocaleString()}</span>
             <span>Max: {store.maxFloat.toLocaleString()}</span>
           </div>
           <div className="relative h-2 rounded-full bg-muted overflow-hidden">
