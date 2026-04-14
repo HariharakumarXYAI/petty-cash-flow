@@ -60,12 +60,14 @@ export default function StoresPage() {
           <TableBody>
             {filtered.map((s) => {
               const utilPct = Math.round((s.currentBalance / s.floatLimit) * 100);
-              const isLow = s.currentBalance <= s.minBalance * 1.3;
+              const isCritical = s.currentBalance <= s.minBalance;
+              const isWarning = !isCritical && s.currentBalance <= s.minBalance * 1.3;
+              const isLow = isCritical || isWarning;
               return (
                 <TableRow key={s.id} className="data-table-row cursor-pointer" onClick={() => navigate(`/masters/stores/${s.id}/edit`)}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {isLow && <AlertTriangle className="h-3.5 w-3.5 text-status-hold flex-shrink-0" />}
+                      {isLow && <AlertTriangle className={`h-3.5 w-3.5 flex-shrink-0 ${isCritical ? "text-destructive" : "text-status-hold"}`} />}
                       <div>
                         <div className="text-sm font-medium">{s.name}</div>
                         <div className="text-[10px] text-muted-foreground">{s.country} · {s.currency}</div>
@@ -79,7 +81,7 @@ export default function StoresPage() {
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{s.legalEntity}</TableCell>
                   <TableCell className="text-sm font-medium text-right tabular-nums">{s.floatLimit.toLocaleString()}</TableCell>
-                  <TableCell className={`text-sm font-medium text-right tabular-nums hidden md:table-cell ${isLow ? "text-status-hold" : ""}`}>
+                  <TableCell className={`text-sm font-medium text-right tabular-nums hidden md:table-cell ${isCritical ? "text-destructive" : ""}`}>
                     {s.currentBalance.toLocaleString()}
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
@@ -87,7 +89,7 @@ export default function StoresPage() {
                       <div className="relative h-1.5 w-full rounded-full bg-muted overflow-hidden">
                         <div
                           className={`absolute inset-y-0 left-0 rounded-full transition-all ${
-                            isLow ? "bg-status-hold" : utilPct > 80 ? "bg-status-validating" : "bg-primary"
+                            isCritical ? "bg-destructive" : isWarning ? "bg-status-hold" : utilPct > 80 ? "bg-status-validating" : "bg-primary"
                           }`}
                           style={{ width: `${Math.min(utilPct, 100)}%` }}
                         />
@@ -97,7 +99,7 @@ export default function StoresPage() {
                         />
                       </div>
                       <div className="flex justify-between text-[10px]">
-                        <span className={isLow ? "text-status-hold font-medium" : "text-muted-foreground"}>{utilPct}%</span>
+                        <span className={isCritical ? "text-destructive font-medium" : isWarning ? "text-status-hold font-medium" : "text-muted-foreground"}>{utilPct}%</span>
                         <span className="text-muted-foreground">of {s.floatLimit.toLocaleString()}</span>
                       </div>
                     </div>
