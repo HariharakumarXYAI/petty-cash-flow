@@ -1,12 +1,21 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useCallback } from "react";
 import { stores } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
 
 export default function StoreEdit() {
@@ -14,16 +23,49 @@ export default function StoreEdit() {
   const navigate = useNavigate();
   const store = stores.find(s => s.id === storeId);
 
-  const [thaiName, setThaiName] = useState("แม็คโคร ลาดพร้าว");
-  const [pp20Code, setPp20Code] = useState("00002");
-  const [houseNo, setHouseNo] = useState("34/54");
-  const [moo, setMoo] = useState("1");
-  const [soi, setSoi] = useState("");
-  const [street, setStreet] = useState("");
-  const [subDistrict, setSubDistrict] = useState("คลองเกลือ");
-  const [district, setDistrict] = useState("ปากเกร็ด");
-  const [province, setProvince] = useState("นนทบุรี");
-  const [postalCode, setPostalCode] = useState("");
+  // --- Initial values (used for dirty check) ---
+  const initialValues = useRef({
+    thaiName: "แม็คโคร ลาดพร้าว",
+    pp20Code: "00002",
+    branchAcctCode: "010001",
+    taxId: "",
+    houseNo: "34/54",
+    moo: "1",
+    soi: "",
+    street: "",
+    subDistrict: "คลองเกลือ",
+    district: "ปากเกร็ด",
+    province: "นนทบุรี",
+    postalCode: "",
+    pettyCashFund: store?.floatLimit ?? 0,
+    maxFund: store?.maxFloat ?? 0,
+    minBalance: store?.minBalance ?? 0,
+    replenishAt: store?.replenishmentThreshold ?? 0,
+  });
+
+  const [thaiName, setThaiName] = useState(initialValues.current.thaiName);
+  const [pp20Code, setPp20Code] = useState(initialValues.current.pp20Code);
+  const [branchAcctCode, setBranchAcctCode] = useState(initialValues.current.branchAcctCode);
+  const [taxId, setTaxId] = useState(initialValues.current.taxId);
+  const [houseNo, setHouseNo] = useState(initialValues.current.houseNo);
+  const [moo, setMoo] = useState(initialValues.current.moo);
+  const [soi, setSoi] = useState(initialValues.current.soi);
+  const [street, setStreet] = useState(initialValues.current.street);
+  const [subDistrict, setSubDistrict] = useState(initialValues.current.subDistrict);
+  const [district, setDistrict] = useState(initialValues.current.district);
+  const [province, setProvince] = useState(initialValues.current.province);
+  const [postalCode, setPostalCode] = useState(initialValues.current.postalCode);
+
+  // Petty cash fund fields
+  const [pettyCashFund, setPettyCashFund] = useState(initialValues.current.pettyCashFund);
+  const [maxFund, setMaxFund] = useState(initialValues.current.maxFund);
+  const [minBalance, setMinBalance] = useState(initialValues.current.minBalance);
+  const [replenishAt, setReplenishAt] = useState(initialValues.current.replenishAt);
+
+  // Validation & dialog state
+  const [taxIdError, setTaxIdError] = useState("");
+  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
+  const [showZeroFundDialog, setShowZeroFundDialog] = useState(false);
 
   const composedAddress = useMemo(() => {
     const parts = [
@@ -38,6 +80,62 @@ export default function StoreEdit() {
     ].filter(Boolean);
     return parts.join(" ");
   }, [houseNo, moo, soi, street, subDistrict, district, province, postalCode]);
+
+  // --- Dirty check ---
+  const isDirty = useCallback(() => {
+    const iv = initialValues.current;
+    return (
+      thaiName !== iv.thaiName ||
+      pp20Code !== iv.pp20Code ||
+      branchAcctCode !== iv.branchAcctCode ||
+      taxId !== iv.taxId ||
+      houseNo !== iv.houseNo ||
+      moo !== iv.moo ||
+      soi !== iv.soi ||
+      street !== iv.street ||
+      subDistrict !== iv.subDistrict ||
+      district !== iv.district ||
+      province !== iv.province ||
+      postalCode !== iv.postalCode ||
+      pettyCashFund !== iv.pettyCashFund ||
+      maxFund !== iv.maxFund ||
+      minBalance !== iv.minBalance ||
+      replenishAt !== iv.replenishAt
+    );
+  }, [thaiName, pp20Code, branchAcctCode, taxId, houseNo, moo, soi, street, subDistrict, district, province, postalCode, pettyCashFund, maxFund, minBalance, replenishAt]);
+
+  // --- Back navigation with unsaved check ---
+  const handleBack = () => {
+    if (isDirty()) {
+      setShowUnsavedDialog(true);
+    } else {
+      navigate("/masters/stores");
+    }
+  };
+
+  // --- Save handler ---
+  const handleSave = () => {
+    // Fix 1: Tax ID validation (on save)
+    const digitsOnly = taxId.replace(/\D/g, "");
+    if (digitsOnly.length !== 13) {
+      setTaxIdError("Tax ID must be exactly 13 digits");
+      return;
+    }
+    setTaxIdError("");
+
+    // Fix 3: All-zeros fund check
+    if (pettyCashFund === 0 && maxFund === 0 && minBalance === 0 && replenishAt === 0) {
+      setShowZeroFundDialog(true);
+      return;
+    }
+
+    performSave();
+  };
+
+  const performSave = () => {
+    // Placeholder save logic
+    navigate("/masters/stores");
+  };
 
   if (!store) {
     return (
@@ -56,7 +154,7 @@ export default function StoreEdit() {
     <div className="space-y-6 max-w-2xl">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate("/masters/stores")}>
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <div>
@@ -104,7 +202,19 @@ export default function StoreEdit() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">TAX ID <span className="text-destructive">*</span></Label>
-              <Input className="h-9" placeholder="e.g. 0107536000382" required />
+              <Input
+                className={`h-9 ${taxIdError ? "border-destructive" : ""}`}
+                placeholder="e.g. 0107536000382"
+                value={taxId}
+                onChange={e => {
+                  const v = e.target.value.replace(/\D/g, "").slice(0, 13);
+                  setTaxId(v);
+                  if (taxIdError) setTaxIdError("");
+                }}
+                maxLength={13}
+                required
+              />
+              {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -114,7 +224,7 @@ export default function StoreEdit() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">Branch Accounting Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" placeholder="e.g. 010002" defaultValue="010001" maxLength={10} required />
+              <Input className="h-9" value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} required />
             </div>
           </div>
           <div className="space-y-1.5">
@@ -177,7 +287,7 @@ export default function StoreEdit() {
 
       <Separator />
 
-      {/* Float Configuration */}
+      {/* Petty Cash Fund Configuration */}
       <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
         <p className="section-label">Petty Cash Fund Configuration</p>
         <p className="text-xs text-muted-foreground">
@@ -186,19 +296,19 @@ export default function StoreEdit() {
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Petty Cash Fund</Label>
-            <Input className="h-9 tabular-nums" type="number" defaultValue={store.floatLimit} />
+            <Input className="h-9 tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Maximum Fund</Label>
-            <Input className="h-9 tabular-nums" type="number" defaultValue={store.maxFloat} />
+            <Input className="h-9 tabular-nums" type="number" value={maxFund} onChange={e => setMaxFund(Number(e.target.value))} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Minimum Balance</Label>
-            <Input className="h-9 tabular-nums" type="number" defaultValue={store.minBalance} />
+            <Input className="h-9 tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
           </div>
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Replenish At</Label>
-            <Input className="h-9 tabular-nums" type="number" defaultValue={store.replenishmentThreshold} />
+            <Input className="h-9 tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
           </div>
         </div>
 
@@ -229,10 +339,45 @@ export default function StoreEdit() {
         </div>
       </div>
 
-
       <div className="pb-6">
-        <Button className="w-full">Save Changes</Button>
+        <Button className="w-full" onClick={handleSave}>Save Changes</Button>
       </div>
+
+      {/* Fix 2: Unsaved changes confirmation */}
+      <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Unsaved Changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              Unsaved changes will be lost. Are you sure?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => navigate("/masters/stores")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Discard
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Fix 3: All-zeros fund confirmation */}
+      <AlertDialog open={showZeroFundDialog} onOpenChange={setShowZeroFundDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirm Zero Limits</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure? All petty cash fund limits are set to zero.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={performSave}>
+              Confirm
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
