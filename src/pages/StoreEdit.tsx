@@ -22,7 +22,11 @@ import { ArrowLeft, AlertTriangle } from "lucide-react";
 export default function StoreEdit() {
   const { storeId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const store = stores.find(s => s.id === storeId);
+
+  // HO Finance can only edit Petty Cash Fund section; everything else is read-only
+  const isInfoReadOnly = user?.role === "ho_finance";
 
   // --- Initial values (used for dirty check) ---
   const initialValues = useRef({
