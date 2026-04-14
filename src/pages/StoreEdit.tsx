@@ -323,6 +323,9 @@ export default function StoreEdit() {
           <div className="space-y-1">
             <Label className="text-xs text-muted-foreground">Replenish At</Label>
             <Input className="h-9 tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
+            {replenishAt > pettyCashFund && (
+              <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
+            )}
           </div>
         </div>
 
