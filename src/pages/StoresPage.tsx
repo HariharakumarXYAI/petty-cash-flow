@@ -1,5 +1,6 @@
 import { stores } from "@/lib/mock-data";
 import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
+import { useAuth } from "@/contexts/AuthContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Plus, Search, AlertTriangle } from "lucide-react";
