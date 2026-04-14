@@ -344,30 +344,47 @@ export default function StoreEdit() {
         </div>
 
         {/* Visual range */}
-        <div className="rounded-md bg-muted/50 p-3 space-y-1.5">
-          <div className="flex justify-between text-[10px] text-muted-foreground">
-            <span>Min: {store.minBalance.toLocaleString()}</span>
-            <span>Fund: {store.floatLimit.toLocaleString()}</span>
-            <span>Max: {store.maxFloat.toLocaleString()}</span>
+        {maxFund > 0 && (
+          <div className="rounded-md bg-muted/50 p-3 space-y-2">
+            <div className="flex justify-between text-[10px] text-muted-foreground">
+              <span>Min: {minBalance.toLocaleString()}</span>
+              <span>Petty Cash Fund: {pettyCashFund.toLocaleString()}</span>
+              <span>Max: {maxFund.toLocaleString()}</span>
+            </div>
+            <div className="relative h-2 rounded-full bg-border">
+              {/* Min Balance marker - amber */}
+              <div
+                className="absolute top-0 h-full w-0.5 bg-status-hold z-10"
+                style={{ left: `${Math.round((minBalance / maxFund) * 100)}%` }}
+              />
+              {/* Petty Cash Fund marker - green */}
+              <div
+                className="absolute top-0 h-full w-0.5 bg-status-approved z-10"
+                style={{ left: `${Math.round((pettyCashFund / maxFund) * 100)}%` }}
+              />
+              {/* Current balance triangle marker */}
+              {(() => {
+                const pos = Math.min(Math.round((store.currentBalance / maxFund) * 100), 100);
+                const markerColor = store.currentBalance <= minBalance
+                  ? "text-destructive"
+                  : store.currentBalance <= minBalance * 1.3
+                    ? "text-status-hold"
+                    : "text-primary";
+                return (
+                  <div
+                    className={`absolute -bottom-3 ${markerColor} text-[10px] leading-none z-20`}
+                    style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
+                  >
+                    ▲
+                  </div>
+                );
+              })()}
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-3">
+              Current balance: <span className="font-semibold text-foreground">{store.currentBalance.toLocaleString()}</span>
+            </p>
           </div>
-          <div className="relative h-2 rounded-full bg-muted overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-primary/60"
-              style={{ width: `${Math.round((store.currentBalance / store.maxFloat) * 100)}%` }}
-            />
-            <div
-              className="absolute top-0 h-full w-px bg-status-hold"
-              style={{ left: `${Math.round((store.minBalance / store.maxFloat) * 100)}%` }}
-            />
-            <div
-              className="absolute top-0 h-full w-px bg-status-approved"
-              style={{ left: `${Math.round((store.floatLimit / store.maxFloat) * 100)}%` }}
-            />
-          </div>
-          <p className="text-[10px] text-muted-foreground">
-            Current balance: <span className="font-medium text-foreground">{store.currentBalance.toLocaleString()}</span>
-          </p>
-        </div>
+        )}
       </div>
 
       <div className="pb-6">
