@@ -114,7 +114,7 @@ export default function StoreEdit() {
             </div>
             <div className="space-y-1.5">
               <Label className="text-sm">Branch Accounting Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" readOnly placeholder="e.g. 010002" defaultValue="010001" />
+              <Input className="h-9" placeholder="e.g. 010002" defaultValue="010001" maxLength={10} required />
             </div>
           </div>
           <div className="space-y-1.5">
