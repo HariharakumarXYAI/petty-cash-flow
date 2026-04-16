@@ -138,6 +138,7 @@ interface EmployeeForm {
   code: string;
   email: string;
   loginType: LoginType;
+  role: string;
   dept: string;
   branch: string;
   buCode: string;
@@ -153,8 +154,17 @@ interface EmployeeForm {
   active: boolean;
 }
 
+const allRoles = [
+  { value: "store_user", label: "Store User" },
+  { value: "store_manager", label: "Store Manager" },
+  { value: "regional_manager", label: "Regional Manager" },
+  { value: "ho_finance", label: "HO Finance" },
+  { value: "internal_audit", label: "Internal Audit" },
+  { value: "system_admin", label: "System Admin" },
+];
+
 const emptyForm: EmployeeForm = {
-  name: "", code: "", email: "", loginType: "sso", dept: "", branch: "",
+  name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
   buCode: "", positionLevel: "Staff", employeeType: "Store",
   storeType: "", directApprover: "", costCenter: "",
   division: "", location: "", lob: "", channel: "", active: true,
@@ -542,6 +552,40 @@ export default function EmployeesPage() {
               </div>
             </div>
 
+            {/* Role */}
+            <div className="space-y-1.5">
+              <Label>Role <span className="text-destructive">*</span></Label>
+              {isStoreManager ? (
+                <>
+                  <div
+                    className="flex items-center gap-2 h-[44px] rounded-lg text-sm"
+                    style={{ backgroundColor: "#F0F0F0", color: "#555555", borderRadius: "8px", padding: "8px 12px", fontSize: "14px" }}
+                  >
+                    Store User
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 italic">
+                    Store staff accounts are assigned Store User role by default.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                    <SelectTrigger className="h-[44px] rounded-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allRoles.map((r) => (
+                        <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select the access level for this employee.
+                  </p>
+                </>
+              )}
+            </div>
+
             <Separator />
 
             {/* Business Unit & Position */}
@@ -792,11 +836,18 @@ export default function EmployeesPage() {
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!!validationError || !!emailError}>
-              {editingCode ? "Save Changes" : "Save Employee"}
-            </Button>
+          <DialogFooter className="flex-col items-stretch">
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+              <Button onClick={handleSave} disabled={!!validationError || !!emailError || !form.role}>
+                {editingCode ? "Save Employee" : "Create Account"}
+              </Button>
+            </div>
+            {!editingCode && (
+              <p className="text-center mt-1" style={{ fontSize: "11px", color: "#888" }}>
+                A temporary password will be emailed to the notification address.
+              </p>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
