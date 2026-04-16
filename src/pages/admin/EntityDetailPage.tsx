@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Pencil, Building2, Users, GitBranch, Mail } from "lucide-react";
+import { ArrowLeft, Pencil, Building2, Users, GitBranch, Mail, MapPin } from "lucide-react";
+import { mockEntities, composeFullAddress } from "./EntitiesPage";
 
 const bgColors: Record<string, string> = {
   Wholesale: "bg-blue-100 text-blue-700 border-blue-200",
@@ -11,10 +12,10 @@ const bgColors: Record<string, string> = {
   International: "bg-sky-100 text-sky-700 border-sky-200",
 };
 
-const mockEntities = [
-  { code: "CPA001", name: "บริษัท ซีพี แอ็กซ์ตร้า จำกัด (มหาชน)", nameEn: "CP Axtra Public Company Limited", businessGroup: "Wholesale", oracleCode: "10001", taxId: "0105500000001", entityType: "สำนักงานใหญ่", start: "2026-01-01", end: "2030-12-31", status: "Active", loaRef: "ตาราง 1 (Wholesale)", currency: "THB", ultimateApprover: { name: "คุณสมชาย วงศ์ใหญ่", position: "CEO", email: "somchai.w@cpaxtra.com" }, financeController: { name: "คุณสมหญิง จันทร์ดี", position: "CFO", email: "somying.c@cpaxtra.com" }, linkedBU: 4, linkedEmployees: 1250, linkedBranches: 18 },
-  { code: "MKR002", name: "บริษัท แม็คโคร จำกัด (มหาชน)", nameEn: "Makro Public Company Limited", businessGroup: "Wholesale", oracleCode: "10002", taxId: "0105500000002", entityType: "สำนักงานใหญ่", start: "2026-01-01", end: "2030-12-31", status: "Active", loaRef: "ตาราง 1 (Wholesale)", currency: "THB", ultimateApprover: { name: "คุณวิชัย ศรีสุข", position: "Managing Director", email: "wichai.s@makro.com" }, financeController: { name: "คุณนภา รัตนกุล", position: "Finance Director", email: "napa.r@makro.com" }, linkedBU: 3, linkedEmployees: 890, linkedBranches: 12 },
-  { code: "DEM003", name: "บริษัท เดโม จำกัด", nameEn: "Demo Company Limited", businessGroup: "Retail", oracleCode: "13000", taxId: "0105500000003", entityType: "สาขา", start: "2025-06-01", end: "2026-12-31", status: "Inactive", loaRef: "ตาราง 1 (Retail)", currency: "THB", ultimateApprover: { name: "คุณพิชัย ธนาพร", position: "General Manager", email: "pichai.t@demo.com" }, financeController: { name: "คุณสมชาย วงศ์ใหญ่", position: "CFO", email: "somchai.w@demo.com" }, linkedBU: 1, linkedEmployees: 45, linkedBranches: 2 },
+const detailEntities = [
+  { ...mockEntities[0], ultimateApprover: { name: "คุณสมชาย วงศ์ใหญ่", position: "CEO", email: "somchai.w@cpaxtra.com" }, financeController: { name: "คุณสมหญิง จันทร์ดี", position: "CFO", email: "somying.c@cpaxtra.com" }, linkedBU: 4, linkedEmployees: 1250, linkedBranches: 18 },
+  { ...mockEntities[1], ultimateApprover: { name: "คุณวิชัย ศรีสุข", position: "Managing Director", email: "wichai.s@makro.com" }, financeController: { name: "คุณนภา รัตนกุล", position: "Finance Director", email: "napa.r@makro.com" }, linkedBU: 3, linkedEmployees: 890, linkedBranches: 12 },
+  { ...mockEntities[2], ultimateApprover: { name: "คุณพิชัย ธนาพร", position: "General Manager", email: "pichai.t@demo.com" }, financeController: { name: "คุณสมชาย วงศ์ใหญ่", position: "CFO", email: "somchai.w@demo.com" }, linkedBU: 1, linkedEmployees: 45, linkedBranches: 2 },
 ];
 
 const coaSegments = [
@@ -61,7 +62,7 @@ function PersonCard({ name, position, email }: { name: string; position: string;
 export default function EntityDetailPage() {
   const { entityCode } = useParams();
   const navigate = useNavigate();
-  const entity = mockEntities.find((e) => e.code === entityCode);
+  const entity = detailEntities.find((e) => e.code === entityCode);
 
   if (!entity) {
     return (
@@ -73,6 +74,8 @@ export default function EntityDetailPage() {
       </div>
     );
   }
+
+  const fullAddress = composeFullAddress(entity.address);
 
   return (
     <div className="space-y-6">
@@ -117,6 +120,31 @@ export default function EntityDetailPage() {
           <InfoField label="Effective End" value={entity.end} />
           <InfoField label="LOA Table Reference" value={entity.loaRef} />
           <InfoField label="Status" value={entity.status} />
+        </div>
+      </div>
+
+      {/* SECTION — Address Information */}
+      <div className="rounded-lg border bg-card">
+        <div className="border-b px-5 py-3 flex items-center gap-2">
+          <MapPin className="h-4 w-4 text-muted-foreground" />
+          <h2 className="text-sm font-semibold text-foreground">Address Information</h2>
+        </div>
+        <div className="p-5 space-y-4">
+          <div className="rounded-md bg-amber-50 border border-amber-200 px-4 py-3">
+            <p className="text-xs text-muted-foreground mb-1">ที่อยู่ / Full Address</p>
+            <p className="text-sm font-medium text-foreground">{fullAddress || "—"}</p>
+          </div>
+          <div className="grid grid-cols-3 gap-x-8 gap-y-5">
+            <InfoField label="เลขที่" value={entity.address.addressNo} />
+            <InfoField label="หมู่" value={entity.address.moo} />
+            <InfoField label="ตรอก/ซอย" value={entity.address.soi} />
+            <InfoField label="ถนน" value={entity.address.road} />
+            <InfoField label="ตำบล/แขวง" value={entity.address.tambol} />
+            <InfoField label="อำเภอ/เขต" value={entity.address.amphoe} />
+            <InfoField label="จังหวัด" value={entity.address.province} />
+            <InfoField label="รหัสไปรษณีย์" value={entity.address.postalCode} />
+            <InfoField label="Country" value={entity.address.country} />
+          </div>
         </div>
       </div>
 
