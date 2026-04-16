@@ -254,7 +254,7 @@ export default function EmployeesPage() {
     setEditingCode(emp.code);
     setForm({
       name: emp.name, code: emp.code, email: emp.email,
-      loginType: emp.loginType,
+      loginType: emp.loginType, role: (emp as any).role || "store_user",
       dept: emp.dept, branch: emp.branch, buCode: emp.buCode,
       positionLevel: emp.positionLevel, employeeType: emp.employeeType,
       storeType: emp.employeeType === "Store" ? "Hypermarket" : "",
