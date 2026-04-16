@@ -341,6 +341,16 @@ export default function EmployeeEditPage() {
                 </div>
               )}
 
+            </CardContent>
+          </Card>
+
+          {/* Card 3 — Approval & Authorization */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-bold">Approval & Authorization</CardTitle>
+              <div className="border-b mt-2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
               {/* Employee Type Toggle */}
               <div>
                 <Label>Employee Type <span className="text-destructive">*</span></Label>
@@ -375,7 +385,7 @@ export default function EmployeeEditPage() {
               {/* Store Type — conditional */}
               <div
                 className={cn(
-                  "transition-all duration-300 overflow-hidden",
+                  "transition-all duration-200 overflow-hidden",
                   form.employeeType === "Store" ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
                 )}
               >
@@ -393,7 +403,7 @@ export default function EmployeeEditPage() {
               <div>
                 <Label>Position Level <span className="text-destructive">*</span></Label>
                 <Select value={form.positionLevel} onValueChange={(v) => setForm({ ...form, positionLevel: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select position level..." /></SelectTrigger>
                   <SelectContent>
                     {positionLevels
                       .filter((p) => {
@@ -405,7 +415,7 @@ export default function EmployeeEditPage() {
                       ))}
                   </SelectContent>
                 </Select>
-                {loaHints[form.positionLevel] && (
+                {form.positionLevel && loaHints[form.positionLevel] && (
                   <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                     <Info className="h-3 w-3" /> {loaHints[form.positionLevel]}
                   </p>
@@ -428,13 +438,13 @@ export default function EmployeeEditPage() {
                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
                       {form.directApprover
                         ? mockEmployees.find((e) => e.code === form.directApprover)?.name || form.directApprover
-                        : "Search approver..."}
+                        : "Search by name or employee code"}
                       <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[440px] p-0" align="start">
                     <Command>
-                      <CommandInput placeholder="Search by name or code..." />
+                      <CommandInput placeholder="Search by name or employee code..." />
                       <CommandList>
                         <CommandEmpty>No employee found.</CommandEmpty>
                         <CommandGroup>
@@ -461,20 +471,28 @@ export default function EmployeeEditPage() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {form.directApprover && (
-                  <div className="mt-1.5">
-                    <Badge variant="secondary" className="text-xs">
-                      <User className="h-3 w-3 mr-1" />
-                      {mockEmployees.find((e) => e.code === form.directApprover)?.name} ({form.directApprover})
-                    </Badge>
-                  </div>
-                )}
+                {form.directApprover && (() => {
+                  const approver = mockEmployees.find((e) => e.code === form.directApprover);
+                  return approver ? (
+                    <div className="mt-1.5">
+                      <Badge variant="secondary" className="text-xs gap-1">
+                        <User className="h-3 w-3" />
+                        {approver.name} — {approver.positionLevel}
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, directApprover: "" })}
+                          className="ml-1 hover:text-destructive"
+                        >×</button>
+                      </Badge>
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
               {/* Cost Center */}
               <div>
                 <Label>Cost Center <span className="text-destructive">*</span></Label>
-                <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-10001" />
+                <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-1001-BKK" />
               </div>
             </CardContent>
           </Card>
