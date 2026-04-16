@@ -65,6 +65,7 @@ interface Employee {
   active: boolean;
   buCode: string;
   positionLevel: string;
+  employeeType: "HO" | "Store";
 }
 
 const positionLevels = [
@@ -72,12 +73,12 @@ const positionLevels = [
 ];
 
 const mockEmployees: Employee[] = [
-  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff" },
-  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager" },
-  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff" },
-  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Supervisor" },
-  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Department Manager" },
-  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff" },
+  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store" },
+  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store" },
+  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store" },
+  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Supervisor", employeeType: "HO" },
+  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Department Manager", employeeType: "HO" },
+  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store" },
 ];
 
 const roleBadgeColor: Record<string, string> = {
@@ -103,12 +104,13 @@ interface EmployeeForm {
   branch: string;
   buCode: string;
   positionLevel: string;
+  employeeType: "HO" | "Store";
   active: boolean;
 }
 
 const emptyForm: EmployeeForm = {
   name: "", code: "", email: "", dept: "", branch: "",
-  buCode: "", positionLevel: "Staff", active: true,
+  buCode: "", positionLevel: "Staff", employeeType: "Store", active: true,
 };
 
 export default function EmployeesPage() {
@@ -151,7 +153,7 @@ export default function EmployeesPage() {
     setForm({
       name: emp.name, code: emp.code, email: emp.email,
       dept: emp.dept, branch: emp.branch, buCode: emp.buCode,
-      positionLevel: emp.positionLevel, active: emp.active,
+      positionLevel: emp.positionLevel, employeeType: emp.employeeType, active: emp.active,
     });
     setSheetOpen(true);
   };
@@ -292,6 +294,18 @@ export default function EmployeesPage() {
                   <div>
                     <Label>Branch</Label>
                     <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Employee Type *</Label>
+                    <Select value={form.employeeType} onValueChange={(v) => setForm({ ...form, employeeType: v as "HO" | "Store" })}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="HO">HO</SelectItem>
+                        <SelectItem value="Store">Store</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
