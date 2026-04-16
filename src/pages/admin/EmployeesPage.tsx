@@ -362,7 +362,7 @@ export default function EmployeesPage() {
               <TableHead>Employee Code</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Login Type</TableHead>
-              <TableHead>Division</TableHead>
+              
               <TableHead>Store</TableHead>
               <TableHead>System Role</TableHead>
               <TableHead>Credentials</TableHead>
