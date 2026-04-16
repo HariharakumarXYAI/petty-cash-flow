@@ -256,9 +256,14 @@ export default function EmployeesPage() {
 
   const handleSave = () => {
     if (validationError) return;
+    const emailErr = validateEmail(form.email, form.loginType);
+    if (emailErr) {
+      setEmailError(emailErr);
+      return;
+    }
     if (editingCode) {
       setEmployees((prev) =>
-        prev.map((e) => e.code === editingCode ? { ...e, name: form.name, code: form.code, email: form.email, dept: form.dept, branch: form.branch, buCode: form.buCode, positionLevel: form.positionLevel, employeeType: form.employeeType, active: form.active } : e)
+        prev.map((e) => e.code === editingCode ? { ...e, name: form.name, code: form.code, email: form.email, loginType: form.loginType, dept: form.dept, branch: form.branch, buCode: form.buCode, positionLevel: form.positionLevel, employeeType: form.employeeType, active: form.active } : e)
       );
       toast.success(`Employee ${form.code} updated successfully`);
     } else {
@@ -357,6 +362,7 @@ export default function EmployeesPage() {
               <TableHead>Name</TableHead>
               <TableHead>Employee Code</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Login Type</TableHead>
               <TableHead>Division</TableHead>
               <TableHead>Store</TableHead>
               <TableHead>System Role</TableHead>
@@ -373,6 +379,17 @@ export default function EmployeesPage() {
                 <TableCell className="font-medium">{e.name}</TableCell>
                 <TableCell className="font-mono text-xs">{e.code}</TableCell>
                 <TableCell className="text-xs">{e.email}</TableCell>
+                <TableCell>
+                  <span
+                    className="inline-flex items-center text-xs rounded-full px-2.5 py-0.5"
+                    style={e.loginType === "sso"
+                      ? { background: "#E6F0FF", color: "#0052CC" }
+                      : { background: "#F0F0F0", color: "#555555" }
+                    }
+                  >
+                    {e.loginType === "sso" ? "☁️ Microsoft 365" : "🔑 Local Password"}
+                  </span>
+                </TableCell>
                 <TableCell>{e.dept}</TableCell>
                 <TableCell>{e.branch}</TableCell>
                 <TableCell>
@@ -441,7 +458,37 @@ export default function EmployeesPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Email <span className="text-destructive">*</span></Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
+                onBlur={handleEmailBlur}
+                placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
+                className={cn(
+                  emailError ? "border-destructive" : "",
+                  emailWarning ? "border-orange-400" : ""
+                )}
+              />
+              {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
+              {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+            </div>
+            {/* Login Type */}
+            <div className="space-y-1.5">
+              <Label>Login Type <span className="text-destructive">*</span></Label>
+              <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
+                <SelectTrigger className="h-[44px] rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
+                  <SelectItem value="local">🔑 Local Password</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {form.loginType === "sso"
+                  ? "HQ staff. Must have a @cpaxtra.co.th email to sign in via Microsoft."
+                  : "Store staff. Uses Employee Code + password. Must NOT have a @cpaxtra.co.th email."}
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
