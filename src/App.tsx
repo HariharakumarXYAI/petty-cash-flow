@@ -29,7 +29,7 @@ import EntitiesPage from "./pages/admin/EntitiesPage";
 import EntityDetailPage from "./pages/admin/EntityDetailPage";
 import OcrRulesPage from "./pages/admin/OcrRulesPage";
 import EmployeesPage from "./pages/admin/EmployeesPage";
-import EmployeeEditPage from "./pages/admin/EmployeeEditPage";
+
 import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
 import DocumentsPage from "./pages/admin/DocumentsPage";
 import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
@@ -86,7 +86,7 @@ function AppRoutes() {
         <Route path="masters/expense-types" element={<ExpenseTypes />} />
         <Route path="masters/stores" element={<StoresPage />} />
         <Route path="masters/stores/new" element={<StoreNew />} />
-        <Route path="masters/stores/:storeId/edit" element={<StoreEdit />} />
+        
         <Route path="masters/rules" element={<RulesPage />} />
         <Route path="reports/spend-trends" element={<Reports />} />
         <Route path="reports/benchmarking" element={<Reports />} />
