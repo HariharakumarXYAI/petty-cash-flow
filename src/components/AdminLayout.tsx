@@ -1,6 +1,6 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
-  Building2, ScanSearch, Users, ShieldCheck, FileText, DollarSign,
+  Building2, ScanSearch, CheckSquare, Users, ShieldCheck, FileText, DollarSign,
   Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store, Boxes,
 } from "lucide-react";
 
@@ -9,6 +9,7 @@ const adminNavGroups = [
     label: "SYSTEM CONFIGURATION",
     items: [
       { title: "Entities", url: "/admin/entities", icon: Building2 },
+      { title: "Rules", url: "/masters/rules", icon: CheckSquare },
       { title: "OCR Validation Rules", url: "/admin/ocr-rules", icon: ScanSearch },
     ],
   },

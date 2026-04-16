@@ -157,12 +157,6 @@ const hoFinanceNav: NavGroup[] = [
     ],
   },
   {
-    label: "Master Data",
-    items: [
-      { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
-    ],
-  },
-  {
     label: "Admin",
     items: [
       { title: "Admin Settings", url: "/admin", icon: Settings },
@@ -194,7 +188,6 @@ const sysAdminNav: NavGroup[] = [
     label: "Administration",
     items: [
       { title: "Admin Settings", url: "/admin", icon: Settings },
-      { title: "Rules", url: "/masters/rules", icon: ShieldCheck },
     ],
   },
 ];
