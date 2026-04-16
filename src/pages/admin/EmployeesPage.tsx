@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -358,7 +358,6 @@ export default function EmployeesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10"><Checkbox /></TableHead>
               <TableHead>Name</TableHead>
               <TableHead>Employee Code</TableHead>
               <TableHead>Email</TableHead>
@@ -375,7 +374,6 @@ export default function EmployeesPage() {
           <TableBody>
             {filtered.map((e) => (
               <TableRow key={e.code}>
-                <TableCell><Checkbox /></TableCell>
                 <TableCell className="font-medium">{e.name}</TableCell>
                 <TableCell className="font-mono text-xs">{e.code}</TableCell>
                 <TableCell className="text-xs">{e.email}</TableCell>
