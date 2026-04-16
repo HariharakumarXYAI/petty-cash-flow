@@ -366,7 +366,7 @@ export default function EmployeesPage() {
               <TableHead>Store</TableHead>
               <TableHead>System Role</TableHead>
               <TableHead>Credentials</TableHead>
-              <TableHead>First Login</TableHead>
+              
               <TableHead>Active</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -411,13 +411,6 @@ export default function EmployeesPage() {
                         {e.emailStatus === "sent" ? "Credentials sent" : "Email failed"}
                       </TooltipContent>
                     </Tooltip>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {e.isFirstLogin && (
-                    <Badge variant="outline" className="text-[10px] bg-status-validating/10 text-status-validating border-status-validating/20">
-                      Yes
-                    </Badge>
                   )}
                 </TableCell>
                 <TableCell><Switch checked={e.active} /></TableCell>
