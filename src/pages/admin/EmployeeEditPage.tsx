@@ -536,30 +536,6 @@ export default function EmployeeEditPage() {
               </div>
             </CardContent>
           </Card>
-
-          {/* Card 4 — Danger Zone */}
-          <Card className="border-destructive/30">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base text-destructive flex items-center gap-2">
-                <ShieldAlert className="h-4 w-4" /> Danger Zone
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-xs text-muted-foreground">
-                Deactivated employees cannot submit or approve petty cash requests.
-              </p>
-              <Button
-                variant="outline"
-                className="w-full border-destructive/30 text-destructive hover:bg-destructive/5"
-                onClick={() => {
-                  setForm({ ...form, active: false });
-                  toast.error(`Employee ${form.code} will be deactivated on save`);
-                }}
-              >
-                Deactivate Employee
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       </div>
 
