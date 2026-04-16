@@ -199,9 +199,41 @@ export default function EmployeesPage() {
     return true;
   });
 
+  const validateEmail = (email: string, loginType: LoginType): string => {
+    if (!email) return "Email is required.";
+    const isCpaxtra = email.endsWith("@cpaxtra.co.th");
+    if (loginType === "sso" && !isCpaxtra) return "Microsoft 365 login requires a @cpaxtra.co.th email address.";
+    if (loginType === "local" && isCpaxtra) return "Local Password accounts cannot use a @cpaxtra.co.th email. Use Microsoft 365 login instead.";
+    return "";
+  };
+
+  const handleLoginTypeChange = (newType: LoginType) => {
+    const isCpaxtra = form.email.endsWith("@cpaxtra.co.th");
+    let newEmail = form.email;
+    let warning = "";
+    if (newType === "local" && isCpaxtra) {
+      newEmail = "";
+      warning = "Email cleared — @cpaxtra.co.th is not allowed for Local Password accounts.";
+    } else if (newType === "sso" && form.email && !isCpaxtra) {
+      newEmail = "";
+      warning = "Email cleared — Microsoft 365 requires a @cpaxtra.co.th email.";
+    }
+    setForm({ ...form, loginType: newType, email: newEmail });
+    setEmailWarning(warning);
+    setEmailError("");
+  };
+
+  const handleEmailBlur = () => {
+    const err = validateEmail(form.email, form.loginType);
+    setEmailError(err);
+    if (!err) setEmailWarning("");
+  };
+
   const openAdd = () => {
     setEditingCode(null);
     setForm({ ...emptyForm });
+    setEmailWarning("");
+    setEmailError("");
     setDialogOpen(true);
   };
 
