@@ -72,8 +72,8 @@ function LoginGuard({ children }: { children: ReactNode }) {
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginGuard><Login /></LoginGuard>} />
       <Route path="/login/set-password" element={<SetPassword />} />
+      <Route path="/login" element={<LoginGuard><Login /></LoginGuard>} />
       <Route path="/" element={<ProtectedLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
