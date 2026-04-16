@@ -75,8 +75,16 @@ const mockEmployees: Employee[] = [
   { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store" },
 ];
 
-const hoPositionLevels = ["Staff", "Supervisor", "Department Manager", "Division Director", "VP", "SVP", "CFO"];
-const storePositionLevels = ["Staff", "Supervisor", "Area Manager", "Store Manager"];
+// Position levels filtered by Employee Type + Store Type
+const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
+  const base = ["Staff", "Senior Manager", "Area Manager", "Associate Director", "Director", "Senior Director"];
+  if (employeeType === "HO") return base;
+  // Store — add store-specific levels
+  const storeLevels = [...base, "Director – Region Operations"];
+  if (storeType === "Hypermarket") storeLevels.push("Store Manager – Hypermarket");
+  if (storeType === "Supermarket") storeLevels.push("Store Manager – Supermarket");
+  return storeLevels;
+};
 
 const approvalAuthority: Record<string, string> = {
   "Staff": "No approval authority",
