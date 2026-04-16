@@ -461,7 +461,7 @@ export default function EmployeesPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Email <span className="text-destructive">*</span></Label>
+              <Label>{form.loginType === "local" ? "Notification Email" : "Email"} <span className="text-destructive">*</span></Label>
               <Input
                 type="email"
                 value={form.email}
@@ -475,6 +475,9 @@ export default function EmployeesPage() {
               />
               {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
               {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+              {form.loginType === "local" && !emailError && !emailWarning && (
+                <p className="text-xs text-muted-foreground mt-1">Temporary password will be sent to this address.</p>
+              )}
             </div>
             {/* Login Type */}
             <div className="space-y-1.5">
@@ -517,17 +520,22 @@ export default function EmployeesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Store</Label>
-                <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
+                {isStoreManager ? (
+                  <Input value={user?.scope?.label || ""} disabled className="bg-muted" />
+                ) : (
+                  <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
+                )}
               </div>
             </div>
 
             {/* Employee Type Toggle */}
             <div className="space-y-1.5">
               <Label>Employee Type <span className="text-destructive">*</span></Label>
-              <div className="flex rounded-lg border overflow-hidden">
+              <div className={cn("flex rounded-lg border overflow-hidden", isStoreManager && "opacity-60 pointer-events-none")}>
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
+                  onClick={() => !isStoreManager && setForm({ ...form, employeeType: "HO", storeType: "" })}
+                  disabled={isStoreManager}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
                     form.employeeType === "HO"
@@ -539,7 +547,8 @@ export default function EmployeesPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, employeeType: "Store" })}
+                  onClick={() => !isStoreManager && setForm({ ...form, employeeType: "Store" })}
+                  disabled={isStoreManager}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
                     form.employeeType === "Store"
