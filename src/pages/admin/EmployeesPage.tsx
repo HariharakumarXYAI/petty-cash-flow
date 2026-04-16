@@ -358,8 +358,8 @@ export default function EmployeesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
               <TableHead>Employee Code</TableHead>
+              <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Login Type</TableHead>
               
@@ -374,8 +374,8 @@ export default function EmployeesPage() {
           <TableBody>
             {filtered.map((e) => (
               <TableRow key={e.code}>
-                <TableCell className="font-medium">{e.name}</TableCell>
                 <TableCell className="font-mono text-xs">{e.code}</TableCell>
+                <TableCell className="font-medium">{e.name}</TableCell>
                 <TableCell className="text-xs">{e.email}</TableCell>
                 <TableCell>
                   <span
