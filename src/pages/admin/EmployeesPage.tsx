@@ -169,6 +169,8 @@ export default function EmployeesPage() {
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
   const [approverPopoverOpen, setApproverPopoverOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [emailWarning, setEmailWarning] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const selectedBU = activeBUs.find((b) => b.buCode === form.buCode);
   const linkedEntity = selectedBU ? entityMap[selectedBU.entity] : null;
@@ -207,6 +209,7 @@ export default function EmployeesPage() {
     setEditingCode(emp.code);
     setForm({
       name: emp.name, code: emp.code, email: emp.email,
+      loginType: emp.loginType,
       dept: emp.dept, branch: emp.branch, buCode: emp.buCode,
       positionLevel: emp.positionLevel, employeeType: emp.employeeType,
       storeType: emp.employeeType === "Store" ? "Hypermarket" : "",
@@ -214,6 +217,8 @@ export default function EmployeesPage() {
       division: "", location: "", lob: "", channel: "",
       active: emp.active,
     });
+    setEmailWarning("");
+    setEmailError("");
     setDialogOpen(true);
   };
 
