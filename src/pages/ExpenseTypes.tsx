@@ -61,8 +61,8 @@ export default function ExpenseTypesPage() {
         <Table>
           <TableHeader>
             <TableRow className="hover:bg-transparent">
-              <TableHead className="section-label w-[180px]">Category</TableHead>
-              <TableHead className="section-label">Subcategory</TableHead>
+              <TableHead className="section-label w-[180px]">Expense Type</TableHead>
+              <TableHead className="section-label">Sub-Expense Type</TableHead>
               <TableHead className="section-label hidden md:table-cell">Countries</TableHead>
               <TableHead className="section-label hidden lg:table-cell text-center">Docs</TableHead>
               <TableHead className="section-label text-right hidden lg:table-cell">Alert At</TableHead>
