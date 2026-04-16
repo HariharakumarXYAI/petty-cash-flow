@@ -62,7 +62,7 @@ export default function DocumentsPage() {
             <TableRow>
               <TableHead className="w-10"><Checkbox /></TableHead>
               <TableHead>Document Name</TableHead>
-              <TableHead>Type</TableHead>
+              
               <TableHead>OCR Verification</TableHead>
               <TableHead>Active</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -73,9 +73,6 @@ export default function DocumentsPage() {
               <TableRow key={d.name}>
                 <TableCell><Checkbox /></TableCell>
                 <TableCell className="font-medium">{d.name}</TableCell>
-                <TableCell>
-                  <Badge variant="outline" className={d.type === "Primary" ? "bg-primary/10 text-primary border-primary/20" : ""}>{d.type}</Badge>
-                </TableCell>
                 <TableCell>
                   <Badge variant="outline" className={d.ocr === "Enabled" ? "bg-status-approved/10 text-status-approved border-status-approved/20" : ""}>{d.ocr}</Badge>
                 </TableCell>
