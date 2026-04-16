@@ -88,26 +88,26 @@ const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
 
 const approvalAuthority: Record<string, string> = {
   "Staff": "No approval authority",
-  "Supervisor": "Can approve ≤ ฿5,000",
-  "Area Manager": "Can approve ≤ ฿10,000",
-  "Store Manager": "Can approve ≤ ฿20,000",
-  "Department Manager": "Can approve ≤ ฿50,000",
-  "Division Director": "Can approve ≤ ฿100,000",
-  "VP": "Can approve ≤ ฿500,000",
-  "SVP": "Can approve ≤ ฿1,000,000",
-  "CFO": "Unlimited approval authority",
+  "Senior Manager": "Can approve ≤ ฿10,000",
+  "Area Manager": "Can approve ≤ ฿20,000",
+  "Associate Director": "Can approve ≤ ฿50,000",
+  "Director": "Can approve ≤ ฿100,000",
+  "Senior Director": "Can approve ≤ ฿500,000",
+  "Director – Region Operations": "Can approve ≤ ฿200,000",
+  "Store Manager – Hypermarket": "Can approve ≤ ฿30,000",
+  "Store Manager – Supermarket": "Can approve ≤ ฿20,000",
 };
 
 const loaHints: Record<string, string> = {
   "Staff": "LOA Level 1 — No signing authority",
-  "Supervisor": "LOA Level 2 — Local petty cash only",
+  "Senior Manager": "LOA Level 2 — Local petty cash only",
   "Area Manager": "LOA Level 3 — Multi-store regional",
-  "Store Manager": "LOA Level 3 — Single store authority",
-  "Department Manager": "LOA Level 4 — Department budget",
-  "Division Director": "LOA Level 5 — Division budget",
-  "VP": "LOA Level 6 — Business unit scope",
-  "SVP": "LOA Level 7 — Cross-BU authority",
-  "CFO": "LOA Level 8 — Enterprise-wide",
+  "Associate Director": "LOA Level 4 — Department budget",
+  "Director": "LOA Level 5 — Division budget",
+  "Senior Director": "LOA Level 6 — Business unit scope",
+  "Director – Region Operations": "LOA Level 5 — Regional operations authority",
+  "Store Manager – Hypermarket": "LOA Level 3 — Single hypermarket store",
+  "Store Manager – Supermarket": "LOA Level 3 — Single supermarket store",
 };
 
 interface EmployeeFormData {
