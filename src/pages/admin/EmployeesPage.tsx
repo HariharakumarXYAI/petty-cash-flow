@@ -17,7 +17,7 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Plus, Upload, UserPlus, Eye, Pencil, Trash2, Search, Users, UserCheck,
+  Plus, Upload, UserPlus, Eye, Pencil, Search, Users, UserCheck,
   ShieldCheck, Settings, CreditCard, ChevronsUpDown, Check, AlertTriangle, Info,
   Building2, Store, User, Calendar, Mail, AlertCircle,
 } from "lucide-react";
@@ -418,7 +418,7 @@ export default function EmployeesPage() {
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
+                    
                   </div>
                 </TableCell>
               </TableRow>
