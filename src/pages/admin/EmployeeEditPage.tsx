@@ -254,6 +254,36 @@ export default function EmployeeEditPage() {
                 <Label>Email <span className="text-destructive">*</span></Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
+              {/* Employee Type Toggle */}
+              <div>
+                <Label>Employee Type <span className="text-destructive">*</span></Label>
+                <div className="flex mt-1.5 rounded-lg border overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
+                      form.employeeType === "HO"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <Building2 className="h-4 w-4" /> HO (Head Office)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, employeeType: "Store" })}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
+                      form.employeeType === "Store"
+                        ? "bg-primary text-primary-foreground"
+                        : "bg-background text-muted-foreground hover:bg-muted/50"
+                    )}
+                  >
+                    <Store className="h-4 w-4" /> Store
+                  </button>
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -347,36 +377,6 @@ export default function EmployeeEditPage() {
               <div className="border-b mt-2" />
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Employee Type Toggle */}
-              <div>
-                <Label>Employee Type <span className="text-destructive">*</span></Label>
-                <div className="flex mt-1.5 rounded-lg border overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
-                      form.employeeType === "HO"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <Building2 className="h-4 w-4" /> HO (Head Office)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, employeeType: "Store" })}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
-                      form.employeeType === "Store"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <Store className="h-4 w-4" /> Store
-                  </button>
-                </div>
-              </div>
 
               {/* Store Type — conditional */}
               <div
