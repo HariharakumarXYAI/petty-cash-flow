@@ -56,6 +56,8 @@ const entityMap: Record<string, { name: string; oracleCode: string }> = {
 const activeBUs = buMasterData.filter((b) => b.status === "Active" && b.buType === "Wholesale");
 
 // ── Employees ──
+type LoginType = "sso" | "local";
+
 interface Employee {
   name: string;
   code: string;
@@ -69,15 +71,16 @@ interface Employee {
   employeeType: "HO" | "Store";
   isFirstLogin?: boolean;
   emailStatus?: "sent" | "failed";
+  loginType: LoginType;
 }
 
 const mockEmployees: Employee[] = [
-  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent" },
-  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent" },
-  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent" },
-  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO", isFirstLogin: false, emailStatus: "sent" },
-  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO", isFirstLogin: false, emailStatus: "sent" },
-  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed" },
+  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "local" },
+  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent", loginType: "local" },
+  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "local" },
+  { name: "พิม ดี", code: "ACC001", email: "pim@cpaxtra.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@cpaxtra.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed", loginType: "local" },
 ];
 
 const roleBadgeColor: Record<string, string> = {
@@ -133,6 +136,7 @@ interface EmployeeForm {
   name: string;
   code: string;
   email: string;
+  loginType: LoginType;
   dept: string;
   branch: string;
   buCode: string;
@@ -149,7 +153,7 @@ interface EmployeeForm {
 }
 
 const emptyForm: EmployeeForm = {
-  name: "", code: "", email: "", dept: "", branch: "",
+  name: "", code: "", email: "", loginType: "sso", dept: "", branch: "",
   buCode: "", positionLevel: "Staff", employeeType: "Store",
   storeType: "", directApprover: "", costCenter: "",
   division: "", location: "", lob: "", channel: "", active: true,
@@ -165,6 +169,8 @@ export default function EmployeesPage() {
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
   const [approverPopoverOpen, setApproverPopoverOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [emailWarning, setEmailWarning] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const selectedBU = activeBUs.find((b) => b.buCode === form.buCode);
   const linkedEntity = selectedBU ? entityMap[selectedBU.entity] : null;
@@ -193,9 +199,41 @@ export default function EmployeesPage() {
     return true;
   });
 
+  const validateEmail = (email: string, loginType: LoginType): string => {
+    if (!email) return "Email is required.";
+    const isCpaxtra = email.endsWith("@cpaxtra.co.th");
+    if (loginType === "sso" && !isCpaxtra) return "Microsoft 365 login requires a @cpaxtra.co.th email address.";
+    if (loginType === "local" && isCpaxtra) return "Local Password accounts cannot use a @cpaxtra.co.th email. Use Microsoft 365 login instead.";
+    return "";
+  };
+
+  const handleLoginTypeChange = (newType: LoginType) => {
+    const isCpaxtra = form.email.endsWith("@cpaxtra.co.th");
+    let newEmail = form.email;
+    let warning = "";
+    if (newType === "local" && isCpaxtra) {
+      newEmail = "";
+      warning = "Email cleared — @cpaxtra.co.th is not allowed for Local Password accounts.";
+    } else if (newType === "sso" && form.email && !isCpaxtra) {
+      newEmail = "";
+      warning = "Email cleared — Microsoft 365 requires a @cpaxtra.co.th email.";
+    }
+    setForm({ ...form, loginType: newType, email: newEmail });
+    setEmailWarning(warning);
+    setEmailError("");
+  };
+
+  const handleEmailBlur = () => {
+    const err = validateEmail(form.email, form.loginType);
+    setEmailError(err);
+    if (!err) setEmailWarning("");
+  };
+
   const openAdd = () => {
     setEditingCode(null);
     setForm({ ...emptyForm });
+    setEmailWarning("");
+    setEmailError("");
     setDialogOpen(true);
   };
 
@@ -203,6 +241,7 @@ export default function EmployeesPage() {
     setEditingCode(emp.code);
     setForm({
       name: emp.name, code: emp.code, email: emp.email,
+      loginType: emp.loginType,
       dept: emp.dept, branch: emp.branch, buCode: emp.buCode,
       positionLevel: emp.positionLevel, employeeType: emp.employeeType,
       storeType: emp.employeeType === "Store" ? "Hypermarket" : "",
@@ -210,14 +249,21 @@ export default function EmployeesPage() {
       division: "", location: "", lob: "", channel: "",
       active: emp.active,
     });
+    setEmailWarning("");
+    setEmailError("");
     setDialogOpen(true);
   };
 
   const handleSave = () => {
     if (validationError) return;
+    const emailErr = validateEmail(form.email, form.loginType);
+    if (emailErr) {
+      setEmailError(emailErr);
+      return;
+    }
     if (editingCode) {
       setEmployees((prev) =>
-        prev.map((e) => e.code === editingCode ? { ...e, name: form.name, code: form.code, email: form.email, dept: form.dept, branch: form.branch, buCode: form.buCode, positionLevel: form.positionLevel, employeeType: form.employeeType, active: form.active } : e)
+        prev.map((e) => e.code === editingCode ? { ...e, name: form.name, code: form.code, email: form.email, loginType: form.loginType, dept: form.dept, branch: form.branch, buCode: form.buCode, positionLevel: form.positionLevel, employeeType: form.employeeType, active: form.active } : e)
       );
       toast.success(`Employee ${form.code} updated successfully`);
     } else {
@@ -316,6 +362,7 @@ export default function EmployeesPage() {
               <TableHead>Name</TableHead>
               <TableHead>Employee Code</TableHead>
               <TableHead>Email</TableHead>
+              <TableHead>Login Type</TableHead>
               <TableHead>Division</TableHead>
               <TableHead>Store</TableHead>
               <TableHead>System Role</TableHead>
@@ -332,6 +379,17 @@ export default function EmployeesPage() {
                 <TableCell className="font-medium">{e.name}</TableCell>
                 <TableCell className="font-mono text-xs">{e.code}</TableCell>
                 <TableCell className="text-xs">{e.email}</TableCell>
+                <TableCell>
+                  <span
+                    className="inline-flex items-center text-xs rounded-full px-2.5 py-0.5"
+                    style={e.loginType === "sso"
+                      ? { background: "#E6F0FF", color: "#0052CC" }
+                      : { background: "#F0F0F0", color: "#555555" }
+                    }
+                  >
+                    {e.loginType === "sso" ? "☁️ Microsoft 365" : "🔑 Local Password"}
+                  </span>
+                </TableCell>
                 <TableCell>{e.dept}</TableCell>
                 <TableCell>{e.branch}</TableCell>
                 <TableCell>
@@ -400,7 +458,37 @@ export default function EmployeesPage() {
             </div>
             <div className="space-y-1.5">
               <Label>Email <span className="text-destructive">*</span></Label>
-              <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input
+                type="email"
+                value={form.email}
+                onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
+                onBlur={handleEmailBlur}
+                placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
+                className={cn(
+                  emailError ? "border-destructive" : "",
+                  emailWarning ? "border-orange-400" : ""
+                )}
+              />
+              {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
+              {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+            </div>
+            {/* Login Type */}
+            <div className="space-y-1.5">
+              <Label>Login Type <span className="text-destructive">*</span></Label>
+              <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
+                <SelectTrigger className="h-[44px] rounded-lg">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
+                  <SelectItem value="local">🔑 Local Password</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                {form.loginType === "sso"
+                  ? "HQ staff. Must have a @cpaxtra.co.th email to sign in via Microsoft."
+                  : "Store staff. Uses Employee Code + password. Must NOT have a @cpaxtra.co.th email."}
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">

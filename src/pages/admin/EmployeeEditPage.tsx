@@ -110,10 +110,13 @@ const loaHints: Record<string, string> = {
   "Store Manager – Supermarket": "LOA Level 3 — Single supermarket store",
 };
 
+type LoginType = "sso" | "local";
+
 interface EmployeeFormData {
   name: string;
   code: string;
   email: string;
+  loginType: LoginType;
   dept: string;
   branch: string;
   buCode: string;
@@ -136,11 +139,13 @@ export default function EmployeeEditPage() {
   const employee = mockEmployees.find((e) => e.code === id);
 
   const [form, setForm] = useState<EmployeeFormData>({
-    name: "", code: "", email: "", dept: "", branch: "",
+    name: "", code: "", email: "", loginType: "sso" as LoginType, dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "", active: true,
   });
+  const [emailWarning, setEmailWarning] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const [initialForm, setInitialForm] = useState<EmployeeFormData>(form);
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
@@ -149,8 +154,10 @@ export default function EmployeeEditPage() {
 
   useEffect(() => {
     if (employee) {
+      const inferredLoginType: LoginType = employee.email.endsWith("@cpaxtra.co.th") ? "sso" : "local";
       const data: EmployeeFormData = {
         name: employee.name, code: employee.code, email: employee.email,
+        loginType: inferredLoginType,
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
@@ -185,8 +192,45 @@ export default function EmployeeEditPage() {
     }
   }, [form.employeeType, form.storeType]);
 
+  const validateEmail = (email: string, loginType: LoginType): string => {
+    if (!email) return "Email is required.";
+    const isCpaxtra = email.endsWith("@cpaxtra.co.th");
+    if (loginType === "sso" && !isCpaxtra) return "Microsoft 365 login requires a @cpaxtra.co.th email address.";
+    if (loginType === "local" && isCpaxtra) return "Local Password accounts cannot use a @cpaxtra.co.th email. Use Microsoft 365 login instead.";
+    return "";
+  };
+
+  const handleLoginTypeChange = (newType: LoginType) => {
+    const isCpaxtra = form.email.endsWith("@cpaxtra.co.th");
+    let newEmail = form.email;
+    let warning = "";
+
+    if (newType === "local" && isCpaxtra) {
+      newEmail = "";
+      warning = "Email cleared — @cpaxtra.co.th is not allowed for Local Password accounts.";
+    } else if (newType === "sso" && form.email && !isCpaxtra) {
+      newEmail = "";
+      warning = "Email cleared — Microsoft 365 requires a @cpaxtra.co.th email.";
+    }
+
+    setForm({ ...form, loginType: newType, email: newEmail });
+    setEmailWarning(warning);
+    setEmailError("");
+  };
+
+  const handleEmailBlur = () => {
+    const err = validateEmail(form.email, form.loginType);
+    setEmailError(err);
+    if (!err) setEmailWarning("");
+  };
+
   const handleSave = () => {
     if (validationError) return;
+    const emailErr = validateEmail(form.email, form.loginType);
+    if (emailErr) {
+      setEmailError(emailErr);
+      return;
+    }
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
   };
@@ -252,8 +296,40 @@ export default function EmployeeEditPage() {
               </div>
               <div>
                 <Label>Email <span className="text-destructive">*</span></Label>
-                <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Input
+                  type="email"
+                  value={form.email}
+                  onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
+                  onBlur={handleEmailBlur}
+                  placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
+                  className={cn(
+                    emailError ? "border-destructive" : "",
+                    emailWarning ? "border-orange-400" : ""
+                  )}
+                />
+                {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
+                {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
               </div>
+
+              {/* Login Type */}
+              <div>
+                <Label>Login Type <span className="text-destructive">*</span></Label>
+                <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
+                  <SelectTrigger className="h-[44px] rounded-lg">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
+                    <SelectItem value="local">🔑 Local Password</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {form.loginType === "sso"
+                    ? "HQ staff. Must have a @cpaxtra.co.th email to sign in via Microsoft."
+                    : "Store staff. Uses Employee Code + password. Must NOT have a @cpaxtra.co.th email."}
+                </p>
+              </div>
+
               {/* Employee Type Toggle */}
               <div>
                 <Label>Employee Type <span className="text-destructive">*</span></Label>
