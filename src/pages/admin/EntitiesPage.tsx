@@ -204,7 +204,7 @@ export default function EntitiesPage() {
               <TableHead>Legal Entity Name (EN)</TableHead>
               <TableHead>Business Group</TableHead>
               <TableHead>Oracle Code</TableHead>
-              <TableHead>Primary Tax ID</TableHead>
+              <TableHead>Tax ID</TableHead>
               <TableHead>Effective Start</TableHead>
               <TableHead>Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -282,7 +282,7 @@ export default function EntitiesPage() {
               <Input value={form.nameEn} onChange={(e) => updateField("nameEn", e.target.value)} placeholder="e.g. Makro Public Company Limited" />
             </div>
             <div className="space-y-1.5">
-              <Label>Primary Tax ID</Label>
+              <Label>Tax ID</Label>
               <Input value={form.taxId} onChange={(e) => {
                 const v = e.target.value.replace(/\D/g, "").slice(0, 13);
                 updateField("taxId", v);

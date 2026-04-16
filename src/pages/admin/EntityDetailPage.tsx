@@ -111,7 +111,7 @@ export default function EntityDetailPage() {
           <InfoField label="Entity Code" value={entity.code} mono />
           <InfoField label="Legal Entity Name (TH)" value={entity.name} />
           <InfoField label="Legal Entity Name (EN)" value={entity.nameEn} />
-          <InfoField label="Primary Tax ID" value={entity.taxId} mono />
+          <InfoField label="Tax ID" value={entity.taxId} mono />
           <InfoField label="Entity Type" value={entity.entityType} />
           <InfoField label="Business Group" value={entity.businessGroup} />
           <InfoField label="Oracle Code" value={entity.oracleCode} mono />
