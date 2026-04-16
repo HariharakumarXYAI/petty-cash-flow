@@ -122,6 +122,10 @@ interface EmployeeFormData {
   storeType: string;
   directApprover: string;
   costCenter: string;
+  division: string;
+  location: string;
+  lob: string;
+  channel: string;
   active: boolean;
 }
 
@@ -134,7 +138,8 @@ export default function EmployeeEditPage() {
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
-    storeType: "", directApprover: "", costCenter: "", active: true,
+    storeType: "", directApprover: "", costCenter: "",
+    division: "", location: "", lob: "", channel: "", active: true,
   });
 
   const [initialForm, setInitialForm] = useState<EmployeeFormData>(form);
@@ -150,6 +155,7 @@ export default function EmployeeEditPage() {
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
         directApprover: "", costCenter: "CC-" + employee.code,
+        division: "", location: "", lob: "", channel: "",
         active: employee.active,
       };
       setForm(data);
@@ -493,6 +499,36 @@ export default function EmployeeEditPage() {
               <div>
                 <Label>Cost Center <span className="text-destructive">*</span></Label>
                 <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-1001-BKK" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Card 4 — Accounting */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-bold">Accounting</CardTitle>
+              <div className="border-b mt-2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Division</Label>
+                  <Input value={form.division} onChange={(e) => setForm({ ...form, division: e.target.value })} placeholder="e.g. 01" />
+                </div>
+                <div>
+                  <Label>Location</Label>
+                  <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. BKK-01" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>LOB</Label>
+                  <Input value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
+                </div>
+                <div>
+                  <Label>Channel</Label>
+                  <Input value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
+                </div>
               </div>
             </CardContent>
           </Card>
