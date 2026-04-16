@@ -64,7 +64,7 @@ export default function RulesPage() {
             <RuleToggle variant="hardstop" label="Prohibited expense type" description="Block if category is marked as prohibited for the store" defaultChecked />
             <RuleToggle variant="hardstop" label="Missing mandatory document" description="Block if required receipt or invoice is not attached" defaultChecked />
             <RuleToggle variant="hardstop" label="Amount exceeds hard-stop limit" description="Block if claim amount is above the expense type hard-stop threshold" defaultChecked />
-            <RuleToggle variant="hardstop" label="Vendor on blocked list" description="Block if vendor is flagged or blacklisted" defaultChecked />
+            
           </div>
         </div>
 
