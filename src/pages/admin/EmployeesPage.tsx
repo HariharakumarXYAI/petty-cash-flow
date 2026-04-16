@@ -161,6 +161,8 @@ const emptyForm: EmployeeForm = {
 };
 
 export default function EmployeesPage() {
+  const { user } = useAuth();
+  const isStoreManager = user?.role === "store_manager";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [employees, setEmployees] = useState<Employee[]>(mockEmployees);
