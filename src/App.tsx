@@ -25,6 +25,7 @@ import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
+import SetPassword from "./pages/SetPassword";
 import EntitiesPage from "./pages/admin/EntitiesPage";
 import EntityDetailPage from "./pages/admin/EntityDetailPage";
 import OcrRulesPage from "./pages/admin/OcrRulesPage";
@@ -72,6 +73,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={<LoginGuard><Login /></LoginGuard>} />
+      <Route path="/login/set-password" element={<SetPassword />} />
       <Route path="/" element={<ProtectedLayout />}>
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
