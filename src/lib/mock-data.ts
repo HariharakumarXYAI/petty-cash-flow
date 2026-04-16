@@ -215,6 +215,33 @@ export const expenseTypes: ExpenseType[] = [
   { id: "e10", category: "Entertainment", subcategory: "Business Entertainment", countries: ["TH"], documentRequired: true, maxAmount: 5000, alertThreshold: 3000, hardStopThreshold: 8000, advanceAllowed: false, reimbursementAllowed: true, auditSensitive: true },
 ];
 
+// --- Employee Profile Lookup (submitter → employee metadata) ---
+
+export interface EmployeeProfile {
+  name: string;
+  employeeType: "HO" | "Store";
+  positionLevel: string;
+  storeId?: string;
+  storeName?: string;
+}
+
+export const employeeProfiles: EmployeeProfile[] = [
+  { name: "Somchai Prasert", employeeType: "Store", positionLevel: "Store Manager – Hypermarket", storeId: "s1", storeName: "Makro Bangkapi" },
+  { name: "Napaporn Suksai", employeeType: "Store", positionLevel: "Staff", storeId: "s2", storeName: "Makro Sathorn" },
+  { name: "Sok Vannak", employeeType: "Store", positionLevel: "Store Manager – Hypermarket", storeId: "s7", storeName: "Makro Phnom Penh 1" },
+  { name: "Aung Thura", employeeType: "Store", positionLevel: "Store Manager – Hypermarket", storeId: "s9", storeName: "Makro Yangon Central" },
+  { name: "Prasert Kittisak", employeeType: "HO", positionLevel: "Senior Manager", storeId: undefined, storeName: undefined },
+  { name: "Wanida Rattana", employeeType: "Store", positionLevel: "Store Manager – Mini", storeId: "s4", storeName: "Makro Chaengwattana" },
+  { name: "Chan Dara", employeeType: "Store", positionLevel: "Staff", storeId: "s8", storeName: "Makro Siem Reap" },
+  { name: "Kwanchai Maneerat", employeeType: "HO", positionLevel: "Associate Director", storeId: undefined, storeName: undefined },
+  { name: "Sompong Chaiyasit", employeeType: "Store", positionLevel: "Area Manager", storeId: "s5", storeName: "Makro Pattaya" },
+  { name: "Lek Worachai", employeeType: "Store", positionLevel: "Store Manager – Supermarket", storeId: "s6", storeName: "Makro Chiang Mai" },
+  { name: "Myint Zaw", employeeType: "Store", positionLevel: "Staff", storeId: "s10", storeName: "Makro Mandalay" },
+];
+
+export const getEmployeeProfile = (submitterName: string): EmployeeProfile | undefined =>
+  employeeProfiles.find(e => e.name === submitterName);
+
 // --- Claims ---
 
 export const claims: Claim[] = [
