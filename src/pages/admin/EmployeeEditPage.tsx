@@ -162,7 +162,7 @@ export default function EmployeeEditPage() {
   const selectedBU = activeBUs.find((b) => b.buCode === form.buCode);
   const linkedEntity = selectedBU ? entityMap[selectedBU.entity] : null;
 
-  const positionLevels = form.employeeType === "HO" ? hoPositionLevels : storePositionLevels;
+  const positionLevels = getPositionLevels(form.employeeType, form.storeType);
 
   useEffect(() => {
     if (form.positionLevel === "Area Manager" && selectedBU && selectedBU.buType !== "Wholesale") {
