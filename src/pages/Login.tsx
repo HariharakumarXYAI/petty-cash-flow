@@ -9,7 +9,7 @@ import { roleLabels, type AppRole } from "@/lib/roles";
 import { authenticateUser, getRoleHomePage } from "@/lib/mock-credentials";
 
 export default function Login() {
-  const { switchRole } = useAuth();
+  const { switchRole, setFirstLoginCredential } = useAuth();
   const navigate = useNavigate();
 
   const [username, setUsername] = useState("");
@@ -35,10 +35,12 @@ export default function Login() {
       return;
     }
     const cred = result.credential!;
-    switchRole(cred.role);
     if (cred.isFirstLogin) {
+      switchRole(cred.role);
+      setFirstLoginCredential(cred);
       navigate("/login/set-password");
     } else {
+      switchRole(cred.role);
       navigate(getRoleHomePage(cred.role));
     }
   };

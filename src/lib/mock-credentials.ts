@@ -28,6 +28,14 @@ export function authenticateUser(username: string, password: string): { success:
   return { success: true, credential: cred };
 }
 
+export function markFirstLoginComplete(username: string, newPassword: string) {
+  const cred = mockCredentials.find(c => c.username.toLowerCase() === username.toLowerCase());
+  if (cred) {
+    cred.isFirstLogin = false;
+    cred.password = newPassword;
+  }
+}
+
 export function getRoleHomePage(role: AppRole): string {
   switch (role) {
     case "store_user": return "/claims";
