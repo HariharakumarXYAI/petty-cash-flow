@@ -19,17 +19,6 @@ export default function SetPassword() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  // Guard: not authenticated → login
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  // Guard: authenticated but not first login → role home
-  if (!requiresPasswordReset || !firstLoginCredential) {
-    const role = user?.role ?? "store_user";
-    return <Navigate to={getRoleHomePage(role)} replace />;
-  }
-
   const requirements = useMemo(() => [
     { label: "At least 8 characters", met: newPassword.length >= 8 },
     { label: "At least one uppercase letter (A–Z)", met: /[A-Z]/.test(newPassword) },
@@ -40,6 +29,17 @@ export default function SetPassword() {
 
   const allMet = requirements.every(r => r.met);
   const showMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+
+  // Guard: not authenticated → login
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Guard: authenticated but not first login → role home
+  if (!requiresPasswordReset || !firstLoginCredential) {
+    const role = user?.role ?? "store_user";
+    return <Navigate to={getRoleHomePage(role)} replace />;
+  }
 
   const handleSubmit = async () => {
     setError(null);
