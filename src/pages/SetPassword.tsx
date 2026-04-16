@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate, Navigate, Link } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { Eye, EyeOff, Check, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,11 +18,6 @@ export default function SetPassword() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Guard: only accessible during first-login flow
-  if (!firstLoginCredential) {
-    return <Navigate to="/login" replace />;
-  }
-
   const requirements = useMemo(() => [
     { label: "At least 8 characters", met: newPassword.length >= 8 },
     { label: "At least 1 uppercase letter", met: /[A-Z]/.test(newPassword) },
@@ -33,6 +28,11 @@ export default function SetPassword() {
   const allMet = requirements.every(r => r.met);
   const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
   const canSubmit = allMet && passwordsMatch;
+
+  // Guard: only accessible during first-login flow
+  if (!firstLoginCredential) {
+    return <Navigate to="/login" replace />;
+  }
 
   const handleSubmit = () => {
     setError(null);
@@ -47,7 +47,6 @@ export default function SetPassword() {
       return;
     }
 
-    // Update mock credential
     markFirstLoginComplete(firstLoginCredential.username, newPassword);
     clearFirstLogin();
 
@@ -65,7 +64,6 @@ export default function SetPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[hsl(222,47%,11%)] p-4">
       <div className="w-full max-w-[420px]">
-        {/* Card */}
         <div className="bg-card rounded-2xl shadow-xl p-8 space-y-6">
           {/* Icon + Heading */}
           <div className="text-center space-y-2">
