@@ -52,7 +52,7 @@ const entityMap: Record<string, { name: string; oracleCode: string }> = {
   DEM003: { name: "บริษัท เดโม จำกัด", oracleCode: "13000" },
 };
 
-const activeBUs = buMasterData.filter((b) => b.status === "Active");
+const activeBUs = buMasterData.filter((b) => b.status === "Active" && b.buType === "Wholesale");
 
 // ── Employees ──
 interface Employee {
