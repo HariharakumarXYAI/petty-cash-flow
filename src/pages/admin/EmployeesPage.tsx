@@ -199,24 +199,25 @@ export default function EmployeesPage() {
     return true;
   });
 
+  const isCorporateEmail = (email: string) => /@(cpaxtra\.co\.th|makro\.co\.th)$/.test(email);
+
   const validateEmail = (email: string, loginType: LoginType): string => {
     if (!email) return "Email is required.";
-    const isCpaxtra = email.endsWith("@cpaxtra.co.th");
-    if (loginType === "sso" && !isCpaxtra) return "Microsoft 365 login requires a @cpaxtra.co.th email address.";
-    if (loginType === "local" && isCpaxtra) return "Local Password accounts cannot use a @cpaxtra.co.th email. Use Microsoft 365 login instead.";
+    if (loginType === "sso" && !isCorporateEmail(email)) return "SSO accounts must use a corporate domain (@cpaxtra.co.th or @makro.co.th)";
+    if (loginType === "local" && isCorporateEmail(email)) return "Corporate email detected. Local Password accounts cannot use a corporate domain email.";
     return "";
   };
 
   const handleLoginTypeChange = (newType: LoginType) => {
-    const isCpaxtra = form.email.endsWith("@cpaxtra.co.th");
+    const isCorp = isCorporateEmail(form.email);
     let newEmail = form.email;
     let warning = "";
-    if (newType === "local" && isCpaxtra) {
+    if (newType === "local" && isCorp) {
       newEmail = "";
-      warning = "Email cleared — @cpaxtra.co.th is not allowed for Local Password accounts.";
-    } else if (newType === "sso" && form.email && !isCpaxtra) {
+      warning = "Email cleared — corporate domain is not allowed for Local Password accounts.";
+    } else if (newType === "sso" && form.email && !isCorp) {
       newEmail = "";
-      warning = "Email cleared — Microsoft 365 requires a @cpaxtra.co.th email.";
+      warning = "Email cleared — SSO requires a corporate domain email.";
     }
     setForm({ ...form, loginType: newType, email: newEmail });
     setEmailWarning(warning);
@@ -775,7 +776,7 @@ export default function EmployeesPage() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button onClick={handleSave} disabled={!!validationError}>
+            <Button onClick={handleSave} disabled={!!validationError || !!emailError}>
               {editingCode ? "Save Changes" : "Save Employee"}
             </Button>
           </DialogFooter>
