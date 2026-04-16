@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Download } from "lucide-react";
+import { Search, Plus, Download, CalendarIcon } from "lucide-react";
+import { format, startOfMonth } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -11,27 +12,39 @@ import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-const allStatuses: ClaimStatus[] = [
-  "Draft", "Submitted", "OCR Validating", "Auto Approved", "Auto Approved with Alert",
-  "On Hold", "Under Investigation", "Awaiting Audit Document", "Settled", "Rejected",
-];
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { cn } from "@/lib/utils";
 
 const hoPositions = ["Staff", "Senior Staff", "Manager", "Senior Manager", "Associate Director", "Director", "Senior Director"];
 const storePositions = ["Staff", "Senior Staff", "Store Manager – Hypermarket", "Store Manager – Supermarket", "Store Manager – Mini", "Area Manager", "Director – Region Operations"];
-const allPositions = [...new Set([...hoPositions, ...storePositions])];
+const allPositionsList = [...new Set([...hoPositions, ...storePositions])];
+
+// Status tab definitions with mapping to ClaimStatus values
+const statusTabs: { label: string; statuses: ClaimStatus[] | null }[] = [
+  { label: "All", statuses: null },
+  { label: "Draft", statuses: ["Draft"] },
+  { label: "Pending", statuses: ["Submitted", "OCR Validating", "Awaiting Audit Document"] },
+  { label: "Approved", statuses: ["Auto Approved"] },
+  { label: "Approved with Alert", statuses: ["Auto Approved with Alert"] },
+  { label: "On Hold", statuses: ["On Hold", "Under Investigation"] },
+  { label: "Rejected", statuses: ["Rejected"] },
+  { label: "Settled", statuses: ["Settled"] },
+];
 
 export default function ClaimsList() {
   const navigate = useNavigate();
   const { country, storeId } = useGlobalFilter();
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState(0);
   const [expenseFilter, setExpenseFilter] = useState<string>("all");
   const [alertFilter, setAlertFilter] = useState<string>("all");
   const [employeeTypeFilter, setEmployeeTypeFilter] = useState<string>("all");
   const [positionFilter, setPositionFilter] = useState<string>("all");
   const [empStoreFilter, setEmpStoreFilter] = useState<string>("all");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(startOfMonth(new Date()));
+  const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
 
   const handleEmployeeTypeChange = (value: string) => {
     setEmployeeTypeFilter(value);
@@ -42,7 +55,7 @@ export default function ClaimsList() {
   const positionOptions = useMemo(() => {
     if (employeeTypeFilter === "HO") return hoPositions;
     if (employeeTypeFilter === "Store") return storePositions;
-    return allPositions;
+    return allPositionsList;
   }, [employeeTypeFilter]);
 
   const storeOptions = useMemo(() => {
@@ -50,13 +63,24 @@ export default function ClaimsList() {
     return [...new Set(storeEmployees.map(e => e.storeName!))].sort();
   }, []);
 
-  const filtered = claims.filter((c) => {
+  // Base filter (everything except status tab)
+  const baseFiltered = useMemo(() => claims.filter((c) => {
     if (country !== "all" && c.country !== country) return false;
     if (storeId !== "all" && c.storeId !== storeId) return false;
-    if (statusFilter !== "all" && c.status !== statusFilter) return false;
     if (expenseFilter !== "all" && c.expenseType !== expenseFilter) return false;
     if (alertFilter === "flagged" && !c.hasAlert) return false;
     if (alertFilter === "clean" && c.hasAlert) return false;
+
+    // Date range filter
+    if (dateFrom || dateTo) {
+      const claimDate = new Date(c.submittedAt);
+      if (dateFrom && claimDate < new Date(dateFrom.setHours(0, 0, 0, 0))) return false;
+      if (dateTo) {
+        const end = new Date(dateTo);
+        end.setHours(23, 59, 59, 999);
+        if (claimDate > end) return false;
+      }
+    }
 
     // Employee type / position / store filters
     if (employeeTypeFilter !== "all" || positionFilter !== "all" || empStoreFilter !== "all") {
@@ -72,7 +96,20 @@ export default function ClaimsList() {
       return c.claimNumber.toLowerCase().includes(q) || c.store.toLowerCase().includes(q) || c.submitter.toLowerCase().includes(q) || c.vendor.toLowerCase().includes(q);
     }
     return true;
-  });
+  }), [country, storeId, expenseFilter, alertFilter, employeeTypeFilter, positionFilter, empStoreFilter, search, dateFrom, dateTo]);
+
+  // Tab counts based on baseFiltered
+  const tabCounts = useMemo(() => statusTabs.map(tab => {
+    if (!tab.statuses) return baseFiltered.length;
+    return baseFiltered.filter(c => tab.statuses!.includes(c.status)).length;
+  }), [baseFiltered]);
+
+  // Final filtered = baseFiltered + active status tab
+  const filtered = useMemo(() => {
+    const tab = statusTabs[activeTab];
+    if (!tab.statuses) return baseFiltered;
+    return baseFiltered.filter(c => tab.statuses!.includes(c.status));
+  }, [baseFiltered, activeTab]);
 
   const uniqueExpenseTypes = [...new Set(claims.map(c => c.expenseType))];
 
@@ -89,19 +126,12 @@ export default function ClaimsList() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* Row 1: Search + dropdown filters */}
       <div className="filter-bar flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder="Search claims..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-xs" />
         </div>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue placeholder="All Statuses" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Statuses</SelectItem>
-            {allStatuses.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-          </SelectContent>
-        </Select>
         <Select value={expenseFilter} onValueChange={setExpenseFilter}>
           <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Expenses" /></SelectTrigger>
           <SelectContent>
@@ -141,6 +171,60 @@ export default function ClaimsList() {
             <SelectItem value="clean">Clean</SelectItem>
           </SelectContent>
         </Select>
+      </div>
+
+      {/* Row 2: Date range */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Transaction Date:</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("h-8 w-[150px] justify-start text-left text-xs font-normal", !dateFrom && "text-muted-foreground")}>
+              <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "From date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dateFrom} onSelect={setDateFrom} initialFocus className="p-3 pointer-events-auto" />
+          </PopoverContent>
+        </Popover>
+        <span className="text-xs text-muted-foreground">to</span>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className={cn("h-8 w-[150px] justify-start text-left text-xs font-normal", !dateTo && "text-muted-foreground")}>
+              <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
+              {dateTo ? format(dateTo, "dd/MM/yyyy") : "To date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      {/* Row 3: Status pill tabs */}
+      <div className="flex items-center gap-1.5 flex-wrap">
+        {statusTabs.map((tab, i) => (
+          <button
+            key={tab.label}
+            onClick={() => setActiveTab(i)}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors border",
+              activeTab === i
+                ? "bg-foreground text-background border-foreground"
+                : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {tab.label}
+            <span className={cn(
+              "inline-flex items-center justify-center rounded-full px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold",
+              activeTab === i
+                ? "bg-background/20 text-background"
+                : "bg-muted text-muted-foreground"
+            )}>
+              {tabCounts[i]}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Table */}
