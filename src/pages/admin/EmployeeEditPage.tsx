@@ -254,16 +254,6 @@ export default function EmployeeEditPage() {
                 <Label>Email <span className="text-destructive">*</span></Label>
                 <Input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Department</Label>
-                  <Input value={form.dept} onChange={(e) => setForm({ ...form, dept: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Branch</Label>
-                  <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
-                </div>
-              </div>
             </CardContent>
           </Card>
 
