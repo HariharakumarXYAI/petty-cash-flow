@@ -362,7 +362,7 @@ export default function EmployeesPage() {
               <TableHead>Employee Code</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Login Type</TableHead>
-              <TableHead>Division</TableHead>
+              
               <TableHead>Store</TableHead>
               <TableHead>System Role</TableHead>
               <TableHead>Credentials</TableHead>
@@ -388,7 +388,7 @@ export default function EmployeesPage() {
                     {e.loginType === "sso" ? "☁️ Microsoft 365" : "🔑 Local Password"}
                   </span>
                 </TableCell>
-                <TableCell>{e.dept}</TableCell>
+                
                 <TableCell>{e.branch}</TableCell>
                 <TableCell>
                   <div className="flex gap-1 flex-wrap">
