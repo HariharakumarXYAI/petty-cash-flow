@@ -318,7 +318,7 @@ export default function EmployeesPage() {
               <TableHead>Email</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Branch</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>System Role</TableHead>
               <TableHead>Credentials</TableHead>
               <TableHead>First Login</TableHead>
               <TableHead>Active</TableHead>
