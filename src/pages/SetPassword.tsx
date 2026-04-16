@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate, Navigate } from "react-router-dom";
-import { Eye, EyeOff, Check, Circle } from "lucide-react";
+import { Eye, EyeOff, DollarSign, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { markFirstLoginComplete, getRoleHomePage } from "@/lib/mock-credentials";
 
 export default function SetPassword() {
-  const { firstLoginCredential, clearFirstLogin, user, logout, requiresPasswordReset } = useAuth();
+  const { firstLoginCredential, clearFirstLogin, user, logout, requiresPasswordReset, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   const [newPassword, setNewPassword] = useState("");
@@ -17,24 +17,31 @@ export default function SetPassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const requirements = useMemo(() => [
     { label: "At least 8 characters", met: newPassword.length >= 8 },
-    { label: "At least 1 uppercase letter", met: /[A-Z]/.test(newPassword) },
-    { label: "At least 1 number", met: /[0-9]/.test(newPassword) },
-    { label: "At least 1 special character (e.g. @, #, !)", met: /[^A-Za-z0-9]/.test(newPassword) },
-  ], [newPassword]);
+    { label: "At least one uppercase letter (A–Z)", met: /[A-Z]/.test(newPassword) },
+    { label: "At least one number (0–9)", met: /[0-9]/.test(newPassword) },
+    { label: "At least one special character (!@#$%^&*)", met: /[!@#$%^&*]/.test(newPassword) },
+    { label: "Passwords match", met: newPassword.length > 0 && confirmPassword.length > 0 && newPassword === confirmPassword },
+  ], [newPassword, confirmPassword]);
 
   const allMet = requirements.every(r => r.met);
-  const passwordsMatch = newPassword === confirmPassword && confirmPassword.length > 0;
-  const canSubmit = allMet && passwordsMatch;
+  const showMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
 
-  // Guard: only accessible during first-login flow
-  if (!firstLoginCredential) {
+  // Guard: not authenticated → login
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  const handleSubmit = () => {
+  // Guard: authenticated but not first login → role home
+  if (!requiresPasswordReset || !firstLoginCredential) {
+    const role = user?.role ?? "store_user";
+    return <Navigate to={getRoleHomePage(role)} replace />;
+  }
+
+  const handleSubmit = async () => {
     setError(null);
 
     if (newPassword === firstLoginCredential.password) {
@@ -42,65 +49,78 @@ export default function SetPassword() {
       return;
     }
 
-    if (!passwordsMatch) {
-      setError("Passwords do not match");
-      return;
+    setLoading(true);
+
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 800));
+
+    try {
+      markFirstLoginComplete(firstLoginCredential.username, newPassword);
+      clearFirstLogin();
+
+      toast.success("Password set successfully. Redirecting...", { duration: 3000 });
+
+      const role = user?.role ?? firstLoginCredential.role;
+      setTimeout(() => navigate(getRoleHomePage(role)), 1500);
+    } catch {
+      setError("Something went wrong. Please try again.");
+      setLoading(false);
     }
-
-    markFirstLoginComplete(firstLoginCredential.username, newPassword);
-    clearFirstLogin();
-
-    toast.success("Password set successfully!");
-
-    const role = user?.role ?? firstLoginCredential.role;
-    navigate(getRoleHomePage(role));
   };
 
-  const handleBackToLogin = () => {
+  const handleLogout = () => {
     logout();
     navigate("/login");
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[hsl(222,47%,11%)] p-4">
-      <div className="w-full max-w-[420px]">
-        <div className="bg-card rounded-2xl shadow-xl p-8 space-y-6">
-          {/* First-login info banner */}
-          {requiresPasswordReset && (
-            <div
-              className="rounded-lg px-4 py-3 text-sm"
-              style={{
-                background: "#E6F0FF",
-                borderLeft: "4px solid #0052CC",
-                color: "#333333",
-                fontSize: "14px",
-              }}
-            >
-              🔐 You're logging in for the first time. Please set a new password to access the portal.
-            </div>
-          )}
-
-          {/* Icon + Heading */}
-          <div className="text-center space-y-2">
-            <div className="text-4xl">🔐</div>
-            <h2 className="text-lg font-bold text-foreground">Set Your New Password</h2>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Your temporary password has expired.<br />
-              Please create a new password to continue.
-            </p>
+    <div className="min-h-screen flex items-center justify-center p-4" style={{ backgroundColor: "#F5F5F5" }}>
+      <div className="w-full max-w-[480px]">
+        {/* Logo */}
+        <div className="flex flex-col items-center mb-8">
+          <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center mb-3">
+            <DollarSign className="h-6 w-6 text-primary" />
           </div>
+          <h1 className="text-xl font-bold text-foreground tracking-tight">PettyCash 360</h1>
+          <p className="text-xs text-muted-foreground uppercase tracking-widest mt-1">Makro Group</p>
+        </div>
+
+        {/* Card */}
+        <div className="bg-white rounded-2xl shadow-lg p-8 space-y-6">
+          {/* Info banner */}
+          <div
+            className="rounded-lg"
+            style={{
+              background: "#E6F0FF",
+              borderLeft: "4px solid #0052CC",
+              borderRadius: "8px",
+              padding: "12px 16px",
+              fontSize: "14px",
+              color: "#003D99",
+              lineHeight: "1.5",
+            }}
+          >
+            🔐 You're logging in for the first time. Please set a secure password to continue.
+          </div>
+
+          {/* Heading */}
+          <h2 style={{ fontSize: "22px", fontWeight: 600, color: "#1A1A1A", marginBottom: "0" }}>
+            Set Your New Password
+          </h2>
 
           {/* New Password */}
           <div className="space-y-1.5">
-            <Label htmlFor="new-password" className="text-xs">New Password *</Label>
+            <Label htmlFor="new-password" className="text-sm font-medium">New Password <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Input
                 id="new-password"
                 type={showNew ? "text" : "password"}
                 value={newPassword}
                 onChange={(e) => { setNewPassword(e.target.value); setError(null); }}
-                placeholder="Enter new password"
-                className="h-10 pr-10"
+                placeholder="Create a strong password"
+                autoComplete="new-password"
+                className="pr-10"
+                style={{ height: "44px", borderRadius: "8px" }}
               />
               <button
                 type="button"
@@ -113,15 +133,14 @@ export default function SetPassword() {
           </div>
 
           {/* Requirements checklist */}
-          <div className="space-y-1.5">
+          <div className="space-y-0.5">
             {requirements.map((req, i) => (
-              <div key={i} className="flex items-center gap-2">
-                {req.met ? (
-                  <Check className="h-3.5 w-3.5 text-status-approved shrink-0" />
-                ) : (
-                  <Circle className="h-3.5 w-3.5 text-muted-foreground/40 shrink-0" />
-                )}
-                <span className={`text-[11px] ${req.met ? "text-status-approved" : "text-muted-foreground"}`}>
+              <div key={i} className="flex items-center gap-2" style={{ lineHeight: "1.8" }}>
+                <span style={{ fontSize: "13px" }}>{req.met ? "✅" : "❌"}</span>
+                <span style={{
+                  fontSize: "13px",
+                  color: req.met ? "#52C41A" : "#999999",
+                }}>
                   {req.label}
                 </span>
               </div>
@@ -130,16 +149,18 @@ export default function SetPassword() {
 
           {/* Confirm Password */}
           <div className="space-y-1.5">
-            <Label htmlFor="confirm-password" className="text-xs">Confirm New Password *</Label>
+            <Label htmlFor="confirm-password" className="text-sm font-medium">Confirm Password <span className="text-destructive">*</span></Label>
             <div className="relative">
               <Input
                 id="confirm-password"
                 type={showConfirm ? "text" : "password"}
                 value={confirmPassword}
                 onChange={(e) => { setConfirmPassword(e.target.value); setError(null); }}
-                placeholder="Re-enter new password"
-                className="h-10 pr-10"
-                onKeyDown={(e) => e.key === "Enter" && canSubmit && handleSubmit()}
+                placeholder="Re-enter your password"
+                autoComplete="new-password"
+                className={`pr-10 ${showMismatch ? "border-destructive" : ""}`}
+                style={{ height: "44px", borderRadius: "8px" }}
+                onKeyDown={(e) => e.key === "Enter" && allMet && !loading && handleSubmit()}
               />
               <button
                 type="button"
@@ -149,31 +170,53 @@ export default function SetPassword() {
                 {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            {confirmPassword.length > 0 && !passwordsMatch && (
-              <p className="text-[11px] text-destructive">Passwords do not match</p>
+            {showMismatch && (
+              <p className="text-xs text-destructive mt-1">Passwords do not match</p>
             )}
           </div>
 
-          {/* Error */}
+          {/* Error alert */}
           {error && (
-            <p className="text-[11px] text-destructive">{error}</p>
+            <div
+              className="rounded-lg px-4 py-3 text-sm"
+              style={{
+                background: "#FFF1F0",
+                border: "1px solid #FFA39E",
+                color: "#CF1322",
+                borderRadius: "8px",
+              }}
+            >
+              {error}
+            </div>
           )}
 
           {/* Submit */}
           <Button
             onClick={handleSubmit}
-            disabled={!canSubmit}
-            className="w-full h-11 text-sm font-medium rounded-lg bg-[hsl(222,47%,11%)] text-white hover:bg-[hsl(222,47%,18%)] disabled:opacity-40"
+            disabled={!allMet || loading}
+            className="w-full text-sm font-medium text-white disabled:opacity-40"
+            style={{
+              height: "48px",
+              borderRadius: "8px",
+              backgroundColor: allMet && !loading ? "#0052CC" : undefined,
+            }}
           >
-            Set Password & Continue
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Setting password...
+              </span>
+            ) : (
+              "Set Password"
+            )}
           </Button>
 
-          {/* Back link */}
+          {/* Logout link */}
           <button
-            onClick={handleBackToLogin}
-            className="block mx-auto text-[11px] text-muted-foreground hover:text-foreground transition-colors"
+            onClick={handleLogout}
+            className="block mx-auto text-xs text-muted-foreground hover:text-foreground transition-colors"
           >
-            ← Back to Login
+            Log out
           </button>
         </div>
       </div>
