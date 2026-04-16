@@ -305,7 +305,7 @@ export default function EntitiesPage() {
                 <Select value={form.businessGroup} onValueChange={(v) => updateField("businessGroup", v)}>
                   <SelectTrigger><SelectValue placeholder="Select group" /></SelectTrigger>
                   <SelectContent>
-                    {["Wholesale", "Retail", "Food Service", "Property-Mall", "International"].map((g) => (
+                    {["Wholesale"].map((g) => (
                       <SelectItem key={g} value={g}>{g}</SelectItem>
                     ))}
                   </SelectContent>
