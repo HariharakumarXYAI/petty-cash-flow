@@ -206,13 +206,12 @@ export default function EmployeeEditPage() {
     let newEmail = form.email;
     let warning = "";
 
+    // Only clear email when switching SSO → Local with a corporate email
     if (newType === "local" && isCorp) {
       newEmail = "";
       warning = "Email cleared — corporate domain is not allowed for Local Password accounts.";
-    } else if (newType === "sso" && form.email && !isCorp) {
-      newEmail = "";
-      warning = "Email cleared — SSO requires a corporate domain email.";
     }
+    // All other directions: preserve email
 
     setForm({ ...form, loginType: newType, email: newEmail });
     setEmailWarning(warning);
