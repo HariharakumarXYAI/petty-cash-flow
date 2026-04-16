@@ -64,9 +64,6 @@ export default function Login() {
         <div className="bg-card rounded-2xl shadow-xl p-8 space-y-6">
           {/* Section 1 — Microsoft SSO */}
           <div className="space-y-3">
-            <label className="text-xs font-medium text-muted-foreground">
-              Head Office Staff (@cpaxtra.co.th)
-            </label>
             <Button
               onClick={handleMicrosoftLogin}
               className="w-full h-12 text-sm font-medium gap-3 rounded-lg"
@@ -94,10 +91,6 @@ export default function Login() {
 
           {/* Section 2 — Store Users */}
           <div className="space-y-4">
-            <label className="text-xs font-medium text-muted-foreground">
-              Store Staff (Local Account)
-            </label>
-
             <div className="space-y-1.5">
               <Label htmlFor="username" className="text-xs">Username</Label>
               <Input
