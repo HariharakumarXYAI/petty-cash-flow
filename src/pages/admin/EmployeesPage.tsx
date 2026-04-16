@@ -316,8 +316,8 @@ export default function EmployeesPage() {
               <TableHead>Name</TableHead>
               <TableHead>Employee Code</TableHead>
               <TableHead>Email</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Branch</TableHead>
+              <TableHead>Division</TableHead>
+              <TableHead>Store</TableHead>
               <TableHead>System Role</TableHead>
               <TableHead>Credentials</TableHead>
               <TableHead>First Login</TableHead>
@@ -404,11 +404,11 @@ export default function EmployeesPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Department</Label>
+                <Label>Division</Label>
                 <Input value={form.dept} onChange={(e) => setForm({ ...form, dept: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label>Branch</Label>
+                <Label>Store</Label>
                 <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
               </div>
             </div>
