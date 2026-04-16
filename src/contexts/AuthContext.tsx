@@ -7,10 +7,12 @@ interface AuthState {
   user: AppUser | null;
   isAuthenticated: boolean;
   firstLoginCredential: MockCredential | null;
+  requiresPasswordReset: boolean;
   login: () => void;
   logout: () => void;
   switchRole: (role: AppRole) => void;
   setFirstLoginCredential: (cred: MockCredential | null) => void;
+  setRequiresPasswordReset: (v: boolean) => void;
   clearFirstLogin: () => void;
 }
 
@@ -18,10 +20,12 @@ const defaultAuthState: AuthState = {
   user: null,
   isAuthenticated: false,
   firstLoginCredential: null,
+  requiresPasswordReset: false,
   login: () => undefined,
   logout: () => undefined,
   switchRole: () => undefined,
   setFirstLoginCredential: () => undefined,
+  setRequiresPasswordReset: () => undefined,
   clearFirstLogin: () => undefined,
 };
 
@@ -30,6 +34,7 @@ const AuthContext = createContext<AuthState>(defaultAuthState);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AppUser | null>(null);
   const [firstLoginCredential, setFirstLoginCredential] = useState<MockCredential | null>(null);
+  const [requiresPasswordReset, setRequiresPasswordReset] = useState(false);
 
   const login = () => {
     setUser(mockUsers[0]);
@@ -38,6 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     setUser(null);
     setFirstLoginCredential(null);
+    setRequiresPasswordReset(false);
   };
 
   const switchRole = (role: AppRole) => {
@@ -49,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const clearFirstLogin = () => {
     setFirstLoginCredential(null);
+    setRequiresPasswordReset(false);
   };
 
   return (
@@ -57,10 +64,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated: !!user,
         firstLoginCredential,
+        requiresPasswordReset,
         login,
         logout,
         switchRole,
         setFirstLoginCredential,
+        setRequiresPasswordReset,
         clearFirstLogin,
       }}
     >

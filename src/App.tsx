@@ -46,10 +46,14 @@ import BusinessUnitsPage from "./pages/admin/BusinessUnitsPage";
 const queryClient = new QueryClient();
 
 function ProtectedLayout() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, requiresPasswordReset } = useAuth();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (requiresPasswordReset) {
+    return <Navigate to="/login/set-password" replace />;
   }
 
   return (
