@@ -76,12 +76,12 @@ interface Employee {
 }
 
 const mockEmployees: Employee[] = [
-  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "local" },
-  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent", loginType: "local" },
-  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "local" },
+  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent", loginType: "sso" },
+  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
   { name: "พิม ดี", code: "ACC001", email: "pim@cpaxtra.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
   { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@cpaxtra.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
-  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed", loginType: "local" },
+  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed", loginType: "sso" },
 ];
 
 const roleBadgeColor: Record<string, string> = {
@@ -244,7 +244,13 @@ export default function EmployeesPage() {
 
   const openAdd = () => {
     setEditingCode(null);
-    setForm({ ...emptyForm, loginType: isStoreManager ? "local" : emptyForm.loginType });
+    setForm({
+      ...emptyForm,
+      loginType: isStoreManager ? "local" : emptyForm.loginType,
+      employeeType: isStoreManager ? "Store" : emptyForm.employeeType,
+      branch: isStoreManager ? (user?.scope?.label || "") : "",
+      role: isStoreManager ? "store_user" : emptyForm.role,
+    });
     setEmailWarning("");
     setEmailError("");
     setDialogOpen(true);
@@ -461,7 +467,7 @@ export default function EmployeesPage() {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label>Email <span className="text-destructive">*</span></Label>
+              <Label>{form.loginType === "local" ? "Notification Email" : "Email"} <span className="text-destructive">*</span></Label>
               <Input
                 type="email"
                 value={form.email}
@@ -475,6 +481,9 @@ export default function EmployeesPage() {
               />
               {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
               {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+              {form.loginType === "local" && !emailError && !emailWarning && (
+                <p className="text-xs text-muted-foreground mt-1">Temporary password will be sent to this address.</p>
+              )}
             </div>
             {/* Login Type */}
             <div className="space-y-1.5">
@@ -517,17 +526,22 @@ export default function EmployeesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Store</Label>
-                <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
+                {isStoreManager ? (
+                  <Input value={user?.scope?.label || ""} disabled className="bg-muted" />
+                ) : (
+                  <Input value={form.branch} onChange={(e) => setForm({ ...form, branch: e.target.value })} />
+                )}
               </div>
             </div>
 
             {/* Employee Type Toggle */}
             <div className="space-y-1.5">
               <Label>Employee Type <span className="text-destructive">*</span></Label>
-              <div className="flex rounded-lg border overflow-hidden">
+              <div className={cn("flex rounded-lg border overflow-hidden", isStoreManager && "opacity-60 pointer-events-none")}>
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
+                  onClick={() => !isStoreManager && setForm({ ...form, employeeType: "HO", storeType: "" })}
+                  disabled={isStoreManager}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
                     form.employeeType === "HO"
@@ -539,7 +553,8 @@ export default function EmployeesPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setForm({ ...form, employeeType: "Store" })}
+                  onClick={() => !isStoreManager && setForm({ ...form, employeeType: "Store" })}
+                  disabled={isStoreManager}
                   className={cn(
                     "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
                     form.employeeType === "Store"
