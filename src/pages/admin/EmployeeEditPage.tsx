@@ -70,36 +70,44 @@ const mockEmployees: Employee[] = [
   { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store" },
   { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store" },
   { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store" },
-  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Supervisor", employeeType: "HO" },
-  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Department Manager", employeeType: "HO" },
+  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO" },
+  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO" },
   { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store" },
 ];
 
-const hoPositionLevels = ["Staff", "Supervisor", "Department Manager", "Division Director", "VP", "SVP", "CFO"];
-const storePositionLevels = ["Staff", "Supervisor", "Area Manager", "Store Manager"];
+// Position levels filtered by Employee Type + Store Type
+const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
+  const base = ["Staff", "Senior Manager", "Area Manager", "Associate Director", "Director", "Senior Director"];
+  if (employeeType === "HO") return base;
+  // Store — add store-specific levels
+  const storeLevels = [...base, "Director – Region Operations"];
+  if (storeType === "Hypermarket") storeLevels.push("Store Manager – Hypermarket");
+  if (storeType === "Supermarket") storeLevels.push("Store Manager – Supermarket");
+  return storeLevels;
+};
 
 const approvalAuthority: Record<string, string> = {
   "Staff": "No approval authority",
-  "Supervisor": "Can approve ≤ ฿5,000",
-  "Area Manager": "Can approve ≤ ฿10,000",
-  "Store Manager": "Can approve ≤ ฿20,000",
-  "Department Manager": "Can approve ≤ ฿50,000",
-  "Division Director": "Can approve ≤ ฿100,000",
-  "VP": "Can approve ≤ ฿500,000",
-  "SVP": "Can approve ≤ ฿1,000,000",
-  "CFO": "Unlimited approval authority",
+  "Senior Manager": "Can approve ≤ ฿10,000",
+  "Area Manager": "Can approve ≤ ฿20,000",
+  "Associate Director": "Can approve ≤ ฿50,000",
+  "Director": "Can approve ≤ ฿100,000",
+  "Senior Director": "Can approve ≤ ฿500,000",
+  "Director – Region Operations": "Can approve ≤ ฿200,000",
+  "Store Manager – Hypermarket": "Can approve ≤ ฿30,000",
+  "Store Manager – Supermarket": "Can approve ≤ ฿20,000",
 };
 
 const loaHints: Record<string, string> = {
   "Staff": "LOA Level 1 — No signing authority",
-  "Supervisor": "LOA Level 2 — Local petty cash only",
+  "Senior Manager": "LOA Level 2 — Local petty cash only",
   "Area Manager": "LOA Level 3 — Multi-store regional",
-  "Store Manager": "LOA Level 3 — Single store authority",
-  "Department Manager": "LOA Level 4 — Department budget",
-  "Division Director": "LOA Level 5 — Division budget",
-  "VP": "LOA Level 6 — Business unit scope",
-  "SVP": "LOA Level 7 — Cross-BU authority",
-  "CFO": "LOA Level 8 — Enterprise-wide",
+  "Associate Director": "LOA Level 4 — Department budget",
+  "Director": "LOA Level 5 — Division budget",
+  "Senior Director": "LOA Level 6 — Business unit scope",
+  "Director – Region Operations": "LOA Level 5 — Regional operations authority",
+  "Store Manager – Hypermarket": "LOA Level 3 — Single hypermarket store",
+  "Store Manager – Supermarket": "LOA Level 3 — Single supermarket store",
 };
 
 interface EmployeeFormData {
@@ -125,7 +133,7 @@ export default function EmployeeEditPage() {
 
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", dept: "", branch: "",
-    buCode: "", positionLevel: "Staff", employeeType: "Store",
+    buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "", active: true,
   });
 
@@ -154,7 +162,7 @@ export default function EmployeeEditPage() {
   const selectedBU = activeBUs.find((b) => b.buCode === form.buCode);
   const linkedEntity = selectedBU ? entityMap[selectedBU.entity] : null;
 
-  const positionLevels = form.employeeType === "HO" ? hoPositionLevels : storePositionLevels;
+  const positionLevels = getPositionLevels(form.employeeType, form.storeType);
 
   useEffect(() => {
     if (form.positionLevel === "Area Manager" && selectedBU && selectedBU.buType !== "Wholesale") {
@@ -164,12 +172,12 @@ export default function EmployeeEditPage() {
     }
   }, [form.positionLevel, selectedBU]);
 
-  // Reset position level if not in current list when employee type changes
+  // Reset position level if not in current list when employee type or store type changes
   useEffect(() => {
     if (!positionLevels.includes(form.positionLevel)) {
-      setForm((prev) => ({ ...prev, positionLevel: positionLevels[0] }));
+      setForm((prev) => ({ ...prev, positionLevel: "" }));
     }
-  }, [form.employeeType]);
+  }, [form.employeeType, form.storeType]);
 
   const handleSave = () => {
     if (validationError) return;
@@ -333,6 +341,16 @@ export default function EmployeeEditPage() {
                 </div>
               )}
 
+            </CardContent>
+          </Card>
+
+          {/* Card 3 — Approval & Authorization */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base font-bold">Approval & Authorization</CardTitle>
+              <div className="border-b mt-2" />
+            </CardHeader>
+            <CardContent className="space-y-4">
               {/* Employee Type Toggle */}
               <div>
                 <Label>Employee Type <span className="text-destructive">*</span></Label>
@@ -367,7 +385,7 @@ export default function EmployeeEditPage() {
               {/* Store Type — conditional */}
               <div
                 className={cn(
-                  "transition-all duration-300 overflow-hidden",
+                  "transition-all duration-200 overflow-hidden",
                   form.employeeType === "Store" ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
                 )}
               >
@@ -385,7 +403,7 @@ export default function EmployeeEditPage() {
               <div>
                 <Label>Position Level <span className="text-destructive">*</span></Label>
                 <Select value={form.positionLevel} onValueChange={(v) => setForm({ ...form, positionLevel: v })}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Select position level..." /></SelectTrigger>
                   <SelectContent>
                     {positionLevels
                       .filter((p) => {
@@ -397,7 +415,7 @@ export default function EmployeeEditPage() {
                       ))}
                   </SelectContent>
                 </Select>
-                {loaHints[form.positionLevel] && (
+                {form.positionLevel && loaHints[form.positionLevel] && (
                   <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                     <Info className="h-3 w-3" /> {loaHints[form.positionLevel]}
                   </p>
@@ -420,13 +438,13 @@ export default function EmployeeEditPage() {
                     <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
                       {form.directApprover
                         ? mockEmployees.find((e) => e.code === form.directApprover)?.name || form.directApprover
-                        : "Search approver..."}
+                        : "Search by name or employee code"}
                       <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[440px] p-0" align="start">
                     <Command>
-                      <CommandInput placeholder="Search by name or code..." />
+                      <CommandInput placeholder="Search by name or employee code..." />
                       <CommandList>
                         <CommandEmpty>No employee found.</CommandEmpty>
                         <CommandGroup>
@@ -453,20 +471,28 @@ export default function EmployeeEditPage() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {form.directApprover && (
-                  <div className="mt-1.5">
-                    <Badge variant="secondary" className="text-xs">
-                      <User className="h-3 w-3 mr-1" />
-                      {mockEmployees.find((e) => e.code === form.directApprover)?.name} ({form.directApprover})
-                    </Badge>
-                  </div>
-                )}
+                {form.directApprover && (() => {
+                  const approver = mockEmployees.find((e) => e.code === form.directApprover);
+                  return approver ? (
+                    <div className="mt-1.5">
+                      <Badge variant="secondary" className="text-xs gap-1">
+                        <User className="h-3 w-3" />
+                        {approver.name} — {approver.positionLevel}
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, directApprover: "" })}
+                          className="ml-1 hover:text-destructive"
+                        >×</button>
+                      </Badge>
+                    </div>
+                  ) : null;
+                })()}
               </div>
 
               {/* Cost Center */}
               <div>
                 <Label>Cost Center <span className="text-destructive">*</span></Label>
-                <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-10001" />
+                <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-1001-BKK" />
               </div>
             </CardContent>
           </Card>
