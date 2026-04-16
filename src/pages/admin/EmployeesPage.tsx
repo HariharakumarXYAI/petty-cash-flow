@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -212,13 +213,12 @@ export default function EmployeesPage() {
     const isCorp = isCorporateEmail(form.email);
     let newEmail = form.email;
     let warning = "";
+    // Only clear email when switching SSO → Local with a corporate email
     if (newType === "local" && isCorp) {
       newEmail = "";
       warning = "Email cleared — corporate domain is not allowed for Local Password accounts.";
-    } else if (newType === "sso" && form.email && !isCorp) {
-      newEmail = "";
-      warning = "Email cleared — SSO requires a corporate domain email.";
     }
+    // All other directions: preserve email
     setForm({ ...form, loginType: newType, email: newEmail });
     setEmailWarning(warning);
     setEmailError("");
@@ -467,20 +467,36 @@ export default function EmployeesPage() {
             {/* Login Type */}
             <div className="space-y-1.5">
               <Label>Login Type <span className="text-destructive">*</span></Label>
-              <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
-                <SelectTrigger className="h-[44px] rounded-lg">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
-                  <SelectItem value="local">🔑 Local Password</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                {form.loginType === "sso"
-                  ? "HQ staff. Must have a @cpaxtra.co.th email to sign in via Microsoft."
-                  : "Store staff. Uses Employee Code + password. Must NOT have a @cpaxtra.co.th email."}
-              </p>
+              {user?.role === "store_manager" ? (
+                <>
+                  <div
+                    className="flex items-center gap-2 h-[44px] px-3 py-2 rounded-lg text-sm"
+                    style={{ backgroundColor: "#F0F0F0", color: "#555555", borderRadius: "8px", padding: "8px 12px", fontSize: "14px" }}
+                  >
+                    🔑 Local Password
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 italic">
+                    Store staff accounts always use Local Password login.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
+                    <SelectTrigger className="h-[44px] rounded-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
+                      <SelectItem value="local">🔑 Local Password</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {form.loginType === "sso"
+                      ? "HQ staff. Must have a @cpaxtra.co.th or @makro.co.th email to sign in via Microsoft."
+                      : "Store staff. Uses Employee Code + password. Must NOT have a corporate domain email."}
+                  </p>
+                </>
+              )}
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
