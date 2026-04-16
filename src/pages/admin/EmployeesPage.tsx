@@ -89,7 +89,7 @@ const stats = [
   { label: "Active Employees", count: 5, icon: UserCheck, color: "text-status-approved" },
   { label: "Approvers", count: 2, icon: ShieldCheck, color: "text-status-investigation" },
   { label: "Admins", count: 1, icon: Settings, color: "text-status-validating" },
-  { label: "Cardholders", count: 3, icon: CreditCard, color: "text-destructive" },
+  
 ];
 
 // Position levels filtered by Employee Type + Store Type
