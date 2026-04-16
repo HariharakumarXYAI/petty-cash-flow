@@ -16,7 +16,7 @@ const adminNavGroups = [
   {
     label: "COMPANY INFORMATION",
     items: [
-      { title: "Departments", url: "/admin/departments", icon: Layers },
+      
       { title: "Stores & Petty Cash Fund", url: "/masters/stores", icon: Store },
     ],
   },
