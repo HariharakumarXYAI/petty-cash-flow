@@ -234,7 +234,7 @@ export default function EmployeesPage() {
 
   const openAdd = () => {
     setEditingCode(null);
-    setForm({ ...emptyForm });
+    setForm({ ...emptyForm, loginType: isStoreManager ? "local" : emptyForm.loginType });
     setEmailWarning("");
     setEmailError("");
     setDialogOpen(true);
