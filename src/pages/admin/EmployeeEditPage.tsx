@@ -172,12 +172,12 @@ export default function EmployeeEditPage() {
     }
   }, [form.positionLevel, selectedBU]);
 
-  // Reset position level if not in current list when employee type changes
+  // Reset position level if not in current list when employee type or store type changes
   useEffect(() => {
     if (!positionLevels.includes(form.positionLevel)) {
-      setForm((prev) => ({ ...prev, positionLevel: positionLevels[0] }));
+      setForm((prev) => ({ ...prev, positionLevel: "" }));
     }
-  }, [form.employeeType]);
+  }, [form.employeeType, form.storeType]);
 
   const handleSave = () => {
     if (validationError) return;
