@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Plus, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBadge } from "@/components/StatusBadge";
-import { claims, stores, type ClaimStatus, type Claim } from "@/lib/mock-data";
+import { claims, stores, type ClaimStatus, type Claim, employeeProfiles, getEmployeeProfile } from "@/lib/mock-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
@@ -17,6 +17,10 @@ const allStatuses: ClaimStatus[] = [
   "On Hold", "Under Investigation", "Awaiting Audit Document", "Settled", "Rejected",
 ];
 
+const hoPositions = ["Staff", "Senior Staff", "Manager", "Senior Manager", "Associate Director", "Director", "Senior Director"];
+const storePositions = ["Staff", "Senior Staff", "Store Manager – Hypermarket", "Store Manager – Supermarket", "Store Manager – Mini", "Area Manager", "Director – Region Operations"];
+const allPositions = [...new Set([...hoPositions, ...storePositions])];
+
 export default function ClaimsList() {
   const navigate = useNavigate();
   const { country, storeId } = useGlobalFilter();
@@ -24,7 +28,27 @@ export default function ClaimsList() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expenseFilter, setExpenseFilter] = useState<string>("all");
   const [alertFilter, setAlertFilter] = useState<string>("all");
+  const [employeeTypeFilter, setEmployeeTypeFilter] = useState<string>("all");
+  const [positionFilter, setPositionFilter] = useState<string>("all");
+  const [empStoreFilter, setEmpStoreFilter] = useState<string>("all");
   const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
+
+  const handleEmployeeTypeChange = (value: string) => {
+    setEmployeeTypeFilter(value);
+    setPositionFilter("all");
+    setEmpStoreFilter("all");
+  };
+
+  const positionOptions = useMemo(() => {
+    if (employeeTypeFilter === "HO") return hoPositions;
+    if (employeeTypeFilter === "Store") return storePositions;
+    return allPositions;
+  }, [employeeTypeFilter]);
+
+  const storeOptions = useMemo(() => {
+    const storeEmployees = employeeProfiles.filter(e => e.employeeType === "Store" && e.storeName);
+    return [...new Set(storeEmployees.map(e => e.storeName!))].sort();
+  }, []);
 
   const filtered = claims.filter((c) => {
     if (country !== "all" && c.country !== country) return false;
@@ -33,6 +57,16 @@ export default function ClaimsList() {
     if (expenseFilter !== "all" && c.expenseType !== expenseFilter) return false;
     if (alertFilter === "flagged" && !c.hasAlert) return false;
     if (alertFilter === "clean" && c.hasAlert) return false;
+
+    // Employee type / position / store filters
+    if (employeeTypeFilter !== "all" || positionFilter !== "all" || empStoreFilter !== "all") {
+      const profile = getEmployeeProfile(c.submitter);
+      if (!profile) return false;
+      if (employeeTypeFilter !== "all" && profile.employeeType !== employeeTypeFilter) return false;
+      if (positionFilter !== "all" && profile.positionLevel !== positionFilter) return false;
+      if (empStoreFilter !== "all" && profile.storeName !== empStoreFilter) return false;
+    }
+
     if (search) {
       const q = search.toLowerCase();
       return c.claimNumber.toLowerCase().includes(q) || c.store.toLowerCase().includes(q) || c.submitter.toLowerCase().includes(q) || c.vendor.toLowerCase().includes(q);
@@ -56,7 +90,7 @@ export default function ClaimsList() {
       </div>
 
       {/* Filters */}
-      <div className="filter-bar">
+      <div className="filter-bar flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder="Search claims..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-xs" />
@@ -69,14 +103,38 @@ export default function ClaimsList() {
           </SelectContent>
         </Select>
         <Select value={expenseFilter} onValueChange={setExpenseFilter}>
-          <SelectTrigger className="w-[150px] h-8 text-xs hidden sm:flex"><SelectValue placeholder="All Expenses" /></SelectTrigger>
+          <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Expenses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Expenses</SelectItem>
             {uniqueExpenseTypes.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
           </SelectContent>
         </Select>
+        <Select value={employeeTypeFilter} onValueChange={handleEmployeeTypeChange}>
+          <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Types" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="HO">🏢 HO (Head Office)</SelectItem>
+            <SelectItem value="Store">🏪 Store</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={positionFilter} onValueChange={setPositionFilter}>
+          <SelectTrigger className="w-[220px] h-8 text-xs"><SelectValue placeholder="All Positions" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Positions</SelectItem>
+            {positionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
+          </SelectContent>
+        </Select>
+        {employeeTypeFilter === "Store" && (
+          <Select value={empStoreFilter} onValueChange={setEmpStoreFilter}>
+            <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="All Stores" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Stores</SelectItem>
+              {storeOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+            </SelectContent>
+          </Select>
+        )}
         <Select value={alertFilter} onValueChange={setAlertFilter}>
-          <SelectTrigger className="w-[120px] h-8 text-xs hidden md:flex"><SelectValue placeholder="Alert Flag" /></SelectTrigger>
+          <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Alert Flag" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="flagged">Flagged</SelectItem>
