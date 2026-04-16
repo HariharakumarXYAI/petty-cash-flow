@@ -244,7 +244,13 @@ export default function EmployeesPage() {
 
   const openAdd = () => {
     setEditingCode(null);
-    setForm({ ...emptyForm, loginType: isStoreManager ? "local" : emptyForm.loginType });
+    setForm({
+      ...emptyForm,
+      loginType: isStoreManager ? "local" : emptyForm.loginType,
+      employeeType: isStoreManager ? "Store" : emptyForm.employeeType,
+      branch: isStoreManager ? (user?.scope?.label || "") : "",
+      role: isStoreManager ? "store_user" : emptyForm.role,
+    });
     setEmailWarning("");
     setEmailError("");
     setDialogOpen(true);
