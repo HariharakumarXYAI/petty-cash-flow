@@ -5,7 +5,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Upload, Pencil, Trash2, Search } from "lucide-react";
 
 const mockDocs = [
@@ -60,7 +59,7 @@ export default function DocumentsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10"><Checkbox /></TableHead>
+              
               <TableHead>Document Name</TableHead>
               
               <TableHead>OCR Verification</TableHead>
@@ -71,7 +70,7 @@ export default function DocumentsPage() {
           <TableBody>
             {filtered.map((d) => (
               <TableRow key={d.name}>
-                <TableCell><Checkbox /></TableCell>
+                
                 <TableCell className="font-medium">{d.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={d.ocr === "Enabled" ? "bg-status-approved/10 text-status-approved border-status-approved/20" : ""}>{d.ocr}</Badge>
