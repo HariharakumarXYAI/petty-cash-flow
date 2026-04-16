@@ -66,7 +66,7 @@ const emptyAddress: EntityAddress = {
 const emptyForm: EntityForm = {
   code: "", name: "", nameEn: "", taxId: "", entityType: "",
   start: "", end: "", status: "Active",
-  businessGroup: "", oracleCode: "", loaRef: "", currency: "",
+  businessGroup: "", oracleCode: "10001", loaRef: "", currency: "",
   ultimateApprover: "", financeController: "",
   address: { ...emptyAddress },
 };
@@ -149,7 +149,6 @@ export default function EntitiesPage() {
     if (!form.entityType) errs.entityType = "Required";
     if (!form.businessGroup) errs.businessGroup = "Required";
     if (!form.oracleCode.trim()) errs.oracleCode = "Required";
-    else if (!/^\d{5}$/.test(form.oracleCode)) errs.oracleCode = "Must be exactly 5 digits";
     if (!form.currency) errs.currency = "Required";
     if (form.taxId && !/^\d{13}$/.test(form.taxId)) errs.taxId = "Must be exactly 13 digits";
     // Address validation
@@ -315,11 +314,7 @@ export default function EntitiesPage() {
               </div>
               <div className="space-y-1.5">
                 <Label>Oracle Company Code <span className="text-destructive">*</span></Label>
-                <Input value={form.oracleCode} onChange={(e) => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 5);
-                  updateField("oracleCode", v);
-                }} placeholder="e.g. 10001" maxLength={5} className="font-mono" />
-                {errors.oracleCode && <p className="text-xs text-destructive">{errors.oracleCode}</p>}
+                <Input value={form.oracleCode} readOnly className="font-mono bg-muted cursor-default" />
               </div>
             </div>
             <div className="space-y-1.5">
