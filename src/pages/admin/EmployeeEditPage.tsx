@@ -133,7 +133,7 @@ export default function EmployeeEditPage() {
 
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", dept: "", branch: "",
-    buCode: "", positionLevel: "Staff", employeeType: "Store",
+    buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "", active: true,
   });
 
