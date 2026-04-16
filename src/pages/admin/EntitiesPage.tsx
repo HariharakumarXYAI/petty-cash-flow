@@ -66,7 +66,7 @@ const emptyAddress: EntityAddress = {
 const emptyForm: EntityForm = {
   code: "", name: "", nameEn: "", taxId: "", entityType: "",
   start: "", end: "", status: "Active",
-  businessGroup: "", oracleCode: "10001", loaRef: "", currency: "",
+  businessGroup: "Wholesale", oracleCode: "10001", loaRef: "ตาราง 1 (Wholesale)", currency: "",
   ultimateApprover: "", financeController: "",
   address: { ...emptyAddress },
 };
