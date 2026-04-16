@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, ShieldAlert, ShieldCheck, FileText, AlertTriangle, Ban, Search } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -121,30 +121,32 @@ export default function ExpenseTypesPage() {
         </Table>
       </div>
 
-      {/* Drawer */}
-      <Sheet open={!!selected || createOpen} onOpenChange={(o) => { if (!o) { setSelected(null); setCreateOpen(false); } }}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader>
-            <SheetTitle>{selected ? "Edit Expense Type" : "New Expense Type"}</SheetTitle>
-            <SheetDescription>
+      {/* Edit / Create Dialog */}
+      <Dialog open={!!selected || createOpen} onOpenChange={(o) => { if (!o) { setSelected(null); setCreateOpen(false); } }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{selected ? "Edit Expense Type" : "New Expense Type"}</DialogTitle>
+            <DialogDescription>
               {selected
                 ? `${selected.category} › ${selected.subcategory}`
                 : "Define a new expense category with thresholds and rules."
               }
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="mt-6 space-y-5">
+          <div className="space-y-5">
             {/* Basic Info */}
             <div className="space-y-3">
-              <p className="section-label">Basic Information</p>
-              <div className="space-y-1.5">
-                <Label className="text-sm">Category</Label>
-                <Input className="h-9" defaultValue={selected?.category || ""} placeholder="e.g. Office Supplies" />
-              </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm">Subcategory</Label>
-                <Input className="h-9" defaultValue={selected?.subcategory || ""} placeholder="e.g. Stationery" />
+              <h3 className="text-sm font-semibold text-foreground border-b pb-1">Basic Information</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Category</Label>
+                  <Input className="h-9" defaultValue={selected?.category || ""} placeholder="e.g. Office Supplies" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Subcategory</Label>
+                  <Input className="h-9" defaultValue={selected?.subcategory || ""} placeholder="e.g. Stationery" />
+                </div>
               </div>
             </div>
 
@@ -152,7 +154,7 @@ export default function ExpenseTypesPage() {
 
             {/* Thresholds */}
             <div className="space-y-3">
-              <p className="section-label">Threshold Configuration</p>
+              <h3 className="text-sm font-semibold text-foreground border-b pb-1">Threshold Configuration</h3>
               <p className="text-xs text-muted-foreground">
                 Define the amount limits that trigger alerts or block submissions.
               </p>
@@ -194,7 +196,7 @@ export default function ExpenseTypesPage() {
 
             {/* Rules */}
             <div className="space-y-3">
-              <p className="section-label">Rules & Flags</p>
+              <h3 className="text-sm font-semibold text-foreground border-b pb-1">Rules & Flags</h3>
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between py-1">
                   <div>
@@ -236,7 +238,7 @@ export default function ExpenseTypesPage() {
             {/* Country Applicability */}
             {selected && (
               <div className="space-y-2">
-                <p className="section-label">Country Applicability</p>
+                <h3 className="text-sm font-semibold text-foreground border-b pb-1">Country Applicability</h3>
                 <div className="flex flex-wrap gap-1.5">
                   {["TH", "KH", "MM"].map(c => {
                     const active = selected.countries.includes(c as any);
@@ -256,18 +258,19 @@ export default function ExpenseTypesPage() {
                 </div>
               </div>
             )}
-
-            <div className="pt-2 flex gap-2">
-              <Button className="flex-1">Save Changes</Button>
-              {selected && (
-                <Button variant="outline" size="sm" className="text-status-hold border-status-hold/20 hover:bg-status-hold/5">
-                  Deactivate
-                </Button>
-              )}
-            </div>
           </div>
-        </SheetContent>
-      </Sheet>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setSelected(null); setCreateOpen(false); }}>Cancel</Button>
+            <Button>Save Changes</Button>
+            {selected && (
+              <Button variant="outline" size="sm" className="text-status-hold border-status-hold/20 hover:bg-status-hold/5">
+                Deactivate
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
