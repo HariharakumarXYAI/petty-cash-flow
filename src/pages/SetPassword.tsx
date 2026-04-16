@@ -9,7 +9,7 @@ import { toast } from "sonner";
 import { markFirstLoginComplete, getRoleHomePage } from "@/lib/mock-credentials";
 
 export default function SetPassword() {
-  const { firstLoginCredential, clearFirstLogin, user, logout } = useAuth();
+  const { firstLoginCredential, clearFirstLogin, user, logout, requiresPasswordReset } = useAuth();
   const navigate = useNavigate();
 
   const [newPassword, setNewPassword] = useState("");
@@ -65,6 +65,21 @@ export default function SetPassword() {
     <div className="min-h-screen flex items-center justify-center bg-[hsl(222,47%,11%)] p-4">
       <div className="w-full max-w-[420px]">
         <div className="bg-card rounded-2xl shadow-xl p-8 space-y-6">
+          {/* First-login info banner */}
+          {requiresPasswordReset && (
+            <div
+              className="rounded-lg px-4 py-3 text-sm"
+              style={{
+                background: "#E6F0FF",
+                borderLeft: "4px solid #0052CC",
+                color: "#333333",
+                fontSize: "14px",
+              }}
+            >
+              🔐 You're logging in for the first time. Please set a new password to access the portal.
+            </div>
+          )}
+
           {/* Icon + Heading */}
           <div className="text-center space-y-2">
             <div className="text-4xl">🔐</div>
