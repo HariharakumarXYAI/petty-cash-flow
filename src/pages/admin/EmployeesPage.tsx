@@ -19,8 +19,9 @@ import {
 import {
   Plus, Upload, UserPlus, Eye, Pencil, Trash2, Search, Users, UserCheck,
   ShieldCheck, Settings, CreditCard, ChevronsUpDown, Check, AlertTriangle, Info,
-  Building2, Store, User, Calendar,
+  Building2, Store, User, Calendar, Mail, AlertCircle,
 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -66,15 +67,17 @@ interface Employee {
   buCode: string;
   positionLevel: string;
   employeeType: "HO" | "Store";
+  isFirstLogin?: boolean;
+  emailStatus?: "sent" | "failed";
 }
 
 const mockEmployees: Employee[] = [
-  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store" },
-  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store" },
-  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store" },
-  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO" },
-  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO" },
-  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store" },
+  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent" },
+  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent" },
+  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent" },
+  { name: "พิม ดี", code: "ACC001", email: "pim@makro.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO", isFirstLogin: false, emailStatus: "sent" },
+  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@makro.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO", isFirstLogin: false, emailStatus: "sent" },
+  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed" },
 ];
 
 const roleBadgeColor: Record<string, string> = {
@@ -216,10 +219,47 @@ export default function EmployeesPage() {
       setEmployees((prev) =>
         prev.map((e) => e.code === editingCode ? { ...e, name: form.name, code: form.code, email: form.email, dept: form.dept, branch: form.branch, buCode: form.buCode, positionLevel: form.positionLevel, employeeType: form.employeeType, active: form.active } : e)
       );
+      toast.success(`Employee ${form.code} updated successfully`);
     } else {
-      setEmployees((prev) => [...prev, { ...form, roles: ["Store User"] }]);
+      // Simulate email delivery (randomly fail ~20% for demo)
+      const emailFailed = Math.random() < 0.2;
+      const newEmployee: Employee = {
+        ...form,
+        roles: ["Store User"],
+        active: true,
+        isFirstLogin: true,
+        emailStatus: emailFailed ? "failed" : "sent",
+      };
+      setEmployees((prev) => [...prev, newEmployee]);
+
+      if (emailFailed) {
+        toast.warning(
+          `Account created, but the password email could not be sent. Ask System Admin to resend.`,
+          {
+            duration: Infinity,
+            style: {
+              background: "#FFFBE6",
+              borderLeft: "4px solid #FAAD14",
+              color: "#333333",
+              fontSize: "14px",
+            },
+          }
+        );
+      } else {
+        toast.success(
+          `Account created. Temporary password sent to ${form.email}.`,
+          {
+            duration: 5000,
+            style: {
+              background: "#F0FFF4",
+              borderLeft: "4px solid #52C41A",
+              color: "#333333",
+              fontSize: "14px",
+            },
+          }
+        );
+      }
     }
-    toast.success(editingCode ? `Employee ${form.code} updated successfully` : "Employee created successfully");
     setDialogOpen(false);
   };
 
@@ -279,6 +319,8 @@ export default function EmployeesPage() {
               <TableHead>Department</TableHead>
               <TableHead>Branch</TableHead>
               <TableHead>Role</TableHead>
+              <TableHead>Credentials</TableHead>
+              <TableHead>First Login</TableHead>
               <TableHead>Active</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -298,6 +340,29 @@ export default function EmployeesPage() {
                       <Badge key={r} variant="outline" className={`text-[10px] ${roleBadgeColor[r] || ""}`}>{r}</Badge>
                     ))}
                   </div>
+                </TableCell>
+                <TableCell>
+                  {e.emailStatus && (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        {e.emailStatus === "sent" ? (
+                          <Mail className="h-4 w-4 text-status-approved" />
+                        ) : (
+                          <AlertCircle className="h-4 w-4 text-status-hold" />
+                        )}
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {e.emailStatus === "sent" ? "Credentials sent" : "Email failed"}
+                      </TooltipContent>
+                    </Tooltip>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {e.isFirstLogin && (
+                    <Badge variant="outline" className="text-[10px] bg-status-validating/10 text-status-validating border-status-validating/20">
+                      Yes
+                    </Badge>
+                  )}
                 </TableCell>
                 <TableCell><Switch checked={e.active} /></TableCell>
                 <TableCell className="text-right">
