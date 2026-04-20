@@ -34,7 +34,7 @@ export default function AdminStoresPage() {
           <h1 className="text-xl font-semibold text-foreground">Stores & Petty Cash Fund</h1>
           <p className="text-sm text-muted-foreground">Manage store locations and petty cash fund allocations</p>
         </div>
-        <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+        <Button>
           <Plus className="h-4 w-4 mr-1" /> Add Store
         </Button>
       </div>

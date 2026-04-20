@@ -33,7 +33,7 @@ export default function DepartmentsPage() {
           <h1 className="text-xl font-semibold text-foreground">Departments</h1>
           <p className="text-sm text-muted-foreground">Manage organizational departments and team structure</p>
         </div>
-        <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground">
+        <Button>
           <Plus className="h-4 w-4 mr-1" /> Add Department
         </Button>
       </div>

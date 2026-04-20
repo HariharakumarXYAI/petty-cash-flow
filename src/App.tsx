@@ -43,6 +43,7 @@ import BranchesPage from "./pages/admin/BranchesPage";
 import DepartmentsPage from "./pages/admin/DepartmentsPage";
 import AdminStoresPage from "./pages/admin/AdminStoresPage";
 import BusinessUnitsPage from "./pages/admin/BusinessUnitsPage";
+import PositionLevelsPage from "./pages/admin/PositionLevelsPage";
 
 const queryClient = new QueryClient();
 
@@ -109,6 +110,7 @@ function AppRoutes() {
         <Route path="admin/departments" element={<AdminLayout><DepartmentsPage /></AdminLayout>} />
         <Route path="admin/stores" element={<AdminLayout><AdminStoresPage /></AdminLayout>} />
         <Route path="admin/employees" element={<AdminLayout><EmployeesPage /></AdminLayout>} />
+        <Route path="admin/position-levels" element={<AdminLayout><PositionLevelsPage /></AdminLayout>} />
         
         <Route path="admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
         <Route path="admin/roles/:roleId" element={<AdminLayout><RoleDetailPage /></AdminLayout>} />

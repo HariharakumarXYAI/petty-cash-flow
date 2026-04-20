@@ -175,7 +175,7 @@ export default function EntitiesPage() {
           <h1 className="text-xl font-semibold text-foreground">Entities</h1>
           <p className="text-sm text-muted-foreground">Manage legal entity registrations and tax identifiers</p>
         </div>
-        <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={openAdd}>
+        <Button onClick={openAdd}>
           <Plus className="h-4 w-4 mr-1" /> Add Company Identity
         </Button>
       </div>
@@ -416,7 +416,7 @@ export default function EntitiesPage() {
 
           <DialogFooter className="pt-4">
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
-            <Button className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={handleSave}>
+            <Button onClick={handleSave}>
               {editIndex !== null ? "Save Changes" : "Create Entity"}
             </Button>
           </DialogFooter>

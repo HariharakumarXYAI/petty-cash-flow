@@ -205,7 +205,7 @@ export default function BusinessUnitsPage() {
             Manage business unit classification linked to legal entities
           </p>
         </div>
-        <Button variant="destructive" onClick={openAdd}>
+        <Button onClick={openAdd}>
           <Plus className="h-4 w-4 mr-1" /> Add Business Unit
         </Button>
       </div>
@@ -508,7 +508,7 @@ export default function BusinessUnitsPage() {
 
           <SheetFooter className="pt-4 border-t gap-2">
             <Button variant="outline" onClick={() => setSheetOpen(false)}>Cancel</Button>
-            <Button variant="destructive" onClick={handleSave}>
+            <Button onClick={handleSave}>
               {editingId ? "Save Changes" : "Save Business Unit"}
             </Button>
           </SheetFooter>

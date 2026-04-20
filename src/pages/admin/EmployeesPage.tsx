@@ -338,7 +338,7 @@ export default function EmployeesPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
           <Button variant="outline" size="sm"><UserPlus className="h-4 w-4 mr-1" /> Invite User</Button>
-          <Button size="sm" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground" onClick={openAdd}>
+          <Button size="sm" onClick={openAdd}>
             <Plus className="h-4 w-4 mr-1" /> Add Employee
           </Button>
         </div>

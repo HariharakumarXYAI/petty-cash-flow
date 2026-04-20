@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from "react-router-dom";
 import {
   Building2, ScanSearch, CheckSquare, Users, ShieldCheck, FileText, DollarSign,
-  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store, Boxes,
+  Scale, Mail, Bell, BarChart3, Settings, GitBranch, Layers, Store, Boxes, Briefcase,
 } from "lucide-react";
 
 const adminNavGroups = [
@@ -24,6 +24,7 @@ const adminNavGroups = [
     label: "USER SETUP",
     items: [
       { title: "Employee Profiles", url: "/admin/employees", icon: Users },
+      { title: "Position Levels", url: "/admin/position-levels", icon: Briefcase },
       { title: "Roles & Permissions", url: "/admin/roles", icon: ShieldCheck },
     ],
   },
@@ -51,10 +52,10 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex h-full -m-4 md:-m-6">
       {/* Secondary sidebar */}
-      <aside className="w-[260px] shrink-0 bg-card border-r border-border overflow-y-auto">
+      <aside className="w-[260px] shrink-0 bg-white border-r border-slate-200 overflow-y-auto">
         <div className="p-5 pb-3">
           <div className="flex items-center gap-2 mb-1">
-            <Settings className="h-5 w-5 text-destructive" />
+            <Settings className="h-5 w-5 text-blue-600" />
             <h2 className="text-base font-semibold text-foreground">Admin Settings</h2>
           </div>
           <p className="text-[11px] text-muted-foreground leading-snug">
@@ -64,7 +65,7 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
         <nav className="px-3 pb-4">
           {adminNavGroups.map((group) => (
             <div key={group.label} className="mb-3">
-              <div className="text-[10px] font-semibold text-muted-foreground/60 uppercase tracking-widest px-2 mb-1">
+              <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest px-2 mb-1">
                 {group.label}
               </div>
               {group.items.map((item) => {
@@ -75,8 +76,8 @@ export function AdminLayout({ children }: { children: React.ReactNode }) {
                     to={item.url}
                     className={`flex items-center gap-2.5 px-2 py-1.5 rounded-md text-[13px] transition-colors mb-0.5 ${
                       isActive
-                        ? "bg-destructive/10 text-destructive font-medium border-l-2 border-destructive -ml-px"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        ? "bg-blue-600 text-white font-medium"
+                        : "text-slate-500 hover:bg-blue-50 hover:text-blue-700"
                     }`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />

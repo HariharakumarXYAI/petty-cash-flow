@@ -36,7 +36,7 @@ export default function DocumentsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
-          <Button size="sm" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"><Plus className="h-4 w-4 mr-1" /> Add Document Type</Button>
+          <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add Document Type</Button>
         </div>
       </div>
 
