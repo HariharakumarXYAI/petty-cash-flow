@@ -140,11 +140,11 @@ export default function ExpenseTypesPage() {
               <h3 className="text-sm font-semibold text-foreground border-b pb-1">Basic Information</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-sm">Expense Type</Label>
+                  <Label className="text-sm">Category</Label>
                   <Input className="h-9" defaultValue={selected?.category || ""} placeholder="e.g. Office Supplies" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-sm">Sub-Expense Type</Label>
+                  <Label className="text-sm">Subcategory</Label>
                   <Input className="h-9" defaultValue={selected?.subcategory || ""} placeholder="e.g. Stationery" />
                 </div>
               </div>
