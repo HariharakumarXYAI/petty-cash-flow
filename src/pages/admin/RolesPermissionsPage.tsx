@@ -256,12 +256,8 @@ export default function RolesPermissionsPage() {
               </div>
             </div>
           )}
-        </TabsContent>
-
-        <TabsContent value="matrix" className="mt-4">
-          <PermissionMatrixOverview roles={roles} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
 
       {/* Create / Rename modal */}
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
