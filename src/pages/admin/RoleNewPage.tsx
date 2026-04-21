@@ -1,23 +1,38 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Store as StoreIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { loadRoles, saveRoles, type DynamicRole } from "@/lib/permissions-catalog";
+import {
+  loadRoles, saveRoles, storeOptions, type DynamicRole,
+} from "@/lib/permissions-catalog";
+import { PermissionsMatrix } from "@/components/role/PermissionsMatrix";
+import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modules";
 
 export default function RoleNewPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
+  const [storeCodes, setStoreCodes] = useState<string[]>([]);
+  const [modulePermissions, setModulePermissions] =
+    useState<ModulePermissions>(emptyModulePermissions());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const canSubmit = name.trim().length > 0 && !saving;
+
+  const toggleStore = (code: string) => {
+    setStoreCodes((prev) =>
+      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
+    );
+  };
 
   const handleCreate = async () => {
     const trimmed = name.trim();
@@ -38,9 +53,10 @@ export default function RoleNewPage() {
       description: description.trim(),
       isSystem: false,
       grants: {},
-      storeCodes: [],
+      storeCodes,
       dataScope: "own_store",
       createdAt: new Date().toISOString(),
+      modulePermissions,
     };
     await new Promise((r) => setTimeout(r, 300));
     saveRoles([...roles, newRole]);
@@ -54,7 +70,7 @@ export default function RoleNewPage() {
   return (
     <div className="-m-6 min-h-full bg-gray-50">
       <div className="p-6 pb-24">
-        <div className="max-w-[900px]">
+        <div className="max-w-[1100px]">
           <Link
             to="/admin/roles"
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
@@ -66,57 +82,111 @@ export default function RoleNewPage() {
           <div className="mb-6">
             <h1 className="text-3xl font-bold text-foreground">Create Role</h1>
             <p className="text-sm text-muted-foreground mt-2">
-              Give the new role a name and short description.
+              Define the role's name, store access and what actions it can perform.
             </p>
           </div>
 
-          <div className="bg-white rounded-lg border border-gray-200 p-8">
-            <div className="mb-6 pb-3 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-foreground">Role Information</h2>
-            </div>
-
-            <div className="space-y-5">
-              <div>
-                <Label htmlFor="role-name" className="text-sm font-medium">
-                  Role Name <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="role-name"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    setError(null);
-                  }}
-                  placeholder="e.g. Regional Auditor"
-                  className={cn(
-                    "mt-1.5 border-gray-300",
-                    error && "border-destructive focus-visible:ring-destructive",
-                  )}
-                />
-                {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+          <div className="space-y-6">
+            <Card className="bg-white p-8">
+              <div className="mb-6 pb-3 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-foreground">Role Information</h2>
               </div>
-
-              <div>
-                <Label htmlFor="role-desc" className="text-sm font-medium">
-                  Description
-                </Label>
-                <Textarea
-                  id="role-desc"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="What can this role do?"
-                  rows={4}
-                  className="mt-1.5 border-gray-300"
-                />
+              <div className="space-y-5">
+                <div>
+                  <Label htmlFor="role-name" className="text-sm font-medium">
+                    Role Name <span className="text-destructive">*</span>
+                  </Label>
+                  <Input
+                    id="role-name"
+                    value={name}
+                    onChange={(e) => { setName(e.target.value); setError(null); }}
+                    placeholder="e.g. Regional Auditor"
+                    className={cn(
+                      "mt-1.5 border-gray-300",
+                      error && "border-destructive focus-visible:ring-destructive",
+                    )}
+                  />
+                  {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="role-desc" className="text-sm font-medium">
+                    Description
+                  </Label>
+                  <Textarea
+                    id="role-desc"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="What can this role do?"
+                    rows={3}
+                    className="mt-1.5 border-gray-300"
+                  />
+                </div>
               </div>
-            </div>
+            </Card>
+
+            <Card className="bg-white p-8">
+              <div className="mb-6 pb-3 border-b border-gray-200 flex items-center justify-between">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    Store Access ({storeCodes.length}/{storeOptions.length})
+                  </h2>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Pick the stores this role can access.
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    className="text-xs text-blue-600 hover:underline"
+                    onClick={() => setStoreCodes(storeOptions.map((s) => s.code))}
+                  >Select All</button>
+                  <button
+                    type="button"
+                    className="text-xs text-red-600 hover:underline"
+                    onClick={() => setStoreCodes([])}
+                  >Remove All</button>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                {storeOptions.map((s) => {
+                  const checked = storeCodes.includes(s.code);
+                  return (
+                    <label
+                      key={s.code}
+                      className={cn(
+                        "flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer",
+                        checked ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300 bg-white",
+                      )}
+                    >
+                      <Checkbox checked={checked} onCheckedChange={() => toggleStore(s.code)} />
+                      <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                        <StoreIcon className="h-4 w-4 text-slate-600" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted-foreground">[{s.code}]</div>
+                        <div className="text-sm font-medium truncate">{s.name}</div>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </Card>
+
+            <Card className="bg-white p-8">
+              <div className="mb-6 pb-3 border-b border-gray-200">
+                <h2 className="text-lg font-semibold text-foreground">Permissions</h2>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Toggle which actions this role can perform on each module.
+                </p>
+              </div>
+              <PermissionsMatrix value={modulePermissions} onChange={setModulePermissions} />
+            </Card>
           </div>
         </div>
       </div>
 
-      {/* Sticky footer */}
       <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.04)] py-4 px-8">
-        <div className="max-w-[900px] flex items-center justify-end gap-3">
+        <div className="max-w-[1100px] flex items-center justify-end gap-3">
           <Button
             variant="outline"
             onClick={handleCancel}
