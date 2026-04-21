@@ -697,16 +697,6 @@ export default function EmployeeEditPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-          </section>
-
-          {/* Section: Position */}
-          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
-            <SectionHeader
-              title="Position"
-              description="Assign store type and position level for this employee."
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               {form.employeeType === "Store" && (
                 <div>
                   <Label>Store Type <Req /></Label>
@@ -719,6 +709,16 @@ export default function EmployeeEditPage() {
                   </Select>
                 </div>
               )}
+            </div>
+          </section>
+
+          {/* Section: Position */}
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Position"
+              description="Assign position level and cost center for this employee."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
 
               <div>
                 <Label>Position Level <Req /></Label>
