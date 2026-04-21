@@ -303,7 +303,7 @@ export default function EmployeeEditPage() {
 
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
-    buCode: "", positionLevel: "", employeeType: "Store",
+    buCode: "WS-MK-TH", positionLevel: "", employeeType: "Store",
     storeType: "", storeName: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "9999", active: true,
     systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
