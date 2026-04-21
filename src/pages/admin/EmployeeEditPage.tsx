@@ -570,22 +570,6 @@ export default function EmployeeEditPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>Role <Req /></Label>
-                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
-                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allRoles.map((r) => (
-                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  Select the access level for this employee.
-                </p>
-              </div>
             </div>
           </section>
 
