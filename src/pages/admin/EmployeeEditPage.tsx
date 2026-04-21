@@ -187,6 +187,7 @@ export default function EmployeeEditPage() {
         "store_user";
       const data: EmployeeFormData = {
         name: employee.name, code: employee.code, email: employee.email,
+        phoneNumber: "0812345678",
         loginType: inferredLoginType, role: inferredRole,
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
