@@ -133,28 +133,8 @@ export function RoleAuthorizationSection({
       </div>
 
       <div className="space-y-6">
-        {/* Account Status + Effective dates */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <div>
-            <Label className="text-sm">Account Status</Label>
-            <div className="mt-1.5 flex items-center justify-between rounded-md border border-gray-300 px-3 py-2 h-10">
-              <div className="flex items-center gap-2 text-sm">
-                <span
-                  className={cn(
-                    "h-2 w-2 rounded-full",
-                    form.isActive ? "bg-emerald-500" : "bg-gray-400"
-                  )}
-                />
-                <span className={form.isActive ? "text-emerald-700" : "text-muted-foreground"}>
-                  {form.isActive ? "Active" : "Inactive"}
-                </span>
-              </div>
-              <Switch
-                checked={!!form.isActive}
-                onCheckedChange={(v) => setForm({ ...form, isActive: v, active: v })}
-              />
-            </div>
-          </div>
+        {/* Effective dates */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
           <div>
             <Label className="text-sm">Effective From <Req /></Label>
