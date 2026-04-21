@@ -146,6 +146,16 @@ const channelsMaster: MasterOption[] = [
   { code: "4001", name: "Direct Sales" },
 ];
 
+interface StoreOption { code: string; name: string; type: "Hypermarket" | "Supermarket" }
+const storesMaster: StoreOption[] = [
+  { code: "001001", name: "Makro Ladprao", type: "Hypermarket" },
+  { code: "001002", name: "Makro Rama 3", type: "Hypermarket" },
+  { code: "001003", name: "Makro Chiang Mai", type: "Hypermarket" },
+  { code: "002001", name: "Lotus Bangkok", type: "Supermarket" },
+  { code: "002002", name: "Lotus Phuket", type: "Supermarket" },
+  { code: "002003", name: "Lotus Khon Kaen", type: "Supermarket" },
+];
+
 type LoginType = "sso" | "local";
 
 interface EmployeeFormData {
