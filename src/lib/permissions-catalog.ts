@@ -201,6 +201,9 @@ export interface DynamicRole {
   storeCodes: string[];
   dataScope: DataScope;
   createdAt: string;
+  // New module-based permissions (Django-style add/change/delete/view per module).
+  // Optional for back-compat with existing seed/storage.
+  modulePermissions?: Record<string, Partial<Record<"add" | "change" | "delete" | "view", boolean>>>;
 }
 
 // Helpers to build grants
