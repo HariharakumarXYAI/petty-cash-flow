@@ -733,6 +733,7 @@ export default function EmployeeEditPage() {
             approverPopoverOpen={approverPopoverOpen}
             setApproverPopoverOpen={setApproverPopoverOpen}
             currentEmployeeCode={form.code}
+            approverList={mockEmployees.map((e) => ({ code: e.code, name: e.name, positionLevel: e.positionLevel, active: e.active }))}
             positionLevelSlot={
               <div>
                 <Label>Position Level <Req /></Label>
