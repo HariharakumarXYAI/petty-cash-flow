@@ -435,11 +435,14 @@ export default function EmployeeEditPage() {
           {employee.code} · {employee.name} · {roleLabel}
         </p>
 
-        {/* Card */}
-        <div className="mt-8 bg-white rounded-lg border border-gray-200 p-8 space-y-10">
+        {/* Cards */}
+        <div className="mt-8 space-y-6">
           {/* Section: Basic Information */}
-          <section>
-            <SectionHeader title="Basic Information" />
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Basic Information"
+              description="Identity, login, and active status for this employee."
+            />
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-5">
                 <div>
