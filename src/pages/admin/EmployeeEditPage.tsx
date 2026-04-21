@@ -77,12 +77,13 @@ const mockEmployees: Employee[] = [
 ];
 
 const allRoles = [
-  { value: "store_user", label: "Store User" },
-  { value: "store_manager", label: "Store Manager" },
-  { value: "regional_manager", label: "Regional Manager" },
-  { value: "ho_finance", label: "HO Finance" },
-  { value: "internal_audit", label: "Internal Audit" },
-  { value: "system_admin", label: "System Admin" },
+  { value: "store_user", label: "Store User", description: "Standard store employee access" },
+  { value: "store_manager", label: "Store Manager", description: "Manage store operations and approve store-level claims" },
+  { value: "regional_manager", label: "Regional Manager", description: "Oversee multiple stores within a region" },
+  { value: "ho_finance", label: "HO Finance", description: "Head office finance review and posting access" },
+  { value: "ho_admin", label: "HO Admin", description: "Head office administrative access" },
+  { value: "internal_audit", label: "Internal Audit", description: "Read-only access for audit and investigation" },
+  { value: "system_admin", label: "System Admin", description: "Full administrative access to system configuration" },
 ];
 
 const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
