@@ -1,0 +1,143 @@
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
+import { loadRoles, saveRoles, type DynamicRole } from "@/lib/permissions-catalog";
+
+export default function RoleNewPage() {
+  const navigate = useNavigate();
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  const canSubmit = name.trim().length > 0 && !saving;
+
+  const handleCreate = async () => {
+    const trimmed = name.trim();
+    if (!trimmed) {
+      setError("Role name is required.");
+      return;
+    }
+    const roles = loadRoles();
+    if (roles.some((r) => r.name.toLowerCase() === trimmed.toLowerCase())) {
+      setError("A role with this name already exists.");
+      return;
+    }
+
+    setSaving(true);
+    const newRole: DynamicRole = {
+      id: `role_${Date.now()}`,
+      name: trimmed,
+      description: description.trim(),
+      isSystem: false,
+      grants: {},
+      storeCodes: [],
+      dataScope: "own_store",
+      createdAt: new Date().toISOString(),
+    };
+    await new Promise((r) => setTimeout(r, 300));
+    saveRoles([...roles, newRole]);
+    setSaving(false);
+    toast.success("Role created");
+    navigate("/admin/roles");
+  };
+
+  const handleCancel = () => navigate("/admin/roles");
+
+  return (
+    <div className="-m-6 min-h-full bg-gray-50">
+      <div className="p-6 pb-24">
+        <div className="max-w-[900px]">
+          <Link
+            to="/admin/roles"
+            className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-4"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Roles
+          </Link>
+
+          <div className="mb-6">
+            <h1 className="text-3xl font-bold text-foreground">Create Role</h1>
+            <p className="text-sm text-muted-foreground mt-2">
+              Give the new role a name and short description.
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg border border-gray-200 p-8">
+            <div className="mb-6 pb-3 border-b border-gray-200">
+              <h2 className="text-lg font-semibold text-foreground">Role Information</h2>
+            </div>
+
+            <div className="space-y-5">
+              <div>
+                <Label htmlFor="role-name" className="text-sm font-medium">
+                  Role Name <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="role-name"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    setError(null);
+                  }}
+                  placeholder="e.g. Regional Auditor"
+                  className={cn(
+                    "mt-1.5 border-gray-300",
+                    error && "border-destructive focus-visible:ring-destructive",
+                  )}
+                />
+                {error && <p className="text-xs text-destructive mt-1">{error}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="role-desc" className="text-sm font-medium">
+                  Description
+                </Label>
+                <Textarea
+                  id="role-desc"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="What can this role do?"
+                  rows={4}
+                  className="mt-1.5 border-gray-300"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky footer */}
+      <div className="sticky bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-[0_-2px_8px_rgba(0,0,0,0.04)] py-4 px-8">
+        <div className="max-w-[900px] flex items-center justify-end gap-3">
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={saving}
+            className="border-gray-300 text-gray-700 bg-white hover:bg-gray-50 rounded-md px-5"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleCreate}
+            disabled={!canSubmit}
+            className={cn(
+              "bg-blue-600 hover:bg-blue-700 text-white rounded-md px-5",
+              !canSubmit && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            {saving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+            Create Role
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
