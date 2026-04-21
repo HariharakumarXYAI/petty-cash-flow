@@ -167,7 +167,7 @@ const allRoles = [
 
 const emptyForm: EmployeeForm = {
   name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
-  buCode: "", positionLevel: "Staff", employeeType: "Store",
+  buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store",
   storeType: "", directApprover: "", costCenter: "",
   division: "", location: "", lob: "", channel: "9999", active: true,
 };
