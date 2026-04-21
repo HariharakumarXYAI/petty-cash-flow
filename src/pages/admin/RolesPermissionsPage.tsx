@@ -77,11 +77,7 @@ export default function RolesPermissionsPage() {
   const pageRoles = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const openCreate = () => {
-    setEditTarget(null);
-    setFormName("");
-    setFormDesc("");
-    setFormError(null);
-    setCreateOpen(true);
+    navigate("/admin/roles/new");
   };
 
   const openRename = (role: DynamicRole) => {
