@@ -314,23 +314,67 @@ export default function EmployeeEditPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>Email <Req /></Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
-                  onBlur={handleEmailBlur}
-                  placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
-                  className={cn(
-                    "mt-1.5 rounded-md border-gray-300",
-                    emailError ? "border-destructive" : "",
-                    emailWarning ? "border-orange-400" : ""
-                  )}
-                />
-                {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
-                {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <Label htmlFor="email">Email <Req /></Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
+                    onBlur={handleEmailBlur}
+                    placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
+                    className={cn(
+                      "mt-1.5 rounded-md border-gray-300",
+                      emailError ? "border-destructive" : "",
+                      emailWarning ? "border-orange-400" : ""
+                    )}
+                  />
+                  {emailError && <p id="email-error" className="text-xs text-destructive mt-1">{emailError}</p>}
+                  {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="phone_number">Phone Number <Req /></Label>
+                  <div className="relative mt-1.5">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      id="phone_number"
+                      name="phone_number"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={phoneFocused ? 10 : 12}
+                      value={phoneFocused ? form.phoneNumber : formatPhoneDisplay(form.phoneNumber)}
+                      onFocus={() => setPhoneFocused(true)}
+                      onChange={(e) => {
+                        const normalized = normalizePhoneInput(e.target.value);
+                        setForm({ ...form, phoneNumber: normalized });
+                        if (phoneError) setPhoneError("");
+                      }}
+                      onBlur={() => {
+                        setPhoneFocused(false);
+                        setPhoneError(validatePhone(form.phoneNumber));
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text");
+                        const normalized = normalizePhoneInput(pasted);
+                        setForm({ ...form, phoneNumber: normalized });
+                      }}
+                      placeholder="08X-XXX-XXXX"
+                      aria-invalid={!!phoneError}
+                      aria-describedby={phoneError ? "phone-error" : undefined}
+                      className={cn(
+                        "pl-9 rounded-md border-gray-300",
+                        phoneError ? "border-destructive" : ""
+                      )}
+                    />
+                  </div>
+                  {phoneError && <p id="phone-error" className="text-xs text-destructive mt-1">{phoneError}</p>}
+                </div>
               </div>
+
 
               <div>
                 <Label>Login Type <Req /></Label>
