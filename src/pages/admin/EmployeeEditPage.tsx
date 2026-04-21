@@ -289,6 +289,7 @@ export default function EmployeeEditPage() {
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
   const [approverPopoverOpen, setApproverPopoverOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [orgErrors, setOrgErrors] = useState<{ location?: boolean; division?: boolean; lob?: boolean; channel?: boolean }>({});
 
   useEffect(() => {
     if (employee) {
