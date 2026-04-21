@@ -101,6 +101,46 @@ const loaHints: Record<string, string> = {
   "Store Manager – Supermarket": "LOA Level 3 — Single supermarket store",
 };
 
+// ── Organization Structure master data ──
+interface MasterOption { code: string; name: string; type?: string }
+
+const locationsMaster: MasterOption[] = [
+  { code: "099999", name: "Head Office", type: "HO" },
+  { code: "001001", name: "Makro Ladprao", type: "Store" },
+  { code: "001002", name: "Makro Rama 4", type: "Store" },
+  { code: "001003", name: "Makro Chiang Mai", type: "Store" },
+  { code: "001004", name: "Makro Phuket", type: "Store" },
+  { code: "002001", name: "Lotus Bangkok Central", type: "Store" },
+  { code: "002002", name: "Lotus Pattaya", type: "Store" },
+  { code: "003001", name: "DC Wang Noi", type: "DC" },
+];
+
+const divisionsMaster: MasterOption[] = [
+  { code: "92029", name: "Finance and Accounting" },
+  { code: "92030", name: "Information Technology" },
+  { code: "92031", name: "Human Resources" },
+  { code: "92032", name: "Operations" },
+  { code: "92033", name: "Sales & Marketing" },
+  { code: "92034", name: "Supply Chain" },
+  { code: "92035", name: "Internal Audit" },
+];
+
+const lobsMaster: MasterOption[] = [
+  { code: "1001", name: "Wholesales" },
+  { code: "1002", name: "Retail" },
+  { code: "1003", name: "Online" },
+  { code: "1004", name: "Food Service" },
+  { code: "9999", name: "Corporate / Shared Services" },
+];
+
+const channelsMaster: MasterOption[] = [
+  { code: "9999", name: "All Channels" },
+  { code: "1001", name: "B2B" },
+  { code: "2001", name: "B2C" },
+  { code: "3001", name: "Online Marketplace" },
+  { code: "4001", name: "Direct Sales" },
+];
+
 type LoginType = "sso" | "local";
 
 interface EmployeeFormData {
@@ -155,6 +195,79 @@ const SectionHeader = ({ title }: { title: string }) => (
 
 const Req = () => <span className="text-destructive">*</span>;
 
+interface MasterComboboxProps {
+  id: string;
+  value: string;
+  options: MasterOption[];
+  placeholder: string;
+  onChange: (code: string) => void;
+  error?: boolean;
+  highlightCodes?: string[]; // sort these to top
+}
+
+const MasterCombobox = ({ id, value, options, placeholder, onChange, error, highlightCodes }: MasterComboboxProps) => {
+  const [open, setOpen] = useState(false);
+  const sorted = useMemo(() => {
+    if (!highlightCodes?.length) return options;
+    const set = new Set(highlightCodes);
+    const top = options.filter((o) => set.has(o.code));
+    const rest = options.filter((o) => !set.has(o.code));
+    return [...top, ...rest];
+  }, [options, highlightCodes]);
+  const selected = options.find((o) => o.code === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            "mt-1.5 flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm",
+            error ? "border-destructive" : "border-gray-300",
+            !selected && "text-muted-foreground"
+          )}
+        >
+          <span className="truncate">
+            {selected ? `${selected.code} - ${selected.name}` : placeholder}
+          </span>
+          <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command
+          filter={(val, search) => {
+            const opt = options.find((o) => o.code === val);
+            if (!opt) return 0;
+            const haystack = `${opt.code} ${opt.name}`.toLowerCase();
+            return haystack.includes(search.toLowerCase()) ? 1 : 0;
+          }}
+        >
+          <CommandInput placeholder="Search by code or name..." />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {sorted.map((opt) => (
+                <CommandItem
+                  key={opt.code}
+                  value={opt.code}
+                  onSelect={() => { onChange(opt.code); setOpen(false); }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === opt.code ? "opacity-100" : "opacity-0")} />
+                  <span className="font-mono text-xs text-muted-foreground mr-2">{opt.code}</span>
+                  <span>{opt.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 export default function EmployeeEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -176,6 +289,7 @@ export default function EmployeeEditPage() {
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
   const [approverPopoverOpen, setApproverPopoverOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [orgErrors, setOrgErrors] = useState<{ location?: boolean; division?: boolean; lob?: boolean; channel?: boolean }>({});
 
   useEffect(() => {
     if (employee) {
@@ -193,7 +307,9 @@ export default function EmployeeEditPage() {
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
         directApprover: "", costCenter: "CC-" + employee.code,
-        division: "", location: "", lob: "", channel: "",
+        division: employee.employeeType === "HO" ? "92029" : "92032",
+        location: employee.employeeType === "HO" ? "099999" : "001001",
+        lob: "1001", channel: "9999",
         active: employee.active,
       };
       setForm(data);
@@ -254,9 +370,17 @@ export default function EmployeeEditPage() {
     if (validationError) return;
     const emailErr = validateEmail(form.email, form.loginType);
     const phErr = validatePhone(form.phoneNumber);
+    const orgErr = {
+      location: !form.location,
+      division: !form.division,
+      lob: !form.lob,
+      channel: !form.channel,
+    };
+    const hasOrgErr = Object.values(orgErr).some(Boolean);
     if (emailErr) setEmailError(emailErr);
     if (phErr) setPhoneError(phErr);
-    if (emailErr || phErr) return;
+    if (hasOrgErr) setOrgErrors(orgErr);
+    if (emailErr || phErr || hasOrgErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
   };
@@ -392,24 +516,7 @@ export default function EmployeeEditPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>Division</Label>
-                  <Input
-                    className="mt-1.5 rounded-md border-gray-300"
-                    value={form.dept}
-                    onChange={(e) => setForm({ ...form, dept: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Store</Label>
-                  <Input
-                    className="mt-1.5 rounded-md border-gray-300"
-                    value={form.branch}
-                    onChange={(e) => setForm({ ...form, branch: e.target.value })}
-                  />
-                </div>
-              </div>
+
 
               <div>
                 <Label>Employee Type <Req /></Label>
@@ -456,6 +563,71 @@ export default function EmployeeEditPage() {
                 <p className="text-xs text-muted-foreground mt-1.5">
                   Select the access level for this employee.
                 </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section: Organization Structure */}
+          <section>
+            <SectionHeader title="Organization Structure" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <Label htmlFor="org-location">Location <Req /></Label>
+                <MasterCombobox
+                  id="org-location"
+                  value={form.location}
+                  options={locationsMaster}
+                  placeholder="Select location..."
+                  onChange={(code) => { setForm({ ...form, location: code }); setOrgErrors((p) => ({ ...p, location: false })); }}
+                  error={orgErrors.location}
+                  highlightCodes={
+                    form.employeeType === "Store"
+                      ? locationsMaster.filter((l) => l.type === "Store").map((l) => l.code)
+                      : ["099999"]
+                  }
+                />
+                {orgErrors.location && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-division">Division <Req /></Label>
+                <MasterCombobox
+                  id="org-division"
+                  value={form.division}
+                  options={divisionsMaster}
+                  placeholder="Select division..."
+                  onChange={(code) => { setForm({ ...form, division: code }); setOrgErrors((p) => ({ ...p, division: false })); }}
+                  error={orgErrors.division}
+                />
+                {orgErrors.division && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-lob" className="flex items-center gap-1.5">
+                  LOB <Req />
+                  <span title="Line of Business - used for GL posting and reporting" className="inline-flex">
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" aria-label="Line of Business - used for GL posting and reporting" />
+                  </span>
+                </Label>
+                <MasterCombobox
+                  id="org-lob"
+                  value={form.lob}
+                  options={lobsMaster}
+                  placeholder="Select line of business..."
+                  onChange={(code) => { setForm({ ...form, lob: code }); setOrgErrors((p) => ({ ...p, lob: false })); }}
+                  error={orgErrors.lob}
+                />
+                {orgErrors.lob && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-channel">Channel <Req /></Label>
+                <MasterCombobox
+                  id="org-channel"
+                  value={form.channel}
+                  options={channelsMaster}
+                  placeholder="Select channel..."
+                  onChange={(code) => { setForm({ ...form, channel: code }); setOrgErrors((p) => ({ ...p, channel: false })); }}
+                  error={orgErrors.channel}
+                />
+                {orgErrors.channel && <p className="text-xs text-destructive mt-1">This field is required</p>}
               </div>
             </div>
           </section>
@@ -644,33 +816,6 @@ export default function EmployeeEditPage() {
                   onChange={(e) => setForm({ ...form, costCenter: e.target.value })}
                   placeholder="e.g. CC-1001-BKK"
                 />
-              </div>
-            </div>
-          </section>
-
-          {/* Section: Accounting */}
-          <section>
-            <SectionHeader title="Accounting" />
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>Division</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.division} onChange={(e) => setForm({ ...form, division: e.target.value })} placeholder="e.g. 01" />
-                </div>
-                <div>
-                  <Label>Location</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. BKK-01" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>LOB</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
-                </div>
-                <div>
-                  <Label>Channel</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
-                </div>
               </div>
             </div>
           </section>
