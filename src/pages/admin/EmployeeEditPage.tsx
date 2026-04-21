@@ -77,12 +77,13 @@ const mockEmployees: Employee[] = [
 ];
 
 const allRoles = [
-  { value: "store_user", label: "Store User" },
-  { value: "store_manager", label: "Store Manager" },
-  { value: "regional_manager", label: "Regional Manager" },
-  { value: "ho_finance", label: "HO Finance" },
-  { value: "internal_audit", label: "Internal Audit" },
-  { value: "system_admin", label: "System Admin" },
+  { value: "store_user", label: "Store User", description: "Standard store employee access" },
+  { value: "store_manager", label: "Store Manager", description: "Manage store operations and approve store-level claims" },
+  { value: "regional_manager", label: "Regional Manager", description: "Oversee multiple stores within a region" },
+  { value: "ho_finance", label: "HO Finance", description: "Head office finance review and posting access" },
+  { value: "ho_admin", label: "HO Admin", description: "Head office administrative access" },
+  { value: "internal_audit", label: "Internal Audit", description: "Read-only access for audit and investigation" },
+  { value: "system_admin", label: "System Admin", description: "Full administrative access to system configuration" },
 ];
 
 const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
@@ -722,6 +723,26 @@ export default function EmployeeEditPage() {
             setApproverPopoverOpen={setApproverPopoverOpen}
             currentEmployeeCode={form.code}
             approverList={mockEmployees.map((e) => ({ code: e.code, name: e.name, positionLevel: e.positionLevel, active: e.active }))}
+            systemRoleSlot={
+              <div>
+                <Label>System Role <Req /></Label>
+                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as any })}>
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue placeholder="Select role..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allRoles.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        <div className="flex flex-col py-0.5">
+                          <span className="text-sm font-medium">{r.label}</span>
+                          <span className="text-[11px] text-muted-foreground">{r.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            }
             positionLevelSlot={
               <div>
                 <Label>Position Level <Req /></Label>
