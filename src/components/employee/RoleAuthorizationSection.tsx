@@ -59,10 +59,11 @@ interface Props {
   currentEmployeeCode: string;
   approverList?: Employee[];
   positionLevelSlot?: ReactNode;
+  systemRoleSlot?: ReactNode;
 }
 
 export function RoleAuthorizationSection({
-  form, setForm, selectedBU, approverPopoverOpen, setApproverPopoverOpen, currentEmployeeCode, approverList, positionLevelSlot,
+  form, setForm, selectedBU, approverPopoverOpen, setApproverPopoverOpen, currentEmployeeCode, approverList, positionLevelSlot, systemRoleSlot,
 }: Props) {
   // Lazy-loaded approver list (mock fallback)
   const [employees, setEmployees] = useState<Employee[]>(approverList ?? []);
