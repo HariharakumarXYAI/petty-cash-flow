@@ -94,6 +94,12 @@ export default function DocumentsPage() {
           </TableBody>
         </Table>
       </div>
+
+      <DocumentImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        onImported={refresh}
+      />
     </div>
   );
 }
