@@ -516,24 +516,7 @@ export default function EmployeeEditPage() {
                 </p>
               </div>
 
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>Division</Label>
-                  <Input
-                    className="mt-1.5 rounded-md border-gray-300"
-                    value={form.dept}
-                    onChange={(e) => setForm({ ...form, dept: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <Label>Store</Label>
-                  <Input
-                    className="mt-1.5 rounded-md border-gray-300"
-                    value={form.branch}
-                    onChange={(e) => setForm({ ...form, branch: e.target.value })}
-                  />
-                </div>
-              </div>
+
 
               <div>
                 <Label>Employee Type <Req /></Label>
