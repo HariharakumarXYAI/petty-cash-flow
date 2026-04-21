@@ -133,6 +133,83 @@ export function RoleAuthorizationSection({
       </div>
 
       <div className="space-y-6">
+        {/* Position Level + Direct Approver */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+          {positionLevelSlot}
+          <div>
+            <Label className="text-sm">Direct Approver <Req /></Label>
+            <Popover open={approverPopoverOpen} onOpenChange={setApproverPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  className="w-full justify-between font-normal mt-1.5 rounded-md border-gray-300"
+                >
+                  {form.directApprover
+                    ? (() => {
+                        const a = employees.find((e) => e.code === form.directApprover);
+                        return a ? `${a.code} - ${a.name}` : form.directApprover;
+                      })()
+                    : "Select direct approver..."}
+                  <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[440px] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Search by name or employee code..." />
+                  <CommandList>
+                    <CommandEmpty>No employee found.</CommandEmpty>
+                    <CommandGroup>
+                      {employees
+                        .filter((e) => e.code !== currentEmployeeCode && e.active)
+                        .sort((a, b) => a.code.localeCompare(b.code))
+                        .map((e) => (
+                          <CommandItem
+                            key={e.code}
+                            value={`${e.code} ${e.name}`}
+                            onSelect={() => {
+                              setForm({ ...form, directApprover: e.code });
+                              setApproverPopoverOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "mr-2 h-4 w-4",
+                                form.directApprover === e.code ? "opacity-100" : "opacity-0"
+                              )}
+                            />
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{e.code} - {e.name}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {e.positionLevel}
+                              </span>
+                            </div>
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
+            {form.directApprover && (() => {
+              const approver = employees.find((e) => e.code === form.directApprover);
+              return approver ? (
+                <div className="mt-1.5">
+                  <Badge variant="secondary" className="text-xs gap-1">
+                    <User className="h-3 w-3" />
+                    {approver.name} — {approver.positionLevel}
+                    <button
+                      type="button"
+                      onClick={() => setForm({ ...form, directApprover: "" })}
+                      className="ml-1 hover:text-destructive"
+                    >×</button>
+                  </Badge>
+                </div>
+              ) : null;
+            })()}
+          </div>
+        </div>
+
         {/* Effective dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
 
