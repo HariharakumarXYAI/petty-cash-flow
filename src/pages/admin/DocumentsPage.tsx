@@ -8,15 +8,19 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Upload, Pencil, Search } from "lucide-react";
 import { loadDocuments, type DocumentType } from "@/lib/documents-store";
+import { DocumentImportDialog } from "@/components/DocumentImportDialog";
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [docs, setDocs] = useState<DocumentType[]>([]);
+  const [importOpen, setImportOpen] = useState(false);
+
+  const refresh = () => setDocs(loadDocuments());
 
   useEffect(() => {
-    setDocs(loadDocuments());
+    refresh();
   }, []);
 
   const filtered = docs.filter((d) => {
@@ -34,7 +38,7 @@ export default function DocumentsPage() {
           <p className="text-sm text-muted-foreground">Manage document types for expense claims</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
           <Button size="sm" className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"><Plus className="h-4 w-4 mr-1" /> Add Document Type</Button>
         </div>
       </div>
