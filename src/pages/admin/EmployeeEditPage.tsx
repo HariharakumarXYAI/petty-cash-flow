@@ -590,8 +590,11 @@ export default function EmployeeEditPage() {
           </section>
 
           {/* Section: Organization Structure */}
-          <section>
-            <SectionHeader title="Organization Structure" />
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Organization Structure"
+              description="Business unit, location, and reporting hierarchy."
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <Label>Business Unit <Req /></Label>
