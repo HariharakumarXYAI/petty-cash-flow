@@ -820,33 +820,6 @@ export default function EmployeeEditPage() {
             </div>
           </section>
 
-          {/* Section: Accounting */}
-          <section>
-            <SectionHeader title="Accounting" />
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>Division</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.division} onChange={(e) => setForm({ ...form, division: e.target.value })} placeholder="e.g. 01" />
-                </div>
-                <div>
-                  <Label>Location</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. BKK-01" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>LOB</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
-                </div>
-                <div>
-                  <Label>Channel</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
-                </div>
-              </div>
-            </div>
-          </section>
-
           {/* Section: Status */}
           <section>
             <SectionHeader title="Status" />
