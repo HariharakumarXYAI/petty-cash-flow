@@ -344,19 +344,6 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-3 my-4">
-        {stats.map((s) => (
-          <Card key={s.label}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <s.icon className={`h-5 w-5 ${s.color}`} />
-              <div>
-                <div className="text-lg font-semibold">{s.count}</div>
-                <div className="text-[11px] text-muted-foreground">{s.label}</div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1">
