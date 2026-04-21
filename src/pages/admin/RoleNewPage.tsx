@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Store as StoreIcon } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
-  loadRoles, saveRoles, storeOptions, type DynamicRole,
+  loadRoles, saveRoles, type DynamicRole,
 } from "@/lib/permissions-catalog";
 import { PermissionsMatrix } from "@/components/role/PermissionsMatrix";
 import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modules";
@@ -20,19 +19,12 @@ export default function RoleNewPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [storeCodes, setStoreCodes] = useState<string[]>([]);
   const [modulePermissions, setModulePermissions] =
     useState<ModulePermissions>(emptyModulePermissions());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const canSubmit = name.trim().length > 0 && !saving;
-
-  const toggleStore = (code: string) => {
-    setStoreCodes((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
-    );
-  };
 
   const handleCreate = async () => {
     const trimmed = name.trim();
@@ -53,7 +45,7 @@ export default function RoleNewPage() {
       description: description.trim(),
       isSystem: false,
       grants: {},
-      storeCodes,
+      storeCodes: [],
       dataScope: "own_store",
       createdAt: new Date().toISOString(),
       modulePermissions,
@@ -121,54 +113,6 @@ export default function RoleNewPage() {
                     className="mt-1.5 border-gray-300"
                   />
                 </div>
-              </div>
-            </Card>
-
-            <Card className="bg-white p-8">
-              <div className="mb-6 pb-3 border-b border-gray-200 flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    Store Access ({storeCodes.length}/{storeOptions.length})
-                  </h2>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Pick the stores this role can access.
-                  </p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    className="text-xs text-blue-600 hover:underline"
-                    onClick={() => setStoreCodes(storeOptions.map((s) => s.code))}
-                  >Select All</button>
-                  <button
-                    type="button"
-                    className="text-xs text-red-600 hover:underline"
-                    onClick={() => setStoreCodes([])}
-                  >Remove All</button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-                {storeOptions.map((s) => {
-                  const checked = storeCodes.includes(s.code);
-                  return (
-                    <label
-                      key={s.code}
-                      className={cn(
-                        "flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer",
-                        checked ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300 bg-white",
-                      )}
-                    >
-                      <Checkbox checked={checked} onCheckedChange={() => toggleStore(s.code)} />
-                      <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center shrink-0">
-                        <StoreIcon className="h-4 w-4 text-slate-600" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-xs text-muted-foreground">[{s.code}]</div>
-                        <div className="text-sm font-medium truncate">{s.name}</div>
-                      </div>
-                    </label>
-                  );
-                })}
               </div>
             </Card>
 
