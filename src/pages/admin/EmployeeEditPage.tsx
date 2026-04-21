@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover";
 import {
   ArrowLeft, ChevronsUpDown, Check, AlertTriangle, Info, Building2, Store,
-  User, Search,
+  User, Search, Phone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
