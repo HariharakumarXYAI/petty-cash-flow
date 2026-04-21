@@ -211,9 +211,14 @@ export default function RoleDetailPage() {
                   {!isLocked && <Pencil className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                 </button>
               )}
-              {isLocked && (
+              {isSystemLocked && (
                 <Badge variant="outline" className="gap-1 border-amber-300 bg-amber-50 text-amber-700">
                   <Lock className="h-3 w-3" /> Protected
+                </Badge>
+              )}
+              {viewOnlyParam && !isSystemLocked && (
+                <Badge variant="outline" className="gap-1 border-slate-300 bg-slate-50 text-slate-700">
+                  <Eye className="h-3 w-3" /> Read-only view
                 </Badge>
               )}
               {isDirty && !isLocked && (
@@ -232,18 +237,36 @@ export default function RoleDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" onClick={() => setDiscardOpen(true)} disabled={!isDirty || isLocked} className="gap-2">
-            <X className="h-4 w-4" /> Discard
-          </Button>
-          <Button onClick={handleSave} disabled={!isDirty || isLocked} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-            <Save className="h-4 w-4" /> Save Changes
-          </Button>
+          {viewOnlyParam && !isSystemLocked && (
+            <Button
+              variant="outline"
+              onClick={() => setSearchParams({})}
+              className="gap-2"
+            >
+              <Pencil className="h-4 w-4" /> Switch to edit
+            </Button>
+          )}
+          {!isReadOnly && (
+            <>
+              <Button variant="outline" onClick={() => setDiscardOpen(true)} disabled={!isDirty} className="gap-2">
+                <X className="h-4 w-4" /> Discard
+              </Button>
+              <Button onClick={handleSave} disabled={!isDirty} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+                <Save className="h-4 w-4" /> Save Changes
+              </Button>
+            </>
+          )}
         </div>
       </div>
 
-      {isLocked && (
+      {isSystemLocked && (
         <Card className="p-3 border-amber-200 bg-amber-50 text-amber-800 text-sm flex items-center gap-2">
           <Lock className="h-4 w-4" /> System Admin is a protected role. Permissions and stores cannot be edited.
+        </Card>
+      )}
+      {viewOnlyParam && !isSystemLocked && (
+        <Card className="p-3 border-slate-200 bg-slate-50 text-slate-700 text-sm flex items-center gap-2">
+          <Eye className="h-4 w-4" /> Read-only view. Toggles are disabled.
         </Card>
       )}
 
