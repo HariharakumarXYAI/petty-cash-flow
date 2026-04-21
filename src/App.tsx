@@ -38,6 +38,7 @@ import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
 import RoleDetailPage from "./pages/admin/RoleDetailPage";
 import DocumentsPage from "./pages/admin/DocumentsPage";
 import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
+import ExpenseTypeEditPage from "./pages/admin/ExpenseTypeEditPage";
 import PolicyPage from "./pages/admin/PolicyPage";
 import PendingInvoiceEmailPage from "./pages/admin/PendingInvoiceEmailPage";
 import PendingApprovalEmailPage from "./pages/admin/PendingApprovalEmailPage";
@@ -120,6 +121,7 @@ function AppRoutes() {
         <Route path="admin/roles/:roleId" element={<AdminLayout><RoleDetailPage /></AdminLayout>} />
         <Route path="admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
         <Route path="admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
+        <Route path="admin/expense-types/:id/edit" element={<AdminLayout><ExpenseTypeEditPage /></AdminLayout>} />
         <Route path="admin/policy" element={<AdminLayout><PolicyPage /></AdminLayout>} />
         <Route path="admin/notifications/invoice-email" element={<AdminLayout><PendingInvoiceEmailPage /></AdminLayout>} />
         <Route path="admin/notifications/approval-email" element={<AdminLayout><PendingApprovalEmailPage /></AdminLayout>} />
