@@ -45,7 +45,7 @@ export default function RoleNewPage() {
       description: description.trim(),
       isSystem: false,
       grants: {},
-      storeCodes,
+      storeCodes: [],
       dataScope: "own_store",
       createdAt: new Date().toISOString(),
       modulePermissions,
