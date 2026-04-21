@@ -293,6 +293,9 @@ export default function EmployeeEditPage() {
     buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "", active: true,
+    systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
+    cardLastFour: "", cardholderNameOnCard: "", cardIssuer: "", cardExpiry: "",
+    approvalLimitPerTxn: "", approvalLimitPerMonth: "",
   });
   const [emailWarning, setEmailWarning] = useState("");
   const [emailError, setEmailError] = useState("");
