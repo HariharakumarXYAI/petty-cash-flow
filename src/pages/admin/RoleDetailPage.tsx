@@ -31,6 +31,8 @@ import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modul
 export default function RoleDetailPage() {
   const { roleId } = useParams<{ roleId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewOnlyParam = searchParams.get("view") === "1";
   const [allRoles, setAllRoles] = useState<DynamicRole[]>([]);
   const [draft, setDraft] = useState<DynamicRole | null>(null);
   const [original, setOriginal] = useState<DynamicRole | null>(null);
