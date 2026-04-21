@@ -328,6 +328,11 @@ export default function EmployeeEditPage() {
         location: employee.employeeType === "HO" ? "099999" : "001001",
         lob: "1001", channel: "9999",
         active: employee.active,
+        systemRoles: ["cardholder"], isActive: employee.active,
+        effectiveFrom: new Date(), effectiveTo: undefined,
+        cardLastFour: "", cardholderNameOnCard: employee.name.toUpperCase(),
+        cardIssuer: "", cardExpiry: "",
+        approvalLimitPerTxn: "", approvalLimitPerMonth: "",
       };
       setForm(data);
       setInitialForm(data);
