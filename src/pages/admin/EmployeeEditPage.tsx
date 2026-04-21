@@ -303,7 +303,7 @@ export default function EmployeeEditPage() {
 
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
-    buCode: "", positionLevel: "", employeeType: "Store",
+    buCode: "WS-MK-TH", positionLevel: "", employeeType: "Store",
     storeType: "", storeName: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "9999", active: true,
     systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
@@ -591,43 +591,20 @@ export default function EmployeeEditPage() {
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
-                <Label>Business Unit <Req /></Label>
-                <Popover open={buPopoverOpen} onOpenChange={setBuPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={buPopoverOpen} className="w-full justify-between font-normal mt-1.5 rounded-md border-gray-300">
-                      {form.buCode
-                        ? `${form.buCode} — ${activeBUs.find((b) => b.buCode === form.buCode)?.buNameTH || ""}`
-                        : "Select business unit..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[440px] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Search business unit..." />
-                      <CommandList>
-                        <CommandEmpty>No business unit found.</CommandEmpty>
-                        <CommandGroup>
-                          {activeBUs.map((bu) => (
-                            <CommandItem
-                              key={bu.buCode}
-                              value={`${bu.buCode} ${bu.buNameTH} ${bu.buNameEN}`}
-                              onSelect={() => {
-                                setForm({ ...form, buCode: bu.buCode });
-                                setBuPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", form.buCode === bu.buCode ? "opacity-100" : "opacity-0")} />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium">{bu.buCode} — {bu.buNameTH}</span>
-                                <span className="text-xs text-muted-foreground">{bu.buNameEN} · {bu.buType}</span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
+                <Label htmlFor="org-bu" className="flex items-center gap-1.5">
+                  Business Unit <Req />
+                  <span title="Business Unit is set to Wholesale by default and cannot be changed" className="inline-flex">
+                    <LockIcon className="h-3.5 w-3.5 text-muted-foreground" aria-label="Business Unit is set to Wholesale by default and cannot be changed" />
+                  </span>
+                </Label>
+                <div
+                  id="org-bu"
+                  className="mt-1.5 flex items-center justify-between rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none"
+                  aria-readonly="true"
+                >
+                  <span>WS-MK-TH — แม็คโคร ประเทศไทย</span>
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
               </div>
               <div>
                 <Label htmlFor="org-location">Location <Req /></Label>
