@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -14,11 +13,8 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
   ArrowLeft, ChevronsUpDown, Check, AlertTriangle, Info, Building2, Store,
-  ShieldAlert, Calendar, User, ChevronRight, Search,
+  User, Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -75,27 +71,22 @@ const mockEmployees: Employee[] = [
   { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store" },
 ];
 
-// Position levels filtered by Employee Type + Store Type
+const allRoles = [
+  { value: "store_user", label: "Store User" },
+  { value: "store_manager", label: "Store Manager" },
+  { value: "regional_manager", label: "Regional Manager" },
+  { value: "ho_finance", label: "HO Finance" },
+  { value: "internal_audit", label: "Internal Audit" },
+  { value: "system_admin", label: "System Admin" },
+];
+
 const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
   const base = ["Staff", "Senior Manager", "Area Manager", "Associate Director", "Director", "Senior Director"];
   if (employeeType === "HO") return base;
-  // Store — add store-specific levels
   const storeLevels = [...base, "Director – Region Operations"];
   if (storeType === "Hypermarket") storeLevels.push("Store Manager – Hypermarket");
   if (storeType === "Supermarket") storeLevels.push("Store Manager – Supermarket");
   return storeLevels;
-};
-
-const approvalAuthority: Record<string, string> = {
-  "Staff": "No approval authority",
-  "Senior Manager": "Can approve ≤ ฿10,000",
-  "Area Manager": "Can approve ≤ ฿20,000",
-  "Associate Director": "Can approve ≤ ฿50,000",
-  "Director": "Can approve ≤ ฿100,000",
-  "Senior Director": "Can approve ≤ ฿500,000",
-  "Director – Region Operations": "Can approve ≤ ฿200,000",
-  "Store Manager – Hypermarket": "Can approve ≤ ฿30,000",
-  "Store Manager – Supermarket": "Can approve ≤ ฿20,000",
 };
 
 const loaHints: Record<string, string> = {
@@ -117,6 +108,7 @@ interface EmployeeFormData {
   code: string;
   email: string;
   loginType: LoginType;
+  role: string;
   dept: string;
   branch: string;
   buCode: string;
@@ -132,6 +124,15 @@ interface EmployeeFormData {
   active: boolean;
 }
 
+const SectionHeader = ({ title }: { title: string }) => (
+  <div className="mb-6">
+    <h2 className="text-lg font-semibold text-foreground">{title}</h2>
+    <div className="border-b mt-2" />
+  </div>
+);
+
+const Req = () => <span className="text-destructive">*</span>;
+
 export default function EmployeeEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -139,7 +140,7 @@ export default function EmployeeEditPage() {
   const employee = mockEmployees.find((e) => e.code === id);
 
   const [form, setForm] = useState<EmployeeFormData>({
-    name: "", code: "", email: "", loginType: "sso" as LoginType, dept: "", branch: "",
+    name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "", active: true,
@@ -155,9 +156,14 @@ export default function EmployeeEditPage() {
   useEffect(() => {
     if (employee) {
       const inferredLoginType: LoginType = employee.email.endsWith("@cpaxtra.co.th") ? "sso" : "local";
+      const inferredRole =
+        employee.roles.includes("System Admin") ? "system_admin" :
+        employee.roles.includes("HO Finance") ? "ho_finance" :
+        employee.roles.includes("Store Manager") ? "store_manager" :
+        "store_user";
       const data: EmployeeFormData = {
         name: employee.name, code: employee.code, email: employee.email,
-        loginType: inferredLoginType,
+        loginType: inferredLoginType, role: inferredRole,
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
@@ -185,7 +191,6 @@ export default function EmployeeEditPage() {
     }
   }, [form.positionLevel, selectedBU]);
 
-  // Reset position level if not in current list when employee type or store type changes
   useEffect(() => {
     if (!positionLevels.includes(form.positionLevel)) {
       setForm((prev) => ({ ...prev, positionLevel: "" }));
@@ -205,14 +210,10 @@ export default function EmployeeEditPage() {
     const isCorp = isCorporateEmail(form.email);
     let newEmail = form.email;
     let warning = "";
-
-    // Only clear email when switching SSO → Local with a corporate email
     if (newType === "local" && isCorp) {
       newEmail = "";
       warning = "Email cleared — corporate domain is not allowed for Local Password accounts.";
     }
-    // All other directions: preserve email
-
     setForm({ ...form, loginType: newType, email: newEmail });
     setEmailWarning(warning);
     setEmailError("");
@@ -237,65 +238,59 @@ export default function EmployeeEditPage() {
 
   if (!employee) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-muted-foreground">Employee not found</p>
       </div>
     );
   }
 
+  const roleLabel = allRoles.find((r) => r.value === form.role)?.label || employee.roles[0] || "—";
+
   return (
-    <div className="min-h-full flex flex-col">
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/admin/employees">Admin Settings</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator><ChevronRight className="h-3.5 w-3.5" /></BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/admin/employees">Employee Profiles</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator><ChevronRight className="h-3.5 w-3.5" /></BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Edit Employee</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[900px] mx-auto px-6 py-8 pb-32">
+        {/* Back link */}
+        <Link
+          to="/admin/employees"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to Employees
+        </Link>
 
-      {/* Page Title */}
-      <div className="flex items-center gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Edit Employee</h1>
-          <Badge variant="outline" className="mt-1 font-mono text-xs">{form.code}</Badge>
-        </div>
-      </div>
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-foreground">Edit Employee</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          {employee.code} · {employee.name} · {roleLabel}
+        </p>
 
-      {/* 2-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 flex-1 pb-24">
-        {/* LEFT COLUMN — 60% */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Card 1 — Basic Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        {/* Card */}
+        <div className="mt-8 bg-white rounded-lg border border-gray-200 p-8 space-y-10">
+          {/* Section: Basic Information */}
+          <section>
+            <SectionHeader title="Basic Information" />
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <Label>Employee Code <span className="text-destructive">*</span></Label>
-                  <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="e.g. EMP005" />
+                  <Label>Employee Code <Req /></Label>
+                  <Input
+                    className="mt-1.5 rounded-md border-gray-300"
+                    value={form.code}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
+                    placeholder="e.g. EMP005"
+                  />
                 </div>
                 <div>
-                  <Label>Full Name <span className="text-destructive">*</span></Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  <Label>Full Name <Req /></Label>
+                  <Input
+                    className="mt-1.5 rounded-md border-gray-300"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
                 </div>
               </div>
+
               <div>
-                <Label>Email <span className="text-destructive">*</span></Label>
+                <Label>Email <Req /></Label>
                 <Input
                   type="email"
                   value={form.email}
@@ -303,6 +298,7 @@ export default function EmployeeEditPage() {
                   onBlur={handleEmailBlur}
                   placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
                   className={cn(
+                    "mt-1.5 rounded-md border-gray-300",
                     emailError ? "border-destructive" : "",
                     emailWarning ? "border-orange-400" : ""
                   )}
@@ -311,11 +307,10 @@ export default function EmployeeEditPage() {
                 {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
               </div>
 
-              {/* Login Type */}
               <div>
-                <Label>Login Type <span className="text-destructive">*</span></Label>
+                <Label>Login Type <Req /></Label>
                 <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
-                  <SelectTrigger className="h-[44px] rounded-lg">
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -323,17 +318,33 @@ export default function EmployeeEditPage() {
                     <SelectItem value="local">🔑 Local Password</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {form.loginType === "sso"
-                    ? "HQ staff. Must have a @cpaxtra.co.th email to sign in via Microsoft."
-                    : "Store staff. Uses Employee Code + password. Must NOT have a @cpaxtra.co.th email."}
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  HQ staff. Must have a @cpaxtra.co.th or @makro.co.th email to sign in via Microsoft.
                 </p>
               </div>
 
-              {/* Employee Type Toggle */}
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <Label>Division</Label>
+                  <Input
+                    className="mt-1.5 rounded-md border-gray-300"
+                    value={form.dept}
+                    onChange={(e) => setForm({ ...form, dept: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label>Store</Label>
+                  <Input
+                    className="mt-1.5 rounded-md border-gray-300"
+                    value={form.branch}
+                    onChange={(e) => setForm({ ...form, branch: e.target.value })}
+                  />
+                </div>
+              </div>
+
               <div>
-                <Label>Employee Type <span className="text-destructive">*</span></Label>
-                <div className="flex mt-1.5 rounded-lg border overflow-hidden">
+                <Label>Employee Type <Req /></Label>
+                <div className="flex mt-1.5 rounded-md border border-gray-300 overflow-hidden">
                   <button
                     type="button"
                     onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
@@ -360,21 +371,35 @@ export default function EmployeeEditPage() {
                   </button>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Card 2 — Business Unit & Position */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Business Unit & Position</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* BU Searchable Dropdown */}
               <div>
-                <Label>Business Unit <span className="text-destructive">*</span></Label>
+                <Label>Role <Req /></Label>
+                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v })}>
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allRoles.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>{r.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground mt-1.5">
+                  Select the access level for this employee.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          {/* Section: Business Unit & Position */}
+          <section>
+            <SectionHeader title="Business Unit & Position" />
+            <div className="space-y-5">
+              <div>
+                <Label>Business Unit <Req /></Label>
                 <Popover open={buPopoverOpen} onOpenChange={setBuPopoverOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={buPopoverOpen} className="w-full justify-between font-normal">
+                    <Button variant="outline" role="combobox" aria-expanded={buPopoverOpen} className="w-full justify-between font-normal mt-1.5 rounded-md border-gray-300">
                       {form.buCode
                         ? `${form.buCode} — ${activeBUs.find((b) => b.buCode === form.buCode)?.buNameTH || ""}`
                         : "Select business unit..."}
@@ -415,9 +440,8 @@ export default function EmployeeEditPage() {
                 )}
               </div>
 
-              {/* Auto-filled info */}
               {selectedBU && (
-                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="rounded-md border border-gray-200 bg-muted/30 p-3 space-y-2">
                   <div className="flex items-center gap-2 mb-1">
                     <Info className="h-3.5 w-3.5 text-muted-foreground" />
                     <span className="text-[11px] font-medium text-muted-foreground">Auto-filled from Business Unit</span>
@@ -443,39 +467,23 @@ export default function EmployeeEditPage() {
                 </div>
               )}
 
-            </CardContent>
-          </Card>
+              {form.employeeType === "Store" && (
+                <div>
+                  <Label>Store Type <Req /></Label>
+                  <Select value={form.storeType} onValueChange={(v) => setForm({ ...form, storeType: v })}>
+                    <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select store type..." /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Hypermarket">Hypermarket</SelectItem>
+                      <SelectItem value="Supermarket">Supermarket</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
-          {/* Card 3 — Approval & Authorization */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold">Approval & Authorization</CardTitle>
-              <div className="border-b mt-2" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-
-              {/* Store Type — conditional */}
-              <div
-                className={cn(
-                  "transition-all duration-200 overflow-hidden",
-                  form.employeeType === "Store" ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
-                )}
-              >
-                <Label>Store Type <span className="text-destructive">*</span></Label>
-                <Select value={form.storeType} onValueChange={(v) => setForm({ ...form, storeType: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select store type..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                    <SelectItem value="Supermarket">Supermarket</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Position Level */}
               <div>
-                <Label>Position Level <span className="text-destructive">*</span></Label>
+                <Label>Position Level <Req /></Label>
                 <Select value={form.positionLevel} onValueChange={(v) => setForm({ ...form, positionLevel: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select position level..." /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select position level..." /></SelectTrigger>
                   <SelectContent>
                     {positionLevels
                       .filter((p) => {
@@ -494,7 +502,6 @@ export default function EmployeeEditPage() {
                 )}
               </div>
 
-              {/* Validation error */}
               {validationError && (
                 <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
                   <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
@@ -502,12 +509,11 @@ export default function EmployeeEditPage() {
                 </div>
               )}
 
-              {/* Direct Approver */}
               <div>
-                <Label>Direct Approver <span className="text-destructive">*</span></Label>
+                <Label>Direct Approver <Req /></Label>
                 <Popover open={approverPopoverOpen} onOpenChange={setApproverPopoverOpen}>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
+                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-1.5 rounded-md border-gray-300">
                       {form.directApprover
                         ? mockEmployees.find((e) => e.code === form.directApprover)?.name || form.directApprover
                         : "Search by name or employee code"}
@@ -561,131 +567,73 @@ export default function EmployeeEditPage() {
                 })()}
               </div>
 
-              {/* Cost Center */}
               <div>
-                <Label>Cost Center <span className="text-destructive">*</span></Label>
-                <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-1001-BKK" />
+                <Label>Cost Center <Req /></Label>
+                <Input
+                  className="mt-1.5 rounded-md border-gray-300"
+                  value={form.costCenter}
+                  onChange={(e) => setForm({ ...form, costCenter: e.target.value })}
+                  placeholder="e.g. CC-1001-BKK"
+                />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </section>
 
-          {/* Card 4 — Accounting */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold">Accounting</CardTitle>
-              <div className="border-b mt-2" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+          {/* Section: Accounting */}
+          <section>
+            <SectionHeader title="Accounting" />
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <Label>Division</Label>
-                  <Input value={form.division} onChange={(e) => setForm({ ...form, division: e.target.value })} placeholder="e.g. 01" />
+                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.division} onChange={(e) => setForm({ ...form, division: e.target.value })} placeholder="e.g. 01" />
                 </div>
                 <div>
                   <Label>Location</Label>
-                  <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. BKK-01" />
+                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. BKK-01" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
                   <Label>LOB</Label>
-                  <Input value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
+                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
                 </div>
                 <div>
                   <Label>Channel</Label>
-                  <Input value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
+                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </section>
 
-        {/* RIGHT COLUMN — 40% */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Card 3 — Status & Summary */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Status & Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              {/* Active toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <Label className="text-sm font-medium">Active Status</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">Employee can access the system</p>
-                </div>
-                <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
+          {/* Section: Status */}
+          <section>
+            <SectionHeader title="Status" />
+            <div className="flex items-center justify-between rounded-md border border-gray-200 p-4">
+              <div>
+                <Label className="text-sm font-medium">Active Status</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Employee can access the system</p>
               </div>
-
-              {/* Summary box */}
-              <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Summary</h4>
-
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Employee Type</span>
-                    <Badge variant={form.employeeType === "HO" ? "default" : "secondary"} className="text-xs">
-                      {form.employeeType === "HO" ? (
-                        <><Building2 className="h-3 w-3 mr-1" /> HO</>
-                      ) : (
-                        <><Store className="h-3 w-3 mr-1" /> Store</>
-                      )}
-                    </Badge>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Position Level</span>
-                    <span className="text-xs font-medium text-foreground">{form.positionLevel}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Approval Authority</span>
-                    <span className="text-xs font-medium text-foreground">
-                      {approvalAuthority[form.positionLevel] || "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Direct Approver</span>
-                    <span className="text-xs font-medium text-foreground">
-                      {form.directApprover
-                        ? mockEmployees.find((e) => e.code === form.directApprover)?.name || "—"
-                        : "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Last Updated</span>
-                    <span className="text-xs text-foreground flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
+            </div>
+          </section>
         </div>
       </div>
 
       {/* Sticky Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-50">
-        <div className="flex items-center justify-between px-8 py-3 max-w-screen-2xl mx-auto">
-          <Link to="/admin/employees" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Back to Employee Profiles
-          </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => navigate("/admin/employees")}>Cancel</Button>
-            <Button
-              onClick={handleSave}
-              disabled={!!validationError || !!emailError}
-              className="relative"
-            >
-              Save Changes
-              {isDirty && (
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
-              )}
-            </Button>
-          </div>
+        <div className="max-w-[900px] mx-auto px-6 py-3 flex items-center justify-end gap-3">
+          <Button variant="outline" onClick={() => navigate("/admin/employees")}>Cancel</Button>
+          <Button
+            onClick={handleSave}
+            disabled={!!validationError || !!emailError}
+            className="relative"
+          >
+            Save Changes
+            {isDirty && (
+              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
+            )}
+          </Button>
         </div>
       </div>
     </div>
