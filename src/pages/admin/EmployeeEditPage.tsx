@@ -712,14 +712,15 @@ export default function EmployeeEditPage() {
             </div>
           </section>
 
-          {/* Section: Position */}
-          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
-            <SectionHeader
-              title="Position"
-              description="Assign position level and cost center for this employee."
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-
+          {/* Section: Role & Authorization */}
+          <RoleAuthorizationSection
+            form={form}
+            setForm={setForm}
+            selectedBU={selectedBU}
+            approverPopoverOpen={approverPopoverOpen}
+            setApproverPopoverOpen={setApproverPopoverOpen}
+            currentEmployeeCode={form.code}
+            positionLevelSlot={
               <div>
                 <Label>Position Level <Req /></Label>
                 <Select value={form.positionLevel} onValueChange={(v) => setForm({ ...form, positionLevel: v })}>
@@ -740,25 +741,14 @@ export default function EmployeeEditPage() {
                     <Info className="h-3 w-3" /> {loaHints[form.positionLevel]}
                   </p>
                 )}
+                {validationError && (
+                  <div className="mt-2 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                    <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                    <p className="text-xs text-destructive">{validationError}</p>
+                  </div>
+                )}
               </div>
-
-              {validationError && (
-                <div className="md:col-span-2 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
-                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-xs text-destructive">{validationError}</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Section: Role & Authorization */}
-          <RoleAuthorizationSection
-            form={form}
-            setForm={setForm}
-            selectedBU={selectedBU}
-            approverPopoverOpen={approverPopoverOpen}
-            setApproverPopoverOpen={setApproverPopoverOpen}
-            currentEmployeeCode={form.code}
+            }
           />
         </div>
       </div>
