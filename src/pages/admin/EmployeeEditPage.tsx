@@ -14,9 +14,12 @@ import {
 } from "@/components/ui/popover";
 import {
   ArrowLeft, ChevronsUpDown, Check, AlertTriangle, Info, Building2, Store,
-  User, Search, Phone,
+  User, Search, Phone, CreditCard, CheckCircle2, Settings, BarChart3, Calendar as CalendarIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
 import { toast } from "sonner";
 
 // ── Shared data (same as EmployeesPage) ──
