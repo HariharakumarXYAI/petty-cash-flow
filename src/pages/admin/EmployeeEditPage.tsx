@@ -15,6 +15,7 @@ import {
 import {
   ArrowLeft, ChevronsUpDown, Check, AlertTriangle, Info, Building2, Store,
   User, Search, Phone, CreditCard, CheckCircle2, Settings, BarChart3, Calendar as CalendarIcon,
+  Lock as LockIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -666,7 +667,7 @@ export default function EmployeeEditPage() {
                 <Label htmlFor="org-channel" className="flex items-center gap-1.5">
                   Channel <Req />
                   <span title="Channel is set to All Channels by default and cannot be changed" className="inline-flex">
-                    <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Channel is set to All Channels by default and cannot be changed" />
+                    <LockIcon className="h-3.5 w-3.5 text-muted-foreground" aria-label="Channel is set to All Channels by default and cannot be changed" />
                   </span>
                 </Label>
                 <div
@@ -675,7 +676,7 @@ export default function EmployeeEditPage() {
                   aria-readonly="true"
                 >
                   <span>9999 - All Channels</span>
-                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
               <div>
