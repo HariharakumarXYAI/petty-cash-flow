@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { ReactNode, useEffect, useMemo, useState } from "react";
 import { format } from "date-fns";
 import {
   CreditCard, CheckCircle2, Settings, BarChart3, Search, User, Check,
@@ -58,10 +58,11 @@ interface Props {
   setApproverPopoverOpen: (v: boolean) => void;
   currentEmployeeCode: string;
   approverList?: Employee[];
+  positionLevelSlot?: ReactNode;
 }
 
 export function RoleAuthorizationSection({
-  form, setForm, selectedBU, approverPopoverOpen, setApproverPopoverOpen, currentEmployeeCode, approverList,
+  form, setForm, selectedBU, approverPopoverOpen, setApproverPopoverOpen, currentEmployeeCode, approverList, positionLevelSlot,
 }: Props) {
   // Lazy-loaded approver list (mock fallback)
   const [employees, setEmployees] = useState<Employee[]>(approverList ?? []);
