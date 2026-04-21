@@ -34,6 +34,7 @@ import {
   ALL_ACTIONS, actionMeta, countGrants, flattenCatalog, loadRoles, saveRoles,
   type DynamicRole,
 } from "@/lib/permissions-catalog";
+import { countModulePermissions, moduleGroups } from "@/lib/role-modules";
 
 const PAGE_SIZES = [10, 20, 50];
 
