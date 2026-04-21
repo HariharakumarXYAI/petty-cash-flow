@@ -37,6 +37,7 @@ import EmployeeEditPage from "./pages/admin/EmployeeEditPage";
 
 import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
 import RoleDetailPage from "./pages/admin/RoleDetailPage";
+import RoleNewPage from "./pages/admin/RoleNewPage";
 import DocumentsPage from "./pages/admin/DocumentsPage";
 import DocumentEditPage from "./pages/admin/DocumentEditPage";
 import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
