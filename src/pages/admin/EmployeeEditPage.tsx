@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import { RoleAuthorizationSection } from "@/components/employee/RoleAuthorizationSection";
 import { toast } from "sonner";
 
 // ── Shared data (same as EmployeesPage) ──
