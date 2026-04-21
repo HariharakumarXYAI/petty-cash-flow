@@ -28,6 +28,7 @@ import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
 import SetPassword from "./pages/SetPassword";
 import EntitiesPage from "./pages/admin/EntitiesPage";
+import EntityEditPage from "./pages/admin/EntityEditPage";
 import EntityDetailPage from "./pages/admin/EntityDetailPage";
 import OcrRulesPage from "./pages/admin/OcrRulesPage";
 import EmployeesPage from "./pages/admin/EmployeesPage";
@@ -105,6 +106,7 @@ function AppRoutes() {
         <Route path="admin" element={<Navigate to="entities" replace />} />
         <Route path="admin/access" element={<AdminAccess />} />
         <Route path="admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
+        <Route path="admin/entities/:id/edit" element={<AdminLayout><EntityEditPage /></AdminLayout>} />
         <Route path="admin/entities/:entityCode" element={<AdminLayout><EntityDetailPage /></AdminLayout>} />
         <Route path="admin/ocr-rules" element={<AdminLayout><OcrRulesPage /></AdminLayout>} />
         <Route path="admin/business-units" element={<AdminLayout><BusinessUnitsPage /></AdminLayout>} />
