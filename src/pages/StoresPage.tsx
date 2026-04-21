@@ -88,7 +88,7 @@ export default function StoresPage() {
       }
       setTaxIdError("");
     }
-    if (pettyCashFund === 0 && maxFund === 0 && minBalance === 0 && replenishAt === 0) {
+    if (pettyCashFund === 0 && minBalance === 0 && replenishAt === 0) {
       setShowZeroFundDialog(true);
       return;
     }
@@ -140,7 +140,6 @@ export default function StoresPage() {
               <TableHead className="section-label text-right hidden md:table-cell">Balance</TableHead>
               <TableHead className="section-label hidden lg:table-cell w-[140px]">Utilization</TableHead>
               <TableHead className="section-label text-right hidden xl:table-cell">Min Balance</TableHead>
-              <TableHead className="section-label text-right hidden xl:table-cell">Max Fund</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -191,7 +190,6 @@ export default function StoresPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm text-right tabular-nums text-muted-foreground hidden xl:table-cell">{s.minBalance.toLocaleString()}</TableCell>
-                  <TableCell className="text-sm text-right tabular-nums text-muted-foreground hidden xl:table-cell">{s.maxFloat.toLocaleString()}</TableCell>
                 </TableRow>
               );
             })}
@@ -341,10 +339,6 @@ export default function StoresPage() {
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Petty Cash Fund</Label>
                     <Input className="h-9 tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
-                  </div>
-                  <div className="space-y-1">
-                    <Label className="text-xs text-muted-foreground">Maximum Fund</Label>
-                    <Input className="h-9 tabular-nums" type="number" value={maxFund} onChange={e => setMaxFund(Number(e.target.value))} />
                   </div>
                   <div className="space-y-1">
                     <Label className="text-xs text-muted-foreground">Minimum Balance</Label>
