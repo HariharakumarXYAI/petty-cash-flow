@@ -136,10 +136,9 @@ export default function StoresPage() {
               <TableHead className="section-label w-[200px]">Store</TableHead>
               <TableHead className="section-label hidden md:table-cell">Type</TableHead>
               <TableHead className="section-label hidden lg:table-cell">Legal Entity</TableHead>
-              <TableHead className="section-label text-right">Fund Limit</TableHead>
-              <TableHead className="section-label text-right hidden md:table-cell">Balance</TableHead>
-              <TableHead className="section-label hidden lg:table-cell w-[140px]">Utilization</TableHead>
               <TableHead className="section-label text-right hidden xl:table-cell">Min Balance</TableHead>
+              <TableHead className="section-label text-right hidden md:table-cell">Balance</TableHead>
+              <TableHead className="section-label text-right">Fund Limit</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -165,31 +164,11 @@ export default function StoresPage() {
                     </span>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{s.legalEntity}</TableCell>
-                  <TableCell className="text-sm font-medium text-right tabular-nums">{s.floatLimit.toLocaleString()}</TableCell>
+                  <TableCell className="text-sm text-right tabular-nums text-muted-foreground hidden xl:table-cell">{s.minBalance.toLocaleString()}</TableCell>
                   <TableCell className={`text-sm font-medium text-right tabular-nums hidden md:table-cell ${isCritical ? "text-destructive" : ""}`}>
                     {s.currentBalance.toLocaleString()}
                   </TableCell>
-                  <TableCell className="hidden lg:table-cell">
-                    <div className="space-y-0.5">
-                      <div className="relative h-1.5 w-full rounded-full bg-muted overflow-hidden">
-                        <div
-                          className={`absolute inset-y-0 left-0 rounded-full transition-all ${
-                            isCritical ? "bg-destructive" : isWarning ? "bg-status-hold" : utilPct > 80 ? "bg-status-validating" : "bg-primary"
-                          }`}
-                          style={{ width: `${Math.min(utilPct, 100)}%` }}
-                        />
-                        <div
-                          className="absolute top-0 h-full w-px bg-status-hold/50"
-                          style={{ left: `${Math.round((s.minBalance / s.floatLimit) * 100)}%` }}
-                        />
-                      </div>
-                      <div className="flex justify-between text-[10px]">
-                        <span className={isCritical ? "text-destructive font-medium" : isWarning ? "text-status-hold font-medium" : "text-muted-foreground"}>{utilPct}%</span>
-                        <span className="text-muted-foreground">of {s.floatLimit.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-sm text-right tabular-nums text-muted-foreground hidden xl:table-cell">{s.minBalance.toLocaleString()}</TableCell>
+                  <TableCell className="text-sm font-medium text-right tabular-nums">{s.floatLimit.toLocaleString()}</TableCell>
                 </TableRow>
               );
             })}
