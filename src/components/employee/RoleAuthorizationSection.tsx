@@ -134,6 +134,7 @@ export function RoleAuthorizationSection({
       </div>
 
       <div className="space-y-6">
+        {systemRoleSlot && <div>{systemRoleSlot}</div>}
         {/* Position Level + Direct Approver */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
           {positionLevelSlot}
