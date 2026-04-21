@@ -123,18 +123,17 @@ export function RoleAuthorizationSection({
   };
 
   return (
-    <section>
+    <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
       <div className="mb-6">
-        <h2 className="text-lg font-semibold text-foreground">Role & Authorization</h2>
-        <p className="text-xs text-muted-foreground mt-1">
+        <h2 className="text-xl font-semibold text-foreground">Role & Authorization</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           Configure access permissions, card information, and approval authority for this employee.
         </p>
-        <div className="mt-3 h-px bg-gray-200" />
       </div>
 
       <div className="space-y-6">
         {/* Effective dates */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
 
           <div>
             <Label className="text-sm">Effective From <Req /></Label>
