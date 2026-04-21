@@ -803,12 +803,12 @@ export default function EmployeesPage() {
                 <Label className="flex items-center gap-1.5">
                   Channel
                   <span title="Channel is set to All Channels by default and cannot be changed" className="inline-flex">
-                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                    <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
                   </span>
                 </Label>
                 <div className="flex items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
                   <span>9999 - All Channels</span>
-                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
             </div>
