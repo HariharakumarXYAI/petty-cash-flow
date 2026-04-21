@@ -796,7 +796,7 @@ export default function EmployeesPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>LOB</Label>
+                <Label>Line of Business</Label>
                 <Input value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
               </div>
               <div className="space-y-1.5">
