@@ -710,18 +710,6 @@ export default function EmployeeEditPage() {
                   />
                 </div>
               )}
-              {form.employeeType === "Store" && (
-                <div>
-                  <Label>Store Type <Req /></Label>
-                  <Select value={form.storeType} onValueChange={(v) => setForm({ ...form, storeType: v })}>
-                    <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select store type..." /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                      <SelectItem value="Supermarket">Supermarket</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
             </div>
           </section>
 
