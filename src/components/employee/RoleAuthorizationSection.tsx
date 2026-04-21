@@ -191,22 +191,6 @@ export function RoleAuthorizationSection({
                 </Command>
               </PopoverContent>
             </Popover>
-            {form.directApprover && (() => {
-              const approver = employees.find((e) => e.code === form.directApprover);
-              return approver ? (
-                <div className="mt-1.5">
-                  <Badge variant="secondary" className="text-xs gap-1">
-                    <User className="h-3 w-3" />
-                    {approver.name} — {approver.positionLevel}
-                    <button
-                      type="button"
-                      onClick={() => setForm({ ...form, directApprover: "" })}
-                      className="ml-1 hover:text-destructive"
-                    >×</button>
-                  </Badge>
-                </div>
-              ) : null;
-            })()}
           </div>
         </div>
 
