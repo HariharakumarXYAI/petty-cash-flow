@@ -195,6 +195,79 @@ const SectionHeader = ({ title }: { title: string }) => (
 
 const Req = () => <span className="text-destructive">*</span>;
 
+interface MasterComboboxProps {
+  id: string;
+  value: string;
+  options: MasterOption[];
+  placeholder: string;
+  onChange: (code: string) => void;
+  error?: boolean;
+  highlightCodes?: string[]; // sort these to top
+}
+
+const MasterCombobox = ({ id, value, options, placeholder, onChange, error, highlightCodes }: MasterComboboxProps) => {
+  const [open, setOpen] = useState(false);
+  const sorted = useMemo(() => {
+    if (!highlightCodes?.length) return options;
+    const set = new Set(highlightCodes);
+    const top = options.filter((o) => set.has(o.code));
+    const rest = options.filter((o) => !set.has(o.code));
+    return [...top, ...rest];
+  }, [options, highlightCodes]);
+  const selected = options.find((o) => o.code === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            "mt-1.5 flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm",
+            error ? "border-destructive" : "border-gray-300",
+            !selected && "text-muted-foreground"
+          )}
+        >
+          <span className="truncate">
+            {selected ? `${selected.code} - ${selected.name}` : placeholder}
+          </span>
+          <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command
+          filter={(val, search) => {
+            const opt = options.find((o) => o.code === val);
+            if (!opt) return 0;
+            const haystack = `${opt.code} ${opt.name}`.toLowerCase();
+            return haystack.includes(search.toLowerCase()) ? 1 : 0;
+          }}
+        >
+          <CommandInput placeholder="Search by code or name..." />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {sorted.map((opt) => (
+                <CommandItem
+                  key={opt.code}
+                  value={opt.code}
+                  onSelect={() => { onChange(opt.code); setOpen(false); }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === opt.code ? "opacity-100" : "opacity-0")} />
+                  <span className="font-mono text-xs text-muted-foreground mr-2">{opt.code}</span>
+                  <span>{opt.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
+
 export default function EmployeeEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
