@@ -38,6 +38,7 @@ import EmployeeEditPage from "./pages/admin/EmployeeEditPage";
 import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
 import RoleDetailPage from "./pages/admin/RoleDetailPage";
 import DocumentsPage from "./pages/admin/DocumentsPage";
+import DocumentEditPage from "./pages/admin/DocumentEditPage";
 import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
 import ExpenseTypeEditPage from "./pages/admin/ExpenseTypeEditPage";
 import PolicyPage from "./pages/admin/PolicyPage";
@@ -122,6 +123,7 @@ function AppRoutes() {
         <Route path="admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
         <Route path="admin/roles/:roleId" element={<AdminLayout><RoleDetailPage /></AdminLayout>} />
         <Route path="admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
+        <Route path="admin/documents/:id/edit" element={<AdminLayout><DocumentEditPage /></AdminLayout>} />
         <Route path="admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
         <Route path="admin/expense-types/:id/edit" element={<AdminLayout><ExpenseTypeEditPage /></AdminLayout>} />
         <Route path="admin/policy" element={<AdminLayout><PolicyPage /></AdminLayout>} />
