@@ -307,7 +307,9 @@ export default function EmployeeEditPage() {
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
         directApprover: "", costCenter: "CC-" + employee.code,
-        division: "", location: "", lob: "", channel: "",
+        division: employee.employeeType === "HO" ? "92029" : "92032",
+        location: employee.employeeType === "HO" ? "099999" : "001001",
+        lob: "1001", channel: "9999",
         active: employee.active,
       };
       setForm(data);
