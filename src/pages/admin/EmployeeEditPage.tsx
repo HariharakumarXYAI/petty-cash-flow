@@ -663,16 +663,20 @@ export default function EmployeeEditPage() {
                 {orgErrors.lob && <p className="text-xs text-destructive mt-1">This field is required</p>}
               </div>
               <div>
-                <Label htmlFor="org-channel">Channel <Req /></Label>
-                <MasterCombobox
+                <Label htmlFor="org-channel" className="flex items-center gap-1.5">
+                  Channel <Req />
+                  <span title="Channel is set to All Channels by default and cannot be changed" className="inline-flex">
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground" aria-label="Channel is set to All Channels by default and cannot be changed" />
+                  </span>
+                </Label>
+                <div
                   id="org-channel"
-                  value={form.channel}
-                  options={channelsMaster}
-                  placeholder="Select channel..."
-                  onChange={(code) => { setForm({ ...form, channel: code }); setOrgErrors((p) => ({ ...p, channel: false })); }}
-                  error={orgErrors.channel}
-                />
-                {orgErrors.channel && <p className="text-xs text-destructive mt-1">This field is required</p>}
+                  className="mt-1.5 flex items-center justify-between rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none"
+                  aria-readonly="true"
+                >
+                  <span>9999 - All Channels</span>
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
               </div>
               <div>
                 <Label>Employee Type <Req /></Label>
