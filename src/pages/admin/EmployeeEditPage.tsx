@@ -166,6 +166,17 @@ interface EmployeeFormData {
   lob: string;
   channel: string;
   active: boolean;
+  // Role & Authorization
+  systemRoles: string[];
+  isActive: boolean;
+  effectiveFrom: Date | undefined;
+  effectiveTo: Date | undefined;
+  cardLastFour: string;
+  cardholderNameOnCard: string;
+  cardIssuer: string;
+  cardExpiry: string;
+  approvalLimitPerTxn: string;
+  approvalLimitPerMonth: string;
 }
 
 const formatPhoneDisplay = (raw: string): string => {
