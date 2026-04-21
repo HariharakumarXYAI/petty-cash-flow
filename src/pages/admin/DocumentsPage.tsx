@@ -1,26 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Upload, Pencil, Trash2, Search } from "lucide-react";
-
-const mockDocs = [
-  { name: "Tax Invoice", type: "Primary", ocr: "Enabled", active: true },
-  { name: "Receipt", type: "Primary", ocr: "Enabled", active: true },
-  { name: "Boarding Pass", type: "Support", ocr: "Disabled", active: true },
-  { name: "Hotel Folio", type: "Primary", ocr: "Enabled", active: true },
-  { name: "Quotation", type: "Support", ocr: "Disabled", active: true },
-  { name: "Approval Form", type: "Support", ocr: "Disabled", active: false },
-];
+import { Plus, Upload, Pencil, Search } from "lucide-react";
+import { loadDocuments, type DocumentType } from "@/lib/documents-store";
 
 export default function DocumentsPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [docs, setDocs] = useState<DocumentType[]>([]);
 
-  const filtered = mockDocs.filter((d) => {
+  useEffect(() => {
+    setDocs(loadDocuments());
+  }, []);
+
+  const filtered = docs.filter((d) => {
     if (statusFilter === "active" && !d.active) return false;
     if (statusFilter === "inactive" && d.active) return false;
     if (search && !d.name.toLowerCase().includes(search.toLowerCase())) return false;
@@ -59,9 +58,7 @@ export default function DocumentsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              
               <TableHead>Document Name</TableHead>
-              
               <TableHead>OCR Verification</TableHead>
               <TableHead>Active</TableHead>
               <TableHead className="text-right">Actions</TableHead>
@@ -69,8 +66,7 @@ export default function DocumentsPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((d) => (
-              <TableRow key={d.name}>
-                
+              <TableRow key={d.id}>
                 <TableCell className="font-medium">{d.name}</TableCell>
                 <TableCell>
                   <Badge variant="outline" className={d.ocr === "Enabled" ? "bg-status-approved/10 text-status-approved border-status-approved/20" : ""}>{d.ocr}</Badge>
@@ -78,7 +74,15 @@ export default function DocumentsPage() {
                 <TableCell><Switch checked={d.active} /></TableCell>
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-4 w-4" /></Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => navigate(`/admin/documents/${d.id}/edit`)}
+                      title="Edit document"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
