@@ -643,19 +643,6 @@ export default function EmployeesPage() {
               </div>
             )}
 
-            {/* Store Type — conditional */}
-            {form.employeeType === "Store" && (
-              <div className="space-y-1.5">
-                <Label>Store Type <span className="text-destructive">*</span></Label>
-                <Select value={form.storeType} onValueChange={(v) => setForm({ ...form, storeType: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select store type..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                    <SelectItem value="Supermarket">Supermarket</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             {/* Position Level */}
             <div className="space-y-1.5">
