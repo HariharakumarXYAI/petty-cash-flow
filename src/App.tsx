@@ -31,6 +31,7 @@ import EntitiesPage from "./pages/admin/EntitiesPage";
 import EntityDetailPage from "./pages/admin/EntityDetailPage";
 import OcrRulesPage from "./pages/admin/OcrRulesPage";
 import EmployeesPage from "./pages/admin/EmployeesPage";
+import EmployeeEditPage from "./pages/admin/EmployeeEditPage";
 
 import RolesPermissionsPage from "./pages/admin/RolesPermissionsPage";
 import RoleDetailPage from "./pages/admin/RoleDetailPage";
@@ -111,6 +112,7 @@ function AppRoutes() {
         <Route path="admin/departments" element={<AdminLayout><DepartmentsPage /></AdminLayout>} />
         <Route path="admin/stores" element={<AdminLayout><AdminStoresPage /></AdminLayout>} />
         <Route path="admin/employees" element={<AdminLayout><EmployeesPage /></AdminLayout>} />
+        <Route path="admin/employees/:id/edit" element={<AdminLayout><EmployeeEditPage /></AdminLayout>} />
         
         <Route path="admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
         <Route path="admin/roles/:roleId" element={<AdminLayout><RoleDetailPage /></AdminLayout>} />
