@@ -696,7 +696,7 @@ export default function EmployeeEditPage() {
                 <Select
                   value={form.employeeType === "Store" ? "STORE" : "HO"}
                   onValueChange={(v) => {
-                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "" });
+                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "", storeName: "" });
                     else setForm({ ...form, employeeType: "Store" });
                   }}
                 >
@@ -709,6 +709,21 @@ export default function EmployeeEditPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {form.employeeType === "Store" && (
+                <div>
+                  <Label>Store Name <Req /></Label>
+                  <MasterCombobox
+                    id="org-store-name"
+                    value={form.storeName}
+                    options={storesMaster.map((s) => ({ code: s.code, name: s.name }))}
+                    placeholder="Select store..."
+                    onChange={(code) => {
+                      const s = storesMaster.find((x) => x.code === code);
+                      setForm({ ...form, storeName: code, storeType: s ? s.type : form.storeType });
+                    }}
+                  />
+                </div>
+              )}
               {form.employeeType === "Store" && (
                 <div>
                   <Label>Store Type <Req /></Label>
