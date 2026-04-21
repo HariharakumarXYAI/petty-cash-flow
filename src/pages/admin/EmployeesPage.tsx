@@ -168,7 +168,7 @@ const emptyForm: EmployeeForm = {
   name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
   buCode: "", positionLevel: "Staff", employeeType: "Store",
   storeType: "", directApprover: "", costCenter: "",
-  division: "", location: "", lob: "", channel: "", active: true,
+  division: "", location: "", lob: "", channel: "9999", active: true,
 };
 
 export default function EmployeesPage() {
@@ -267,7 +267,7 @@ export default function EmployeesPage() {
       positionLevel: emp.positionLevel, employeeType: emp.employeeType,
       storeType: emp.employeeType === "Store" ? "Hypermarket" : "",
       directApprover: "", costCenter: "CC-" + emp.code,
-      division: "", location: "", lob: "", channel: "",
+      division: "", location: "", lob: "", channel: "9999",
       active: emp.active,
     });
     setEmailWarning("");
@@ -799,8 +799,16 @@ export default function EmployeesPage() {
                 <Input value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
               </div>
               <div className="space-y-1.5">
-                <Label>Channel</Label>
-                <Input value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
+                <Label className="flex items-center gap-1.5">
+                  Channel
+                  <span title="Channel is set to All Channels by default and cannot be changed" className="inline-flex">
+                    <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                </Label>
+                <div className="flex items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
+                  <span>9999 - All Channels</span>
+                  <Lock className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
               </div>
             </div>
 
