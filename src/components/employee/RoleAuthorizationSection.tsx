@@ -133,51 +133,6 @@ export function RoleAuthorizationSection({
       </div>
 
       <div className="space-y-6">
-        {/* System Role */}
-        <div>
-          <Label className="text-sm">System Role <Req /></Label>
-          <p className="text-xs text-muted-foreground mt-0.5 mb-3">
-            Select all applicable roles. A manager can be both Cardholder and Approver.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {SYSTEM_ROLES.map(({ value, label, icon: Icon, desc }) => {
-              const checked = form.systemRoles?.includes(value);
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => toggleRole(value)}
-                  className={cn(
-                    "text-left rounded-md border p-4 transition-all flex gap-3 items-start",
-                    checked
-                      ? "border-primary border-2 bg-primary/5"
-                      : "border-gray-300 bg-background hover:border-primary/50"
-                  )}
-                >
-                  <div
-                    className={cn(
-                      "mt-0.5 h-4 w-4 shrink-0 rounded border flex items-center justify-center",
-                      checked ? "bg-primary border-primary text-primary-foreground" : "border-gray-300"
-                    )}
-                  >
-                    {checked && <Check className="h-3 w-3" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 text-sm font-medium text-foreground">
-                      <Icon className="h-4 w-4" />
-                      {label}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{desc}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-          {(!form.systemRoles || form.systemRoles.length === 0) && (
-            <p className="text-xs text-destructive mt-2">Select at least one role</p>
-          )}
-        </div>
-
         {/* Account Status + Effective dates */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div>
