@@ -370,9 +370,17 @@ export default function EmployeeEditPage() {
     if (validationError) return;
     const emailErr = validateEmail(form.email, form.loginType);
     const phErr = validatePhone(form.phoneNumber);
+    const orgErr = {
+      location: !form.location,
+      division: !form.division,
+      lob: !form.lob,
+      channel: !form.channel,
+    };
+    const hasOrgErr = Object.values(orgErr).some(Boolean);
     if (emailErr) setEmailError(emailErr);
     if (phErr) setPhoneError(phErr);
-    if (emailErr || phErr) return;
+    if (hasOrgErr) setOrgErrors(orgErr);
+    if (emailErr || phErr || hasOrgErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
   };
