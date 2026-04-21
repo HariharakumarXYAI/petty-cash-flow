@@ -253,10 +253,10 @@ export default function EmployeeEditPage() {
   const handleSave = () => {
     if (validationError) return;
     const emailErr = validateEmail(form.email, form.loginType);
-    if (emailErr) {
-      setEmailError(emailErr);
-      return;
-    }
+    const phErr = validatePhone(form.phoneNumber);
+    if (emailErr) setEmailError(emailErr);
+    if (phErr) setPhoneError(phErr);
+    if (emailErr || phErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
   };
