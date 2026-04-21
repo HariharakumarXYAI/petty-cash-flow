@@ -78,7 +78,9 @@ export default function RoleDetailPage() {
     );
   }
 
-  const isLocked = draft.isSystem;
+  const isSystemLocked = draft.isSystem;
+  const isReadOnly = viewOnlyParam || isSystemLocked;
+  const isLocked = isReadOnly;
 
   /* ───────────── permission helpers ───────────── */
 
