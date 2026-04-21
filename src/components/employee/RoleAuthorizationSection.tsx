@@ -272,8 +272,11 @@ export function RoleAuthorizationSection({
                   className="w-full justify-between font-normal mt-1.5 rounded-md border-gray-300"
                 >
                   {form.directApprover
-                    ? employees.find((e) => e.code === form.directApprover)?.name || form.directApprover
-                    : "Search by name or employee code..."}
+                    ? (() => {
+                        const a = employees.find((e) => e.code === form.directApprover);
+                        return a ? `${a.code} - ${a.name}` : form.directApprover;
+                      })()
+                    : "Select direct approver..."}
                   <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
@@ -285,6 +288,7 @@ export function RoleAuthorizationSection({
                     <CommandGroup>
                       {employees
                         .filter((e) => e.code !== currentEmployeeCode && e.active)
+                        .sort((a, b) => a.code.localeCompare(b.code))
                         .map((e) => (
                           <CommandItem
                             key={e.code}
@@ -301,9 +305,9 @@ export function RoleAuthorizationSection({
                               )}
                             />
                             <div className="flex flex-col">
-                              <span className="text-sm font-medium">{e.name}</span>
+                              <span className="text-sm font-medium">{e.code} - {e.name}</span>
                               <span className="text-xs text-muted-foreground">
-                                {e.code} · {e.positionLevel}
+                                {e.positionLevel}
                               </span>
                             </div>
                           </CommandItem>

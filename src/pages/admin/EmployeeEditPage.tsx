@@ -337,7 +337,8 @@ export default function EmployeeEditPage() {
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
         storeName: employee.employeeType === "Store" ? "001001" : "",
-        directApprover: "", costCenter: "CC-" + employee.code,
+        directApprover: employee.code === "EMP001" ? "EMP002" : (mockEmployees.find((e) => e.code !== employee.code && e.active)?.code || ""),
+        costCenter: "CC-" + employee.code,
         division: employee.employeeType === "HO" ? "92029" : "92032",
         location: employee.employeeType === "HO" ? "099999" : "001001",
         lob: "1001", channel: "9999",
@@ -416,6 +417,14 @@ export default function EmployeeEditPage() {
     if (emailErr) setEmailError(emailErr);
     if (phErr) setPhoneError(phErr);
     if (hasOrgErr) setOrgErrors(orgErr);
+    if (!form.directApprover) {
+      toast.error("Direct Approver is required");
+      return;
+    }
+    if (form.directApprover === form.code) {
+      toast.error("Employee cannot be their own approver");
+      return;
+    }
     if (emailErr || phErr || hasOrgErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
@@ -724,6 +733,7 @@ export default function EmployeeEditPage() {
             approverPopoverOpen={approverPopoverOpen}
             setApproverPopoverOpen={setApproverPopoverOpen}
             currentEmployeeCode={form.code}
+            approverList={mockEmployees.map((e) => ({ code: e.code, name: e.name, positionLevel: e.positionLevel, active: e.active }))}
             positionLevelSlot={
               <div>
                 <Label>Position Level <Req /></Label>
