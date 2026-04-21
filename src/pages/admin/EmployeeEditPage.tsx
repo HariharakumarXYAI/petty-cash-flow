@@ -162,13 +162,15 @@ export default function EmployeeEditPage() {
   const employee = mockEmployees.find((e) => e.code === id);
 
   const [form, setForm] = useState<EmployeeFormData>({
-    name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
+    name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "", active: true,
   });
   const [emailWarning, setEmailWarning] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [phoneFocused, setPhoneFocused] = useState(false);
 
   const [initialForm, setInitialForm] = useState<EmployeeFormData>(form);
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
