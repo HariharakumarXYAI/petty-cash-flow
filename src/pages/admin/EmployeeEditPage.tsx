@@ -201,10 +201,10 @@ const validatePhone = (raw: string): string => {
   return "";
 };
 
-const SectionHeader = ({ title }: { title: string }) => (
+const SectionHeader = ({ title, description }: { title: string; description?: string }) => (
   <div className="mb-6">
-    <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-    <div className="border-b mt-2" />
+    <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+    {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
   </div>
 );
 
@@ -435,11 +435,14 @@ export default function EmployeeEditPage() {
           {employee.code} · {employee.name} · {roleLabel}
         </p>
 
-        {/* Card */}
-        <div className="mt-8 bg-white rounded-lg border border-gray-200 p-8 space-y-10">
+        {/* Cards */}
+        <div className="mt-8 space-y-6">
           {/* Section: Basic Information */}
-          <section>
-            <SectionHeader title="Basic Information" />
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Basic Information"
+              description="Identity, login, and active status for this employee."
+            />
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-5">
                 <div>
@@ -587,8 +590,11 @@ export default function EmployeeEditPage() {
           </section>
 
           {/* Section: Organization Structure */}
-          <section>
-            <SectionHeader title="Organization Structure" />
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Organization Structure"
+              description="Business unit, location, and reporting hierarchy."
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
               <div>
                 <Label>Business Unit <Req /></Label>
@@ -695,11 +701,13 @@ export default function EmployeeEditPage() {
             </div>
           </section>
 
-          {/* Section: Business Unit & Position */}
-          <section>
-            <SectionHeader title="Position" />
-            <div className="space-y-5">
-
+          {/* Section: Position */}
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Position"
+              description="Assign store type and position level for this employee."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               {form.employeeType === "Store" && (
                 <div>
                   <Label>Store Type <Req /></Label>
@@ -736,12 +744,11 @@ export default function EmployeeEditPage() {
               </div>
 
               {validationError && (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                <div className="md:col-span-2 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
                   <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                   <p className="text-xs text-destructive">{validationError}</p>
                 </div>
               )}
-
             </div>
           </section>
 
