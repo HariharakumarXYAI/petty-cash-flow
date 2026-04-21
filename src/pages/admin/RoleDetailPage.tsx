@@ -25,6 +25,8 @@ import {
   storeOptions, type ActionKey, type DataScope, type DynamicRole,
   type PermissionGrants, permissionCatalog,
 } from "@/lib/permissions-catalog";
+import { PermissionsMatrix } from "@/components/role/PermissionsMatrix";
+import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modules";
 
 export default function RoleDetailPage() {
   const { roleId } = useParams<{ roleId: string }>();
