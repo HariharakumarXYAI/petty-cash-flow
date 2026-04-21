@@ -417,6 +417,14 @@ export default function EmployeeEditPage() {
     if (emailErr) setEmailError(emailErr);
     if (phErr) setPhoneError(phErr);
     if (hasOrgErr) setOrgErrors(orgErr);
+    if (!form.directApprover) {
+      toast.error("Direct Approver is required");
+      return;
+    }
+    if (form.directApprover === form.code) {
+      toast.error("Employee cannot be their own approver");
+      return;
+    }
     if (emailErr || phErr || hasOrgErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
