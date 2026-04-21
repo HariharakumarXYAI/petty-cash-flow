@@ -701,11 +701,13 @@ export default function EmployeeEditPage() {
             </div>
           </section>
 
-          {/* Section: Business Unit & Position */}
-          <section>
-            <SectionHeader title="Position" />
-            <div className="space-y-5">
-
+          {/* Section: Position */}
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Position"
+              description="Assign store type and position level for this employee."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
               {form.employeeType === "Store" && (
                 <div>
                   <Label>Store Type <Req /></Label>
@@ -742,12 +744,11 @@ export default function EmployeeEditPage() {
               </div>
 
               {validationError && (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                <div className="md:col-span-2 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
                   <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
                   <p className="text-xs text-destructive">{validationError}</p>
                 </div>
               )}
-
             </div>
           </section>
 
