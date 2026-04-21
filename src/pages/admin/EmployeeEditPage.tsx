@@ -146,6 +146,16 @@ const channelsMaster: MasterOption[] = [
   { code: "4001", name: "Direct Sales" },
 ];
 
+interface StoreOption { code: string; name: string; type: "Hypermarket" | "Supermarket" }
+const storesMaster: StoreOption[] = [
+  { code: "001001", name: "Makro Ladprao", type: "Hypermarket" },
+  { code: "001002", name: "Makro Rama 3", type: "Hypermarket" },
+  { code: "001003", name: "Makro Chiang Mai", type: "Hypermarket" },
+  { code: "002001", name: "Lotus Bangkok", type: "Supermarket" },
+  { code: "002002", name: "Lotus Phuket", type: "Supermarket" },
+  { code: "002003", name: "Lotus Khon Kaen", type: "Supermarket" },
+];
+
 type LoginType = "sso" | "local";
 
 interface EmployeeFormData {
@@ -161,6 +171,7 @@ interface EmployeeFormData {
   positionLevel: string;
   employeeType: "HO" | "Store";
   storeType: string;
+  storeName: string;
   directApprover: string;
   costCenter: string;
   division: string;
@@ -293,7 +304,7 @@ export default function EmployeeEditPage() {
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
-    storeType: "", directApprover: "", costCenter: "",
+    storeType: "", storeName: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "9999", active: true,
     systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
     cardLastFour: "", cardholderNameOnCard: "", cardIssuer: "", cardExpiry: "",
@@ -325,6 +336,7 @@ export default function EmployeeEditPage() {
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
+        storeName: employee.employeeType === "Store" ? "001001" : "",
         directApprover: "", costCenter: "CC-" + employee.code,
         division: employee.employeeType === "HO" ? "92029" : "92032",
         location: employee.employeeType === "HO" ? "099999" : "001001",
@@ -684,7 +696,7 @@ export default function EmployeeEditPage() {
                 <Select
                   value={form.employeeType === "Store" ? "STORE" : "HO"}
                   onValueChange={(v) => {
-                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "" });
+                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "", storeName: "" });
                     else setForm({ ...form, employeeType: "Store" });
                   }}
                 >
@@ -697,6 +709,21 @@ export default function EmployeeEditPage() {
                   </SelectContent>
                 </Select>
               </div>
+              {form.employeeType === "Store" && (
+                <div>
+                  <Label>Store Name <Req /></Label>
+                  <MasterCombobox
+                    id="org-store-name"
+                    value={form.storeName}
+                    options={storesMaster.map((s) => ({ code: s.code, name: s.name }))}
+                    placeholder="Select store..."
+                    onChange={(code) => {
+                      const s = storesMaster.find((x) => x.code === code);
+                      setForm({ ...form, storeName: code, storeType: s ? s.type : form.storeType });
+                    }}
+                  />
+                </div>
+              )}
               {form.employeeType === "Store" && (
                 <div>
                   <Label>Store Type <Req /></Label>
