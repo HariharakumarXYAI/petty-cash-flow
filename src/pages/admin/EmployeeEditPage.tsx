@@ -603,12 +603,9 @@ export default function EmployeeEditPage() {
               <div>
                 <Label htmlFor="org-lob" className="flex items-center gap-1.5">
                   LOB <Req />
-                  <Info
-                    className="h-3.5 w-3.5 text-muted-foreground"
-                    aria-label="Line of Business - used for GL posting and reporting"
-                  >
-                    <title>Line of Business - used for GL posting and reporting</title>
-                  </Info>
+                  <span title="Line of Business - used for GL posting and reporting" className="inline-flex">
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" aria-label="Line of Business - used for GL posting and reporting" />
+                  </span>
                 </Label>
                 <MasterCombobox
                   id="org-lob"
