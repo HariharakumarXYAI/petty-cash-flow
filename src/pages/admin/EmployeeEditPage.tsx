@@ -780,16 +780,6 @@ export default function EmployeeEditPage() {
                   ) : null;
                 })()}
               </div>
-
-              <div>
-                <Label>Cost Center <Req /></Label>
-                <Input
-                  className="mt-1.5 rounded-md border-gray-300"
-                  value={form.costCenter}
-                  onChange={(e) => setForm({ ...form, costCenter: e.target.value })}
-                  placeholder="e.g. CC-1001-BKK"
-                />
-              </div>
             </div>
           </section>
 
