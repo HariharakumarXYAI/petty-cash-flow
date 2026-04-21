@@ -596,45 +596,18 @@ export default function EmployeesPage() {
             {/* Business Unit & Position */}
             <h3 className="text-sm font-semibold text-foreground border-b pb-1">Business Unit & Position</h3>
 
-            {/* BU Searchable Dropdown */}
+            {/* BU — locked to Wholesale by default */}
             <div className="space-y-1.5">
-              <Label>Business Unit <span className="text-destructive">*</span></Label>
-              <Popover open={buPopoverOpen} onOpenChange={setBuPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={buPopoverOpen} className="w-full justify-between font-normal">
-                    {form.buCode
-                      ? `${form.buCode} — ${activeBUs.find((b) => b.buCode === form.buCode)?.buNameTH || ""}`
-                      : "Select business unit..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[440px] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search business unit..." />
-                    <CommandList>
-                      <CommandEmpty>No business unit found.</CommandEmpty>
-                      <CommandGroup>
-                        {activeBUs.map((bu) => (
-                          <CommandItem
-                            key={bu.buCode}
-                            value={`${bu.buCode} ${bu.buNameTH} ${bu.buNameEN}`}
-                            onSelect={() => {
-                              setForm({ ...form, buCode: bu.buCode });
-                              setBuPopoverOpen(false);
-                            }}
-                          >
-                            <Check className={cn("mr-2 h-4 w-4", form.buCode === bu.buCode ? "opacity-100" : "opacity-0")} />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">{bu.buCode} — {bu.buNameTH}</span>
-                              <span className="text-xs text-muted-foreground">{bu.buNameEN} · {bu.buType}</span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Label className="flex items-center gap-1.5">
+                Business Unit <span className="text-destructive">*</span>
+                <span title="Business Unit is set to Wholesale by default and cannot be changed" className="inline-flex">
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </span>
+              </Label>
+              <div className="flex items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
+                <span>WS-MK-TH — แม็คโคร ประเทศไทย</span>
+                <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
               {selectedBU && (
                 <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                   <Info className="h-3 w-3" /> {selectedBU.loaTableRef}
