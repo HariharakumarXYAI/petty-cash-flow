@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover";
 import {
   ArrowLeft, ChevronsUpDown, Check, AlertTriangle, Info, Building2, Store,
-  User, Search,
+  User, Search, Phone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -107,6 +107,7 @@ interface EmployeeFormData {
   name: string;
   code: string;
   email: string;
+  phoneNumber: string;
   loginType: LoginType;
   role: string;
   dept: string;
@@ -124,6 +125,27 @@ interface EmployeeFormData {
   active: boolean;
 }
 
+const formatPhoneDisplay = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (d.length !== 10) return d;
+  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+};
+
+const normalizePhoneInput = (val: string): string => {
+  let d = val.replace(/\D/g, "");
+  // Strip Thai country code 66 → 0
+  if (d.startsWith("66") && d.length > 9) d = "0" + d.slice(2);
+  return d.slice(0, 10);
+};
+
+const validatePhone = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (!d) return "Phone number is required";
+  if (d.length !== 10) return "Phone number must be 10 digits";
+  if (!d.startsWith("0")) return "Phone number must start with 0";
+  return "";
+};
+
 const SectionHeader = ({ title }: { title: string }) => (
   <div className="mb-6">
     <h2 className="text-lg font-semibold text-foreground">{title}</h2>
@@ -140,13 +162,15 @@ export default function EmployeeEditPage() {
   const employee = mockEmployees.find((e) => e.code === id);
 
   const [form, setForm] = useState<EmployeeFormData>({
-    name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
+    name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "", active: true,
   });
   const [emailWarning, setEmailWarning] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [phoneFocused, setPhoneFocused] = useState(false);
 
   const [initialForm, setInitialForm] = useState<EmployeeFormData>(form);
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
@@ -163,6 +187,7 @@ export default function EmployeeEditPage() {
         "store_user";
       const data: EmployeeFormData = {
         name: employee.name, code: employee.code, email: employee.email,
+        phoneNumber: "0812345678",
         loginType: inferredLoginType, role: inferredRole,
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
@@ -228,10 +253,10 @@ export default function EmployeeEditPage() {
   const handleSave = () => {
     if (validationError) return;
     const emailErr = validateEmail(form.email, form.loginType);
-    if (emailErr) {
-      setEmailError(emailErr);
-      return;
-    }
+    const phErr = validatePhone(form.phoneNumber);
+    if (emailErr) setEmailError(emailErr);
+    if (phErr) setPhoneError(phErr);
+    if (emailErr || phErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
   };
@@ -289,23 +314,67 @@ export default function EmployeeEditPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>Email <Req /></Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
-                  onBlur={handleEmailBlur}
-                  placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
-                  className={cn(
-                    "mt-1.5 rounded-md border-gray-300",
-                    emailError ? "border-destructive" : "",
-                    emailWarning ? "border-orange-400" : ""
-                  )}
-                />
-                {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
-                {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <Label htmlFor="email">Email <Req /></Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
+                    onBlur={handleEmailBlur}
+                    placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
+                    className={cn(
+                      "mt-1.5 rounded-md border-gray-300",
+                      emailError ? "border-destructive" : "",
+                      emailWarning ? "border-orange-400" : ""
+                    )}
+                  />
+                  {emailError && <p id="email-error" className="text-xs text-destructive mt-1">{emailError}</p>}
+                  {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="phone_number">Phone Number <Req /></Label>
+                  <div className="relative mt-1.5">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      id="phone_number"
+                      name="phone_number"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={phoneFocused ? 10 : 12}
+                      value={phoneFocused ? form.phoneNumber : formatPhoneDisplay(form.phoneNumber)}
+                      onFocus={() => setPhoneFocused(true)}
+                      onChange={(e) => {
+                        const normalized = normalizePhoneInput(e.target.value);
+                        setForm({ ...form, phoneNumber: normalized });
+                        if (phoneError) setPhoneError("");
+                      }}
+                      onBlur={() => {
+                        setPhoneFocused(false);
+                        setPhoneError(validatePhone(form.phoneNumber));
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text");
+                        const normalized = normalizePhoneInput(pasted);
+                        setForm({ ...form, phoneNumber: normalized });
+                      }}
+                      placeholder="08X-XXX-XXXX"
+                      aria-invalid={!!phoneError}
+                      aria-describedby={phoneError ? "phone-error" : undefined}
+                      className={cn(
+                        "pl-9 rounded-md border-gray-300",
+                        phoneError ? "border-destructive" : ""
+                      )}
+                    />
+                  </div>
+                  {phoneError && <p id="phone-error" className="text-xs text-destructive mt-1">{phoneError}</p>}
+                </div>
               </div>
+
 
               <div>
                 <Label>Login Type <Req /></Label>
