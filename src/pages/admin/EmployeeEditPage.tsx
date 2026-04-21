@@ -293,7 +293,7 @@ export default function EmployeeEditPage() {
     name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
     storeType: "", directApprover: "", costCenter: "",
-    division: "", location: "", lob: "", channel: "", active: true,
+    division: "", location: "", lob: "", channel: "9999", active: true,
     systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
     cardLastFour: "", cardholderNameOnCard: "", cardIssuer: "", cardExpiry: "",
     approvalLimitPerTxn: "", approvalLimitPerMonth: "",
