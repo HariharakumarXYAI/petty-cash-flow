@@ -176,9 +176,6 @@ export default function RolesPermissionsPage() {
                 className="pl-9"
               />
             </div>
-            <Button variant="outline" className="gap-2">
-              <Filter className="h-4 w-4" /> Filter
-            </Button>
           </div>
 
           {filtered.length === 0 ? (
@@ -209,53 +206,6 @@ export default function RolesPermissionsPage() {
             </Card>
           )}
 
-          {filtered.length > 0 && (
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                Page {safePage} of {totalPages} ({filtered.length} role
-                {filtered.length === 1 ? "" : "s"})
-              </span>
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground">Rows</span>
-                  <Select
-                    value={String(pageSize)}
-                    onValueChange={(v) => {
-                      setPageSize(Number(v));
-                      setPage(1);
-                    }}
-                  >
-                    <SelectTrigger className="w-20 h-9">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PAGE_SIZES.map((n) => (
-                        <SelectItem key={n} value={String(n)}>
-                          {n}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={safePage <= 1}
-                  onClick={() => setPage(safePage - 1)}
-                >
-                  Prev
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={safePage >= totalPages}
-                  onClick={() => setPage(safePage + 1)}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
 
