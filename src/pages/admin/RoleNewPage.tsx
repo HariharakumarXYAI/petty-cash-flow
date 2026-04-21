@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Loader2, Store as StoreIcon } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -8,10 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import {
-  loadRoles, saveRoles, storeOptions, type DynamicRole,
+  loadRoles, saveRoles, type DynamicRole,
 } from "@/lib/permissions-catalog";
 import { PermissionsMatrix } from "@/components/role/PermissionsMatrix";
 import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modules";
@@ -20,19 +19,12 @@ export default function RoleNewPage() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [storeCodes, setStoreCodes] = useState<string[]>([]);
   const [modulePermissions, setModulePermissions] =
     useState<ModulePermissions>(emptyModulePermissions());
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const canSubmit = name.trim().length > 0 && !saving;
-
-  const toggleStore = (code: string) => {
-    setStoreCodes((prev) =>
-      prev.includes(code) ? prev.filter((c) => c !== code) : [...prev, code],
-    );
-  };
 
   const handleCreate = async () => {
     const trimmed = name.trim();
