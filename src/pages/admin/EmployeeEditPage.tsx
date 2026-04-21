@@ -543,32 +543,21 @@ export default function EmployeeEditPage() {
 
               <div>
                 <Label>Employee Type <Req /></Label>
-                <div className="flex mt-1.5 rounded-md border border-gray-300 overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
-                      form.employeeType === "HO"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <Building2 className="h-4 w-4" /> HO (Head Office)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, employeeType: "Store" })}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
-                      form.employeeType === "Store"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <Store className="h-4 w-4" /> Store
-                  </button>
-                </div>
+                <Select
+                  value={form.employeeType === "Store" ? "STORE" : "HO"}
+                  onValueChange={(v) => {
+                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "" });
+                    else setForm({ ...form, employeeType: "Store" });
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue placeholder="Select employee type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HO">Head Office</SelectItem>
+                    <SelectItem value="STORE">Store</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
             </div>
