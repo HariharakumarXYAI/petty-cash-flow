@@ -615,11 +615,6 @@ export default function EmployeeEditPage() {
                     </Command>
                   </PopoverContent>
                 </Popover>
-                {selectedBU && (
-                  <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                    <Info className="h-3 w-3" /> {selectedBU.loaTableRef}
-                  </p>
-                )}
               </div>
               <div>
                 <Label htmlFor="org-location">Location <Req /></Label>
