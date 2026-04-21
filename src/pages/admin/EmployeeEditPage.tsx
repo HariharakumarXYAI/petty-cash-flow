@@ -745,18 +745,6 @@ export default function EmployeeEditPage() {
             </div>
           </section>
 
-          {/* Section: Status */}
-          <section>
-            <SectionHeader title="Status" />
-            <div className="flex items-center justify-between rounded-md border border-gray-200 p-4">
-              <div>
-                <Label className="text-sm font-medium">Active Status</Label>
-                <p className="text-xs text-muted-foreground mt-0.5">Employee can access the system</p>
-              </div>
-              <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
-            </div>
-          </section>
-
           {/* Section: Role & Authorization */}
           <RoleAuthorizationSection
             form={form}
