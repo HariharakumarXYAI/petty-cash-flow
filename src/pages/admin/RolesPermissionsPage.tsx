@@ -347,15 +347,6 @@ function RoleRow({
           <Button variant="ghost" size="icon" onClick={onEdit} title="Edit permissions">
             <Pencil className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onDelete}
-            disabled={role.isSystem}
-            title={role.isSystem ? "System role is locked" : "Delete role"}
-          >
-            <Trash2 className={cn("h-4 w-4", !role.isSystem && "text-red-600")} />
-          </Button>
         </div>
       </div>
 
