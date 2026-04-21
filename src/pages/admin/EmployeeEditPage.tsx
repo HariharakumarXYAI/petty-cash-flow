@@ -567,25 +567,6 @@ export default function EmployeeEditPage() {
 
 
 
-              <div>
-                <Label>Employee Type <Req /></Label>
-                <Select
-                  value={form.employeeType === "Store" ? "STORE" : "HO"}
-                  onValueChange={(v) => {
-                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "" });
-                    else setForm({ ...form, employeeType: "Store" });
-                  }}
-                >
-                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
-                    <SelectValue placeholder="Select employee type..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="HO">Head Office</SelectItem>
-                    <SelectItem value="STORE">Store</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
             </div>
           </section>
 
@@ -697,6 +678,24 @@ export default function EmployeeEditPage() {
                   error={orgErrors.channel}
                 />
                 {orgErrors.channel && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label>Employee Type <Req /></Label>
+                <Select
+                  value={form.employeeType === "Store" ? "STORE" : "HO"}
+                  onValueChange={(v) => {
+                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "" });
+                    else setForm({ ...form, employeeType: "Store" });
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue placeholder="Select employee type..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="HO">Head Office</SelectItem>
+                    <SelectItem value="STORE">Store</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </section>
