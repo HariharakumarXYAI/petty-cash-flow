@@ -20,6 +20,7 @@ import ExpenseTypes from "./pages/ExpenseTypes";
 import StoresPage from "./pages/StoresPage";
 
 import StoreNew from "./pages/StoreNew";
+import StoreEdit from "./pages/StoreEdit";
 import RulesPage from "./pages/RulesPage";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
@@ -93,6 +94,7 @@ function AppRoutes() {
         <Route path="masters/expense-types" element={<ExpenseTypes />} />
         <Route path="masters/stores" element={<StoresPage />} />
         <Route path="masters/stores/new" element={<StoreNew />} />
+        <Route path="masters/stores/:storeId/edit" element={<StoreEdit />} />
         
         <Route path="masters/rules" element={<RulesPage />} />
         <Route path="reports/spend-trends" element={<Reports />} />
