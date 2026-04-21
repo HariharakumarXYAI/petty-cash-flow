@@ -681,33 +681,6 @@ export default function EmployeeEditPage() {
                 )}
               </div>
 
-              {selectedBU && (
-                <div className="rounded-md border border-gray-200 bg-muted/30 p-3 space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-[11px] font-medium text-muted-foreground">Auto-filled from Business Unit</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">Entity / Company</span>
-                      <p className="font-mono text-xs font-medium text-foreground">{selectedBU.entity} — {linkedEntity?.name || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">Oracle Company Code</span>
-                      <p className="font-mono text-xs font-medium text-foreground">{linkedEntity?.oracleCode || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">LOB Default</span>
-                      <p className="font-mono text-xs font-medium text-foreground">{selectedBU.lobCode}</p>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">BU Type</span>
-                      <p className="text-xs font-medium text-foreground">{selectedBU.buType}</p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {form.employeeType === "Store" && (
                 <div>
                   <Label>Store Type <Req /></Label>
