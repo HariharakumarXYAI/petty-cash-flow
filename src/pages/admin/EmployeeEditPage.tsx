@@ -729,63 +729,6 @@ export default function EmployeeEditPage() {
                 </div>
               )}
 
-              <div>
-                <Label>Direct Approver <Req /></Label>
-                <Popover open={approverPopoverOpen} onOpenChange={setApproverPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal mt-1.5 rounded-md border-gray-300">
-                      {form.directApprover
-                        ? mockEmployees.find((e) => e.code === form.directApprover)?.name || form.directApprover
-                        : "Search by name or employee code"}
-                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[440px] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Search by name or employee code..." />
-                      <CommandList>
-                        <CommandEmpty>No employee found.</CommandEmpty>
-                        <CommandGroup>
-                          {mockEmployees
-                            .filter((e) => e.code !== form.code && e.active)
-                            .map((e) => (
-                              <CommandItem
-                                key={e.code}
-                                value={`${e.code} ${e.name}`}
-                                onSelect={() => {
-                                  setForm({ ...form, directApprover: e.code });
-                                  setApproverPopoverOpen(false);
-                                }}
-                              >
-                                <Check className={cn("mr-2 h-4 w-4", form.directApprover === e.code ? "opacity-100" : "opacity-0")} />
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">{e.name}</span>
-                                  <span className="text-xs text-muted-foreground">{e.code} · {e.positionLevel}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {form.directApprover && (() => {
-                  const approver = mockEmployees.find((e) => e.code === form.directApprover);
-                  return approver ? (
-                    <div className="mt-1.5">
-                      <Badge variant="secondary" className="text-xs gap-1">
-                        <User className="h-3 w-3" />
-                        {approver.name} — {approver.positionLevel}
-                        <button
-                          type="button"
-                          onClick={() => setForm({ ...form, directApprover: "" })}
-                          className="ml-1 hover:text-destructive"
-                        >×</button>
-                      </Badge>
-                    </div>
-                  ) : null;
-                })()}
-              </div>
             </div>
           </section>
 
@@ -800,6 +743,16 @@ export default function EmployeeEditPage() {
               <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
             </div>
           </section>
+
+          {/* Section: Role & Authorization */}
+          <RoleAuthorizationSection
+            form={form}
+            setForm={setForm}
+            selectedBU={selectedBU}
+            approverPopoverOpen={approverPopoverOpen}
+            setApproverPopoverOpen={setApproverPopoverOpen}
+            currentEmployeeCode={form.code}
+          />
         </div>
       </div>
 
