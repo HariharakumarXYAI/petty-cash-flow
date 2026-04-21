@@ -289,22 +289,23 @@ function RoleRow({
   onRename: () => void;
   onDelete: () => void;
 }) {
-  const permCount = countGrants(role.grants);
+  const modPerms = role.modulePermissions ?? {};
+  const permCount = countModulePermissions(modPerms) || countGrants(role.grants);
   const grouped = useMemo(() => {
-    const flat = flattenCatalog();
     const out: { module: string; perms: string[] }[] = [];
-    for (const row of flat) {
-      if (row.depth !== 0) continue;
-      const moduleGrant = role.grants[row.node.id] ?? {};
-      const actions = ALL_ACTIONS.filter((a) => moduleGrant[a]);
-      if (actions.length === 0) continue;
-      out.push({
-        module: row.node.label,
-        perms: actions.map((a) => actionMeta[a].label),
-      });
+    for (const group of moduleGroups) {
+      for (const m of group.modules) {
+        const grant = modPerms[m.id] ?? {};
+        const actions = (["add","change","delete","view"] as const).filter((a) => grant[a]);
+        if (actions.length === 0) continue;
+        out.push({
+          module: m.label,
+          perms: actions.map((a) => a.charAt(0).toUpperCase() + a.slice(1)),
+        });
+      }
     }
     return out;
-  }, [role]);
+  }, [role, modPerms]);
 
   return (
     <Collapsible open={expanded} onOpenChange={onToggle}>
