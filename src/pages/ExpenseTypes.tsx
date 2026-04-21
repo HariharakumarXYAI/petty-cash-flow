@@ -2,20 +2,14 @@ import { expenseTypes } from "@/lib/mock-data";
 import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Plus, ShieldAlert, ShieldCheck, FileText, AlertTriangle, Ban, Search } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Plus, ShieldAlert, FileText, Search } from "lucide-react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
-import { Separator } from "@/components/ui/separator";
-import type { ExpenseType } from "@/lib/mock-data";
 
 export default function ExpenseTypesPage() {
   const { country } = useGlobalFilter();
-  const [selected, setSelected] = useState<ExpenseType | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
 
   const countryFiltered = country === "all"
