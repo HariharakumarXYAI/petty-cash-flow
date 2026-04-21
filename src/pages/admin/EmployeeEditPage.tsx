@@ -107,6 +107,7 @@ interface EmployeeFormData {
   name: string;
   code: string;
   email: string;
+  phoneNumber: string;
   loginType: LoginType;
   role: string;
   dept: string;
@@ -123,6 +124,27 @@ interface EmployeeFormData {
   channel: string;
   active: boolean;
 }
+
+const formatPhoneDisplay = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (d.length !== 10) return d;
+  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+};
+
+const normalizePhoneInput = (val: string): string => {
+  let d = val.replace(/\D/g, "");
+  // Strip Thai country code 66 → 0
+  if (d.startsWith("66") && d.length > 9) d = "0" + d.slice(2);
+  return d.slice(0, 10);
+};
+
+const validatePhone = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (!d) return "Phone number is required";
+  if (d.length !== 10) return "Phone number must be 10 digits";
+  if (!d.startsWith("0")) return "Phone number must start with 0";
+  return "";
+};
 
 const SectionHeader = ({ title }: { title: string }) => (
   <div className="mb-6">
