@@ -523,20 +523,43 @@ export default function EmployeeEditPage() {
               </div>
 
 
-              <div>
-                <Label>Login Type <Req /></Label>
-                <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
-                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
-                    <SelectItem value="local">🔑 Local Password</SelectItem>
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground mt-1.5">
-                  HQ staff. Must have a @cpaxtra.co.th or @makro.co.th email to sign in via Microsoft.
-                </p>
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <Label>Login Type <Req /></Label>
+                  <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
+                    <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
+                      <SelectItem value="local">🔑 Local Password</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    HQ staff. Must have a @cpaxtra.co.th or @makro.co.th email to sign in via Microsoft.
+                  </p>
+                </div>
+                <div>
+                  <Label>Active Status</Label>
+                  <div className="mt-1.5 flex items-center justify-between rounded-md border border-gray-300 bg-background px-3 h-10">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span
+                        className={cn(
+                          "h-2 w-2 rounded-full",
+                          form.active ? "bg-emerald-500" : "bg-gray-400"
+                        )}
+                      />
+                      <span className={form.active ? "text-emerald-700" : "text-muted-foreground"}>
+                        {form.active ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={!!form.active}
+                      onCheckedChange={(v) => setForm({ ...form, active: v })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">Employee can access the system</p>
+                </div>
               </div>
 
 
