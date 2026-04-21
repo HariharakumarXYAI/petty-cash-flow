@@ -567,6 +567,74 @@ export default function EmployeeEditPage() {
             </div>
           </section>
 
+          {/* Section: Organization Structure */}
+          <section>
+            <SectionHeader title="Organization Structure" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <Label htmlFor="org-location">Location <Req /></Label>
+                <MasterCombobox
+                  id="org-location"
+                  value={form.location}
+                  options={locationsMaster}
+                  placeholder="Select location..."
+                  onChange={(code) => { setForm({ ...form, location: code }); setOrgErrors((p) => ({ ...p, location: false })); }}
+                  error={orgErrors.location}
+                  highlightCodes={
+                    form.employeeType === "Store"
+                      ? locationsMaster.filter((l) => l.type === "Store").map((l) => l.code)
+                      : ["099999"]
+                  }
+                />
+                {orgErrors.location && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-division">Division <Req /></Label>
+                <MasterCombobox
+                  id="org-division"
+                  value={form.division}
+                  options={divisionsMaster}
+                  placeholder="Select division..."
+                  onChange={(code) => { setForm({ ...form, division: code }); setOrgErrors((p) => ({ ...p, division: false })); }}
+                  error={orgErrors.division}
+                />
+                {orgErrors.division && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-lob" className="flex items-center gap-1.5">
+                  LOB <Req />
+                  <Info
+                    className="h-3.5 w-3.5 text-muted-foreground"
+                    aria-label="Line of Business - used for GL posting and reporting"
+                  >
+                    <title>Line of Business - used for GL posting and reporting</title>
+                  </Info>
+                </Label>
+                <MasterCombobox
+                  id="org-lob"
+                  value={form.lob}
+                  options={lobsMaster}
+                  placeholder="Select line of business..."
+                  onChange={(code) => { setForm({ ...form, lob: code }); setOrgErrors((p) => ({ ...p, lob: false })); }}
+                  error={orgErrors.lob}
+                />
+                {orgErrors.lob && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-channel">Channel <Req /></Label>
+                <MasterCombobox
+                  id="org-channel"
+                  value={form.channel}
+                  options={channelsMaster}
+                  placeholder="Select channel..."
+                  onChange={(code) => { setForm({ ...form, channel: code }); setOrgErrors((p) => ({ ...p, channel: false })); }}
+                  error={orgErrors.channel}
+                />
+                {orgErrors.channel && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+            </div>
+          </section>
+
           {/* Section: Business Unit & Position */}
           <section>
             <SectionHeader title="Business Unit & Position" />
