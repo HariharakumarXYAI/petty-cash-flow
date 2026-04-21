@@ -139,7 +139,7 @@ const lobsMaster: MasterOption[] = [
 ];
 
 const channelsMaster: MasterOption[] = [
-  { code: "9999", name: "All Channels" },
+  { code: "9999", name: "Channel Center" },
   { code: "1001", name: "B2B" },
   { code: "2001", name: "B2C" },
   { code: "3001", name: "Online Marketplace" },
@@ -687,7 +687,7 @@ export default function EmployeeEditPage() {
                   className="mt-1.5 flex items-center justify-between rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none"
                   aria-readonly="true"
                 >
-                  <span>9999 - All Channels</span>
+                  <span>9999 - Channel Center</span>
                   <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
