@@ -161,6 +161,7 @@ interface EmployeeFormData {
   positionLevel: string;
   employeeType: "HO" | "Store";
   storeType: string;
+  storeName: string;
   directApprover: string;
   costCenter: string;
   division: string;
@@ -293,7 +294,7 @@ export default function EmployeeEditPage() {
   const [form, setForm] = useState<EmployeeFormData>({
     name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
     buCode: "", positionLevel: "", employeeType: "Store",
-    storeType: "", directApprover: "", costCenter: "",
+    storeType: "", storeName: "", directApprover: "", costCenter: "",
     division: "", location: "", lob: "", channel: "9999", active: true,
     systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
     cardLastFour: "", cardholderNameOnCard: "", cardIssuer: "", cardExpiry: "",
@@ -325,6 +326,7 @@ export default function EmployeeEditPage() {
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
+        storeName: employee.employeeType === "Store" ? "001001" : "",
         directApprover: "", costCenter: "CC-" + employee.code,
         division: employee.employeeType === "HO" ? "92029" : "92032",
         location: employee.employeeType === "HO" ? "099999" : "001001",
