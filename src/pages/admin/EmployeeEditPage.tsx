@@ -101,6 +101,46 @@ const loaHints: Record<string, string> = {
   "Store Manager – Supermarket": "LOA Level 3 — Single supermarket store",
 };
 
+// ── Organization Structure master data ──
+interface MasterOption { code: string; name: string; type?: string }
+
+const locationsMaster: MasterOption[] = [
+  { code: "099999", name: "Head Office", type: "HO" },
+  { code: "001001", name: "Makro Ladprao", type: "Store" },
+  { code: "001002", name: "Makro Rama 4", type: "Store" },
+  { code: "001003", name: "Makro Chiang Mai", type: "Store" },
+  { code: "001004", name: "Makro Phuket", type: "Store" },
+  { code: "002001", name: "Lotus Bangkok Central", type: "Store" },
+  { code: "002002", name: "Lotus Pattaya", type: "Store" },
+  { code: "003001", name: "DC Wang Noi", type: "DC" },
+];
+
+const divisionsMaster: MasterOption[] = [
+  { code: "92029", name: "Finance and Accounting" },
+  { code: "92030", name: "Information Technology" },
+  { code: "92031", name: "Human Resources" },
+  { code: "92032", name: "Operations" },
+  { code: "92033", name: "Sales & Marketing" },
+  { code: "92034", name: "Supply Chain" },
+  { code: "92035", name: "Internal Audit" },
+];
+
+const lobsMaster: MasterOption[] = [
+  { code: "1001", name: "Wholesales" },
+  { code: "1002", name: "Retail" },
+  { code: "1003", name: "Online" },
+  { code: "1004", name: "Food Service" },
+  { code: "9999", name: "Corporate / Shared Services" },
+];
+
+const channelsMaster: MasterOption[] = [
+  { code: "9999", name: "All Channels" },
+  { code: "1001", name: "B2B" },
+  { code: "2001", name: "B2C" },
+  { code: "3001", name: "Online Marketplace" },
+  { code: "4001", name: "Direct Sales" },
+];
+
 type LoginType = "sso" | "local";
 
 interface EmployeeFormData {
