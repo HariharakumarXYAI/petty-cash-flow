@@ -22,6 +22,7 @@ import {
   Plus, Upload, UserPlus, Eye, Pencil, Search, Users, UserCheck,
   ShieldCheck, Settings, CreditCard, ChevronsUpDown, Check, AlertTriangle, Info,
   Building2, Store, User, Calendar, Mail, AlertCircle,
+  Lock as Lock,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
