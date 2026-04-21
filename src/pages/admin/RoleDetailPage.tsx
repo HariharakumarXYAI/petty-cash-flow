@@ -25,6 +25,8 @@ import {
   storeOptions, type ActionKey, type DataScope, type DynamicRole,
   type PermissionGrants, permissionCatalog,
 } from "@/lib/permissions-catalog";
+import { PermissionsMatrix } from "@/components/role/PermissionsMatrix";
+import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modules";
 
 export default function RoleDetailPage() {
   const { roleId } = useParams<{ roleId: string }>();
@@ -241,68 +243,22 @@ export default function RoleDetailPage() {
         </Card>
       )}
 
-      {/* Permission matrix */}
+      {/* Permission matrix (module-based) */}
       <Card className="p-0 overflow-hidden">
         <div className="px-5 py-4 border-b">
           <h2 className="font-semibold">Permissions</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Toggle the actions allowed for each module. Checking a module also checks its sub-permissions for that action.
+            Toggle which actions this role can perform on each module.
           </p>
         </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead className="min-w-[320px]">Module / Feature</TableHead>
-                {ALL_ACTIONS.map((a) => (
-                  <TableHead key={a} className="text-center w-28">
-                    <span className={cn("inline-flex px-2 py-0.5 rounded text-xs font-semibold border", actionMeta[a].tone, actionMeta[a].text)}>
-                      {actionMeta[a].label}
-                    </span>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {flat.map((row) => {
-                const grant = draft.grants[row.node.id] ?? {};
-                return (
-                  <TableRow key={row.node.id} className={row.depth === 0 ? "" : "bg-slate-50/40"}>
-                    <TableCell>
-                      <span
-                        className={cn(
-                          row.depth === 0 && "font-medium",
-                          row.depth > 0 && "pl-8 text-sm text-muted-foreground",
-                        )}
-                      >
-                        {row.node.label}
-                      </span>
-                    </TableCell>
-                    {ALL_ACTIONS.map((a) => {
-                      const applies = row.node.actions.includes(a);
-                      if (!applies) {
-                        return (
-                          <TableCell key={a} className="text-center text-muted-foreground">
-                            —
-                          </TableCell>
-                        );
-                      }
-                      return (
-                        <TableCell key={a} className="text-center">
-                          <Checkbox
-                            checked={!!grant[a]}
-                            disabled={isLocked}
-                            onCheckedChange={() => togglePerm(row.node.id, a)}
-                            className={cn("h-5 w-5", actionMeta[a].check, actionMeta[a].ring)}
-                          />
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <div className="p-5">
+          <PermissionsMatrix
+            value={draft.modulePermissions ?? emptyModulePermissions()}
+            onChange={(next: ModulePermissions) =>
+              update((d) => { d.modulePermissions = next; })
+            }
+            disabled={isLocked}
+          />
         </div>
       </Card>
 

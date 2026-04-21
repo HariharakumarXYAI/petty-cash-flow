@@ -201,6 +201,9 @@ export interface DynamicRole {
   storeCodes: string[];
   dataScope: DataScope;
   createdAt: string;
+  // New module-based permissions (Django-style add/change/delete/view per module).
+  // Optional for back-compat with existing seed/storage.
+  modulePermissions?: Record<string, Partial<Record<"add" | "change" | "delete" | "view", boolean>>>;
 }
 
 // Helpers to build grants
@@ -258,6 +261,17 @@ export function seedRoles(): DynamicRole[] {
     "advances.submit": { create: true },
   };
 
+  // Build full module permissions for system admin
+  const fullModulePerms: DynamicRole["modulePermissions"] = {};
+  const _moduleIds = [
+    "entities","rules","stores","employee_profiles","roles","documents",
+    "expense_type","policy_management","pending_invoice_email",
+    "pending_approval_email","month_end_report","claims","advances","petty_cash_fund",
+  ];
+  for (const id of _moduleIds) {
+    fullModulePerms[id] = { add: true, change: true, delete: true, view: true };
+  }
+
   return [
     {
       id: "role_system_admin",
@@ -268,6 +282,7 @@ export function seedRoles(): DynamicRole[] {
       storeCodes: storeOptions.map((s) => s.code),
       dataScope: "all_stores",
       createdAt: now,
+      modulePermissions: fullModulePerms,
     },
     {
       id: "role_store_manager",
@@ -278,6 +293,13 @@ export function seedRoles(): DynamicRole[] {
       storeCodes: ["001", "003"],
       dataScope: "own_store",
       createdAt: now,
+      modulePermissions: {
+        claims: { add: true, change: true, view: true },
+        advances: { add: true, change: true, view: true },
+        petty_cash_fund: { view: true },
+        employee_profiles: { view: true },
+        stores: { view: true },
+      },
     },
     {
       id: "role_store_user",
@@ -288,6 +310,10 @@ export function seedRoles(): DynamicRole[] {
       storeCodes: ["001"],
       dataScope: "own_store_only",
       createdAt: now,
+      modulePermissions: {
+        claims: { add: true, view: true },
+        advances: { add: true, view: true },
+      },
     },
   ];
 }

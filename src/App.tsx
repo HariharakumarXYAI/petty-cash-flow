@@ -26,6 +26,7 @@ import Reports from "./pages/Reports";
 import Login from "./pages/Login";
 import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
+import NoAccess from "./pages/NoAccess";
 import SetPassword from "./pages/SetPassword";
 import EntitiesPage from "./pages/admin/EntitiesPage";
 import EntityEditPage from "./pages/admin/EntityEditPage";
@@ -132,6 +133,7 @@ function AppRoutes() {
         <Route path="admin/notifications/invoice-email" element={<AdminLayout><PendingInvoiceEmailPage /></AdminLayout>} />
         <Route path="admin/notifications/approval-email" element={<AdminLayout><PendingApprovalEmailPage /></AdminLayout>} />
         <Route path="admin/notifications/month-end-report" element={<AdminLayout><MonthEndReportPage /></AdminLayout>} />
+        <Route path="no-access" element={<NoAccess />} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
