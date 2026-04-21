@@ -723,6 +723,26 @@ export default function EmployeeEditPage() {
             setApproverPopoverOpen={setApproverPopoverOpen}
             currentEmployeeCode={form.code}
             approverList={mockEmployees.map((e) => ({ code: e.code, name: e.name, positionLevel: e.positionLevel, active: e.active }))}
+            systemRoleSlot={
+              <div>
+                <Label>System Role <Req /></Label>
+                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as any })}>
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue placeholder="Select role..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allRoles.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        <div className="flex flex-col py-0.5">
+                          <span className="text-sm font-medium">{r.label}</span>
+                          <span className="text-[11px] text-muted-foreground">{r.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            }
             positionLevelSlot={
               <div>
                 <Label>Position Level <Req /></Label>
