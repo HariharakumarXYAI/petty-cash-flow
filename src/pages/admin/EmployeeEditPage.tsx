@@ -602,7 +602,7 @@ export default function EmployeeEditPage() {
                   className="mt-1.5 flex items-center justify-between rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none"
                   aria-readonly="true"
                 >
-                  <span>WS-MK-TH — แม็คโคร ประเทศไทย</span>
+                  <span className="truncate">WS-MK-TH — แม็คโคร ประเทศไทย</span>
                   <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
