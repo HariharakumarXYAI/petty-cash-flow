@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, Lock, Pencil, Save, X, Store as StoreIcon } from "lucide-react";
+import { ArrowLeft, Eye, Lock, Pencil, Store as StoreIcon } from "lucide-react";
+import { FormActions } from "@/components/layout";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -221,11 +222,6 @@ export default function RoleDetailPage() {
                   <Eye className="h-3 w-3" /> Read-only view
                 </Badge>
               )}
-              {isDirty && !isLocked && (
-                <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700">
-                  Unsaved changes
-                </Badge>
-              )}
             </div>
             <Input
               value={draft.description}
@@ -236,27 +232,13 @@ export default function RoleDetailPage() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {viewOnlyParam && !isSystemLocked && (
-            <Button
-              variant="outline"
-              onClick={() => setSearchParams({})}
-              className="gap-2"
-            >
+        {viewOnlyParam && !isSystemLocked && (
+          <div className="shrink-0">
+            <Button variant="outline" onClick={() => setSearchParams({})} className="gap-2">
               <Pencil className="h-4 w-4" /> Switch to edit
             </Button>
-          )}
-          {!isReadOnly && (
-            <>
-              <Button variant="outline" onClick={() => setDiscardOpen(true)} disabled={!isDirty} className="gap-2">
-                <X className="h-4 w-4" /> Discard
-              </Button>
-              <Button onClick={handleSave} disabled={!isDirty} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-                <Save className="h-4 w-4" /> Save Changes
-              </Button>
-            </>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {isSystemLocked && (
