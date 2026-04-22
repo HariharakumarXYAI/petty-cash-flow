@@ -112,8 +112,10 @@ export default function StoreEdit() {
     );
   }, [thaiName, pp20Code, branchAcctCode, taxId, houseNo, moo, soi, street, subDistrict, district, province, postalCode, pettyCashFund, minBalance, replenishAt]);
 
+  const dirty = isDirty();
+
   const handleBack = () => {
-    if (isDirty()) setShowUnsavedDialog(true);
+    if (dirty) setShowUnsavedDialog(true);
     else navigate("/masters/stores");
   };
 
