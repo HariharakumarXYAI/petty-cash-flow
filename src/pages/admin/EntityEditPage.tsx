@@ -1,12 +1,20 @@
-import { useState, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useState, useMemo, useRef, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import {
+  PageShell,
+  PageHeader,
+  SectionCard,
+  FormGrid,
+  FormField,
+  FormActions,
+  RequiredMark,
+} from "@/components/layout";
 import { mockEntities, composeFullAddress, type EntityForm, type EntityAddress } from "./EntitiesPage";
 
 const loaMap: Record<string, string> = {
@@ -17,20 +25,14 @@ const loaMap: Record<string, string> = {
   International: "ตาราง 4 (International)",
 };
 
-const SectionHeader = ({ title }: { title: string }) => (
-  <div className="mb-6">
-    <h2 className="text-lg font-semibold text-foreground">{title}</h2>
-    <div className="border-b mt-2" />
-  </div>
-);
-
-const Req = () => <span className="text-destructive">*</span>;
-
 export default function EntityEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const original = mockEntities.find((e) => e.code === id);
 
+  const initialForm = useRef<EntityForm | null>(
+    original ? { ...original, address: { ...original.address } } : null
+  );
   const [form, setForm] = useState<EntityForm>(
     original ? { ...original, address: { ...original.address } } : ({} as EntityForm)
   );
@@ -38,11 +40,16 @@ export default function EntityEditPage() {
 
   const composedAddress = useMemo(() => (form.address ? composeFullAddress(form.address) : ""), [form.address]);
 
+  const isDirty = useCallback(() => {
+    if (!initialForm.current) return false;
+    return JSON.stringify(form) !== JSON.stringify(initialForm.current);
+  }, [form]);
+
   if (!original) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <PageShell>
         <p className="text-muted-foreground">Entity not found</p>
-      </div>
+      </PageShell>
     );
   }
 
@@ -88,209 +95,181 @@ export default function EntityEditPage() {
     navigate("/admin/entities");
   };
 
+  const dirty = isDirty();
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-[900px] mx-auto px-6 py-8 pb-32">
-        <Link
-          to="/admin/entities"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
-        >
-          <ArrowLeft className="h-4 w-4" /> Back to Entities
-        </Link>
+    <PageShell
+      header={
+        <PageHeader
+          onBack={() => navigate("/admin/entities")}
+          backLabel="Back to Entities"
+          title="Edit Company Identity"
+          subtitle={`${original.code} · ${original.nameEn || original.name} · ${original.taxId || "—"}`}
+        />
+      }
+    >
+      <SectionCard title="Basic Information">
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Entity Code <RequiredMark /></Label>
+            <Input value={form.code} onChange={(e) => updateField("code", e.target.value)} placeholder="e.g. CPA001" />
+            {errors.code && <p className="text-xs text-destructive mt-1">{errors.code}</p>}
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Entity Type <RequiredMark /></Label>
+            <Select value={form.entityType} onValueChange={(v) => updateField("entityType", v)}>
+              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="สำนักงานใหญ่">สำนักงานใหญ่</SelectItem>
+                <SelectItem value="สาขา">สาขา</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.entityType && <p className="text-xs text-destructive mt-1">{errors.entityType}</p>}
+          </FormField>
+        </FormGrid>
 
-        <h1 className="text-3xl font-bold text-foreground">Edit Company Identity</h1>
-        <p className="text-sm text-muted-foreground mt-2">
-          {original.code} · {original.nameEn || original.name} · {original.taxId || "—"}
-        </p>
+        <FormField>
+          <Label className="text-sm">Legal Entity Name (TH) <RequiredMark /></Label>
+          <Input value={form.name} onChange={(e) => updateField("name", e.target.value)} placeholder="e.g. บริษัท แม็คโคร จำกัด (มหาชน)" />
+          {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
+        </FormField>
 
-        <div className="mt-8 bg-white rounded-lg border border-gray-200 p-8 space-y-10">
-          {/* Basic Information */}
-          <section>
-            <SectionHeader title="Basic Information" />
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>Entity Code <Req /></Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.code} onChange={(e) => updateField("code", e.target.value)} placeholder="e.g. CPA001" />
-                  {errors.code && <p className="text-xs text-destructive mt-1">{errors.code}</p>}
-                </div>
-                <div>
-                  <Label>Entity Type <Req /></Label>
-                  <Select value={form.entityType} onValueChange={(v) => updateField("entityType", v)}>
-                    <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select type" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="สำนักงานใหญ่">สำนักงานใหญ่</SelectItem>
-                      <SelectItem value="สาขา">สาขา</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.entityType && <p className="text-xs text-destructive mt-1">{errors.entityType}</p>}
-                </div>
-              </div>
+        <FormField>
+          <Label className="text-sm">Legal Entity Name (EN)</Label>
+          <Input value={form.nameEn} onChange={(e) => updateField("nameEn", e.target.value)} placeholder="e.g. Makro Public Company Limited" />
+        </FormField>
 
-              <div>
-                <Label>Legal Entity Name (TH) <Req /></Label>
-                <Input className="mt-1.5 rounded-md border-gray-300" value={form.name} onChange={(e) => updateField("name", e.target.value)} placeholder="e.g. บริษัท แม็คโคร จำกัด (มหาชน)" />
-                {errors.name && <p className="text-xs text-destructive mt-1">{errors.name}</p>}
-              </div>
+        <FormField>
+          <Label className="text-sm">Tax ID</Label>
+          <Input
+            className="font-mono"
+            value={form.taxId}
+            onChange={(e) => {
+              const v = e.target.value.replace(/\D/g, "").slice(0, 13);
+              updateField("taxId", v);
+            }}
+            placeholder="13 digits"
+            maxLength={13}
+          />
+          {errors.taxId && <p className="text-xs text-destructive mt-1">{errors.taxId}</p>}
+        </FormField>
 
-              <div>
-                <Label>Legal Entity Name (EN)</Label>
-                <Input className="mt-1.5 rounded-md border-gray-300" value={form.nameEn} onChange={(e) => updateField("nameEn", e.target.value)} placeholder="e.g. Makro Public Company Limited" />
-              </div>
-
-              <div>
-                <Label>Tax ID</Label>
-                <Input
-                  className="mt-1.5 rounded-md border-gray-300 font-mono"
-                  value={form.taxId}
-                  onChange={(e) => {
-                    const v = e.target.value.replace(/\D/g, "").slice(0, 13);
-                    updateField("taxId", v);
-                  }}
-                  placeholder="13 digits"
-                  maxLength={13}
-                />
-                {errors.taxId && <p className="text-xs text-destructive mt-1">{errors.taxId}</p>}
-              </div>
-
-              <div className="flex items-center gap-3">
-                <Label>Status</Label>
-                <Switch checked={form.status === "Active"} onCheckedChange={(c) => updateField("status", c ? "Active" : "Inactive")} />
-                <span className="text-sm text-muted-foreground">{form.status}</span>
-              </div>
-            </div>
-          </section>
-
-          {/* Business Classification */}
-          <section>
-            <SectionHeader title="Business Classification" />
-            <div className="space-y-5">
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>Business Group <Req /></Label>
-                  <Select value={form.businessGroup} onValueChange={(v) => updateField("businessGroup", v)}>
-                    <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select group" /></SelectTrigger>
-                    <SelectContent>
-                      {["Wholesale"].map((g) => (
-                        <SelectItem key={g} value={g}>{g}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.businessGroup && <p className="text-xs text-destructive mt-1">{errors.businessGroup}</p>}
-                </div>
-                <div>
-                  <Label>Oracle Company Code <Req /></Label>
-                  <Input value={form.oracleCode} readOnly className="mt-1.5 rounded-md border-gray-300 font-mono bg-muted cursor-default" />
-                </div>
-              </div>
-
-              <div>
-                <Label>Default Currency <Req /></Label>
-                <Select value={form.currency} onValueChange={(v) => updateField("currency", v)}>
-                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select currency" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="THB">THB — Thai Baht</SelectItem>
-                    <SelectItem value="USD">USD — US Dollar</SelectItem>
-                    <SelectItem value="SGD">SGD — Singapore Dollar</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.currency && <p className="text-xs text-destructive mt-1">{errors.currency}</p>}
-              </div>
-            </div>
-          </section>
-
-          {/* Address Information */}
-          <section>
-            <SectionHeader title="Address Information" />
-            <div className="space-y-5">
-              <div>
-                <Label>ที่อยู่ / Full Address</Label>
-                <Input
-                  value={composedAddress}
-                  readOnly
-                  className="mt-1.5 rounded-md bg-amber-50 border-amber-200 text-foreground cursor-default"
-                />
-                <p className="text-xs text-muted-foreground mt-1">Auto-composed from address fields below</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>เลขที่ <Req /></Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.addressNo} onChange={(e) => updateAddress("addressNo", e.target.value)} placeholder="e.g. 97/11" />
-                  {errors["address.addressNo"] && <p className="text-xs text-destructive mt-1">{errors["address.addressNo"]}</p>}
-                </div>
-                <div>
-                  <Label>หมู่</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.moo} onChange={(e) => updateAddress("moo", e.target.value)} placeholder="e.g. 6" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>ตรอก/ซอย</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.soi} onChange={(e) => updateAddress("soi", e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
-                </div>
-                <div>
-                  <Label>ถนน</Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.road} onChange={(e) => updateAddress("road", e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>ตำบล/แขวง <Req /></Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.tambol} onChange={(e) => updateAddress("tambol", e.target.value)} placeholder="e.g. จอมพล" />
-                  {errors["address.tambol"] && <p className="text-xs text-destructive mt-1">{errors["address.tambol"]}</p>}
-                </div>
-                <div>
-                  <Label>อำเภอ/เขต <Req /></Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.amphoe} onChange={(e) => updateAddress("amphoe", e.target.value)} placeholder="e.g. จตุจักร" />
-                  {errors["address.amphoe"] && <p className="text-xs text-destructive mt-1">{errors["address.amphoe"]}</p>}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <Label>จังหวัด <Req /></Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.province} onChange={(e) => updateAddress("province", e.target.value)} placeholder="e.g. กรุงเทพมหานคร" />
-                  {errors["address.province"] && <p className="text-xs text-destructive mt-1">{errors["address.province"]}</p>}
-                </div>
-                <div>
-                  <Label>รหัสไปรษณีย์ <Req /></Label>
-                  <Input className="mt-1.5 rounded-md border-gray-300" value={form.address.postalCode} onChange={(e) => updateAddress("postalCode", e.target.value)} placeholder="e.g. 10240" />
-                  {errors["address.postalCode"] && <p className="text-xs text-destructive mt-1">{errors["address.postalCode"]}</p>}
-                </div>
-              </div>
-
-              <div>
-                <Label>Country <Req /></Label>
-                <Select value={form.address.country} onValueChange={(v) => updateAddress("country", v)}>
-                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select country" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Thailand">Thailand</SelectItem>
-                    <SelectItem value="Cambodia">Cambodia</SelectItem>
-                    <SelectItem value="Myanmar">Myanmar</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors["address.country"] && <p className="text-xs text-destructive mt-1">{errors["address.country"]}</p>}
-              </div>
-            </div>
-          </section>
+        <div className="flex items-center gap-3">
+          <Label className="text-sm">Status</Label>
+          <Switch checked={form.status === "Active"} onCheckedChange={(c) => updateField("status", c ? "Active" : "Inactive")} />
+          <span className="text-sm text-muted-foreground">{form.status}</span>
         </div>
-      </div>
+      </SectionCard>
 
-      {/* Sticky Bottom Action Bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-50">
-        <div className="max-w-[900px] mx-auto px-6 py-3 flex items-center justify-end gap-3">
-          <Button variant="outline" onClick={() => navigate("/admin/entities")}>Cancel</Button>
-          <Button
-            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            onClick={handleSave}
-          >
-            Save Changes
-          </Button>
-        </div>
-      </div>
-    </div>
+      <SectionCard title="Business Classification">
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Business Group <RequiredMark /></Label>
+            <Select value={form.businessGroup} onValueChange={(v) => updateField("businessGroup", v)}>
+              <SelectTrigger><SelectValue placeholder="Select group" /></SelectTrigger>
+              <SelectContent>
+                {["Wholesale"].map((g) => (
+                  <SelectItem key={g} value={g}>{g}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.businessGroup && <p className="text-xs text-destructive mt-1">{errors.businessGroup}</p>}
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Oracle Company Code <RequiredMark /></Label>
+            <Input value={form.oracleCode} readOnly className="font-mono bg-muted cursor-default" />
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Default Currency <RequiredMark /></Label>
+          <Select value={form.currency} onValueChange={(v) => updateField("currency", v)}>
+            <SelectTrigger><SelectValue placeholder="Select currency" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="THB">THB — Thai Baht</SelectItem>
+              <SelectItem value="USD">USD — US Dollar</SelectItem>
+              <SelectItem value="SGD">SGD — Singapore Dollar</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors.currency && <p className="text-xs text-destructive mt-1">{errors.currency}</p>}
+        </FormField>
+      </SectionCard>
+
+      <SectionCard title="Address Information">
+        <FormField>
+          <Label className="text-sm">ที่อยู่ / Full Address</Label>
+          <Input value={composedAddress} readOnly className="bg-muted/40 cursor-default" />
+          <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
+        </FormField>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">เลขที่ <RequiredMark /></Label>
+            <Input value={form.address.addressNo} onChange={(e) => updateAddress("addressNo", e.target.value)} placeholder="e.g. 97/11" />
+            {errors["address.addressNo"] && <p className="text-xs text-destructive mt-1">{errors["address.addressNo"]}</p>}
+          </FormField>
+          <FormField>
+            <Label className="text-sm">หมู่</Label>
+            <Input value={form.address.moo} onChange={(e) => updateAddress("moo", e.target.value)} placeholder="e.g. 6" />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">ตรอก/ซอย</Label>
+            <Input value={form.address.soi} onChange={(e) => updateAddress("soi", e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">ถนน</Label>
+            <Input value={form.address.road} onChange={(e) => updateAddress("road", e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">ตำบล/แขวง <RequiredMark /></Label>
+            <Input value={form.address.tambol} onChange={(e) => updateAddress("tambol", e.target.value)} placeholder="e.g. จอมพล" />
+            {errors["address.tambol"] && <p className="text-xs text-destructive mt-1">{errors["address.tambol"]}</p>}
+          </FormField>
+          <FormField>
+            <Label className="text-sm">อำเภอ/เขต <RequiredMark /></Label>
+            <Input value={form.address.amphoe} onChange={(e) => updateAddress("amphoe", e.target.value)} placeholder="e.g. จตุจักร" />
+            {errors["address.amphoe"] && <p className="text-xs text-destructive mt-1">{errors["address.amphoe"]}</p>}
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">จังหวัด <RequiredMark /></Label>
+            <Input value={form.address.province} onChange={(e) => updateAddress("province", e.target.value)} placeholder="e.g. กรุงเทพมหานคร" />
+            {errors["address.province"] && <p className="text-xs text-destructive mt-1">{errors["address.province"]}</p>}
+          </FormField>
+          <FormField>
+            <Label className="text-sm">รหัสไปรษณีย์ <RequiredMark /></Label>
+            <Input value={form.address.postalCode} onChange={(e) => updateAddress("postalCode", e.target.value)} placeholder="e.g. 10240" />
+            {errors["address.postalCode"] && <p className="text-xs text-destructive mt-1">{errors["address.postalCode"]}</p>}
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Country <RequiredMark /></Label>
+          <Select value={form.address.country} onValueChange={(v) => updateAddress("country", v)}>
+            <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Thailand">Thailand</SelectItem>
+              <SelectItem value="Cambodia">Cambodia</SelectItem>
+              <SelectItem value="Myanmar">Myanmar</SelectItem>
+            </SelectContent>
+          </Select>
+          {errors["address.country"] && <p className="text-xs text-destructive mt-1">{errors["address.country"]}</p>}
+        </FormField>
+      </SectionCard>
+
+      <FormActions
+        isDirty={dirty}
+        secondary={<Button variant="outline" onClick={() => navigate("/admin/entities")}>Cancel</Button>}
+        primary={<Button onClick={handleSave}>Save Changes</Button>}
+      />
+    </PageShell>
   );
 }
