@@ -234,8 +234,8 @@ export default function EntitiesPage() {
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/admin/entities/${e.code}`)}><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(i)}><Pencil className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><Ban className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/admin/entities/${e.code}/edit`)}><Pencil className="h-4 w-4" /></Button>
+                    
                   </div>
                 </TableCell>
               </TableRow>

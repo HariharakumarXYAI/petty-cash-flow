@@ -9,7 +9,7 @@ const adminNavGroups = [
     label: "SYSTEM CONFIGURATION",
     items: [
       { title: "Entities", url: "/admin/entities", icon: Building2 },
-      { title: "Rules", url: "/masters/rules", icon: CheckSquare },
+      { title: "Rules", url: "/admin/rules", icon: CheckSquare },
       { title: "OCR Validation Rules", url: "/admin/ocr-rules", icon: ScanSearch },
     ],
   },

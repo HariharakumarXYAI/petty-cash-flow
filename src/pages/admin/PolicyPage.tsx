@@ -43,30 +43,10 @@ export default function PolicyPage() {
         </div>
       </div>
 
-      <div className="my-4 space-y-3">
+      <div className="my-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search policies..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9" />
-        </div>
-        <div className="flex items-center gap-3">
-          <Select value={expFilter} onValueChange={setExpFilter}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Expense Types" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Expense Types</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={subFilter} onValueChange={setSubFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="All Sub Types" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Sub Types</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[100px]"><SelectValue placeholder="All" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
 
@@ -74,7 +54,7 @@ export default function PolicyPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10"><Checkbox /></TableHead>
+              
               <TableHead>Expense Type</TableHead>
               <TableHead>Sub Expense Type</TableHead>
               <TableHead>MCC Code (Ref)</TableHead>
@@ -89,7 +69,7 @@ export default function PolicyPage() {
           <TableBody>
             {mockPolicies.map((p, i) => (
               <TableRow key={i} className={p.policy === "Requires Approval" ? "bg-status-validating/5" : ""}>
-                <TableCell><Checkbox /></TableCell>
+                
                 <TableCell className="font-medium">{p.expense}</TableCell>
                 <TableCell>{p.sub}</TableCell>
                 <TableCell className="font-mono text-xs">{p.mcc}</TableCell>

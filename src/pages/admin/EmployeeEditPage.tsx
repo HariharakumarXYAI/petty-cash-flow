@@ -3,7 +3,6 @@ import { useParams, useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -14,13 +13,15 @@ import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
 import {
-  Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
   ArrowLeft, ChevronsUpDown, Check, AlertTriangle, Info, Building2, Store,
-  ShieldAlert, Calendar, User, ChevronRight, Search,
+  User, Search, Phone, CreditCard, CheckCircle2, Settings, BarChart3, Calendar as CalendarIcon,
+  Lock as LockIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Calendar } from "@/components/ui/calendar";
+import { Textarea } from "@/components/ui/textarea";
+import { format } from "date-fns";
+import { RoleAuthorizationSection } from "@/components/employee/RoleAuthorizationSection";
 import { toast } from "sonner";
 
 // ── Shared data (same as EmployeesPage) ──
@@ -75,27 +76,23 @@ const mockEmployees: Employee[] = [
   { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store" },
 ];
 
-// Position levels filtered by Employee Type + Store Type
+const allRoles = [
+  { value: "store_user", label: "Store User", description: "Standard store employee access" },
+  { value: "store_manager", label: "Store Manager", description: "Manage store operations and approve store-level claims" },
+  { value: "regional_manager", label: "Regional Manager", description: "Oversee multiple stores within a region" },
+  { value: "ho_finance", label: "HO Finance", description: "Head office finance review and posting access" },
+  { value: "ho_admin", label: "HO Admin", description: "Head office administrative access" },
+  { value: "internal_audit", label: "Internal Audit", description: "Read-only access for audit and investigation" },
+  { value: "system_admin", label: "System Admin", description: "Full administrative access to system configuration" },
+];
+
 const getPositionLevels = (employeeType: "HO" | "Store", storeType: string) => {
   const base = ["Staff", "Senior Manager", "Area Manager", "Associate Director", "Director", "Senior Director"];
   if (employeeType === "HO") return base;
-  // Store — add store-specific levels
   const storeLevels = [...base, "Director – Region Operations"];
   if (storeType === "Hypermarket") storeLevels.push("Store Manager – Hypermarket");
   if (storeType === "Supermarket") storeLevels.push("Store Manager – Supermarket");
   return storeLevels;
-};
-
-const approvalAuthority: Record<string, string> = {
-  "Staff": "No approval authority",
-  "Senior Manager": "Can approve ≤ ฿10,000",
-  "Area Manager": "Can approve ≤ ฿20,000",
-  "Associate Director": "Can approve ≤ ฿50,000",
-  "Director": "Can approve ≤ ฿100,000",
-  "Senior Director": "Can approve ≤ ฿500,000",
-  "Director – Region Operations": "Can approve ≤ ฿200,000",
-  "Store Manager – Hypermarket": "Can approve ≤ ฿30,000",
-  "Store Manager – Supermarket": "Can approve ≤ ฿20,000",
 };
 
 const loaHints: Record<string, string> = {
@@ -110,19 +107,72 @@ const loaHints: Record<string, string> = {
   "Store Manager – Supermarket": "LOA Level 3 — Single supermarket store",
 };
 
+// ── Organization Structure master data ──
+interface MasterOption { code: string; name: string; type?: string }
+
+const locationsMaster: MasterOption[] = [
+  { code: "099999", name: "Head Office", type: "HO" },
+  { code: "001001", name: "Makro Ladprao", type: "Store" },
+  { code: "001002", name: "Makro Rama 4", type: "Store" },
+  { code: "001003", name: "Makro Chiang Mai", type: "Store" },
+  { code: "001004", name: "Makro Phuket", type: "Store" },
+  { code: "002001", name: "Lotus Bangkok Central", type: "Store" },
+  { code: "002002", name: "Lotus Pattaya", type: "Store" },
+  { code: "003001", name: "DC Wang Noi", type: "DC" },
+];
+
+const divisionsMaster: MasterOption[] = [
+  { code: "92029", name: "Finance and Accounting" },
+  { code: "92030", name: "Information Technology" },
+  { code: "92031", name: "Human Resources" },
+  { code: "92032", name: "Operations" },
+  { code: "92033", name: "Sales & Marketing" },
+  { code: "92034", name: "Supply Chain" },
+  { code: "92035", name: "Internal Audit" },
+];
+
+const lobsMaster: MasterOption[] = [
+  { code: "1001", name: "Wholesales" },
+  { code: "1002", name: "Retail" },
+  { code: "1003", name: "Online" },
+  { code: "1004", name: "Food Service" },
+  { code: "9999", name: "Corporate / Shared Services" },
+];
+
+const channelsMaster: MasterOption[] = [
+  { code: "9999", name: "Channel Center" },
+  { code: "1001", name: "B2B" },
+  { code: "2001", name: "B2C" },
+  { code: "3001", name: "Online Marketplace" },
+  { code: "4001", name: "Direct Sales" },
+];
+
+interface StoreOption { code: string; name: string; type: "Hypermarket" | "Supermarket" }
+const storesMaster: StoreOption[] = [
+  { code: "001001", name: "Makro Ladprao", type: "Hypermarket" },
+  { code: "001002", name: "Makro Rama 3", type: "Hypermarket" },
+  { code: "001003", name: "Makro Chiang Mai", type: "Hypermarket" },
+  { code: "002001", name: "Lotus Bangkok", type: "Supermarket" },
+  { code: "002002", name: "Lotus Phuket", type: "Supermarket" },
+  { code: "002003", name: "Lotus Khon Kaen", type: "Supermarket" },
+];
+
 type LoginType = "sso" | "local";
 
 interface EmployeeFormData {
   name: string;
   code: string;
   email: string;
+  phoneNumber: string;
   loginType: LoginType;
+  role: string;
   dept: string;
   branch: string;
   buCode: string;
   positionLevel: string;
   employeeType: "HO" | "Store";
   storeType: string;
+  storeName: string;
   directApprover: string;
   costCenter: string;
   division: string;
@@ -130,7 +180,121 @@ interface EmployeeFormData {
   lob: string;
   channel: string;
   active: boolean;
+  // Role & Authorization
+  systemRoles: string[];
+  isActive: boolean;
+  effectiveFrom: Date | undefined;
+  effectiveTo: Date | undefined;
+  cardLastFour: string;
+  cardholderNameOnCard: string;
+  cardIssuer: string;
+  cardExpiry: string;
+  approvalLimitPerTxn: string;
+  approvalLimitPerMonth: string;
 }
+
+const formatPhoneDisplay = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (d.length !== 10) return d;
+  return `${d.slice(0, 3)}-${d.slice(3, 6)}-${d.slice(6)}`;
+};
+
+const normalizePhoneInput = (val: string): string => {
+  let d = val.replace(/\D/g, "");
+  // Strip Thai country code 66 → 0
+  if (d.startsWith("66") && d.length > 9) d = "0" + d.slice(2);
+  return d.slice(0, 10);
+};
+
+const validatePhone = (raw: string): string => {
+  const d = raw.replace(/\D/g, "");
+  if (!d) return "Phone number is required";
+  if (d.length !== 10) return "Phone number must be 10 digits";
+  if (!d.startsWith("0")) return "Phone number must start with 0";
+  return "";
+};
+
+const SectionHeader = ({ title, description }: { title: string; description?: string }) => (
+  <div className="mb-6">
+    <h2 className="text-xl font-semibold text-foreground">{title}</h2>
+    {description && <p className="text-sm text-muted-foreground mt-1">{description}</p>}
+  </div>
+);
+
+const Req = () => <span className="text-destructive">*</span>;
+
+interface MasterComboboxProps {
+  id: string;
+  value: string;
+  options: MasterOption[];
+  placeholder: string;
+  onChange: (code: string) => void;
+  error?: boolean;
+  highlightCodes?: string[]; // sort these to top
+}
+
+const MasterCombobox = ({ id, value, options, placeholder, onChange, error, highlightCodes }: MasterComboboxProps) => {
+  const [open, setOpen] = useState(false);
+  const sorted = useMemo(() => {
+    if (!highlightCodes?.length) return options;
+    const set = new Set(highlightCodes);
+    const top = options.filter((o) => set.has(o.code));
+    const rest = options.filter((o) => !set.has(o.code));
+    return [...top, ...rest];
+  }, [options, highlightCodes]);
+  const selected = options.find((o) => o.code === value);
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          id={id}
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          className={cn(
+            "mt-1.5 flex h-10 w-full items-center justify-between rounded-md border bg-background px-3 py-2 text-sm",
+            error ? "border-destructive" : "border-gray-300",
+            !selected && "text-muted-foreground"
+          )}
+        >
+          <span className="truncate">
+            {selected ? `${selected.code} - ${selected.name}` : placeholder}
+          </span>
+          <ChevronsUpDown className="h-4 w-4 opacity-50 shrink-0 ml-2" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[--radix-popover-trigger-width]" align="start">
+        <Command
+          filter={(val, search) => {
+            const opt = options.find((o) => o.code === val);
+            if (!opt) return 0;
+            const haystack = `${opt.code} ${opt.name}`.toLowerCase();
+            return haystack.includes(search.toLowerCase()) ? 1 : 0;
+          }}
+        >
+          <CommandInput placeholder="Search by code or name..." />
+          <CommandList>
+            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandGroup>
+              {sorted.map((opt) => (
+                <CommandItem
+                  key={opt.code}
+                  value={opt.code}
+                  onSelect={() => { onChange(opt.code); setOpen(false); }}
+                >
+                  <Check className={cn("mr-2 h-4 w-4", value === opt.code ? "opacity-100" : "opacity-0")} />
+                  <span className="font-mono text-xs text-muted-foreground mr-2">{opt.code}</span>
+                  <span>{opt.name}</span>
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 export default function EmployeeEditPage() {
   const { id } = useParams<{ id: string }>();
@@ -139,31 +303,52 @@ export default function EmployeeEditPage() {
   const employee = mockEmployees.find((e) => e.code === id);
 
   const [form, setForm] = useState<EmployeeFormData>({
-    name: "", code: "", email: "", loginType: "sso" as LoginType, dept: "", branch: "",
-    buCode: "", positionLevel: "", employeeType: "Store",
-    storeType: "", directApprover: "", costCenter: "",
-    division: "", location: "", lob: "", channel: "", active: true,
+    name: "", code: "", email: "", phoneNumber: "", loginType: "sso", role: "store_user", dept: "", branch: "",
+    buCode: "WS-MK-TH", positionLevel: "", employeeType: "Store",
+    storeType: "", storeName: "", directApprover: "", costCenter: "",
+    division: "", location: "", lob: "", channel: "9999", active: true,
+    systemRoles: [], isActive: true, effectiveFrom: new Date(), effectiveTo: undefined,
+    cardLastFour: "", cardholderNameOnCard: "", cardIssuer: "", cardExpiry: "",
+    approvalLimitPerTxn: "", approvalLimitPerMonth: "",
   });
   const [emailWarning, setEmailWarning] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [phoneError, setPhoneError] = useState("");
+  const [phoneFocused, setPhoneFocused] = useState(false);
 
   const [initialForm, setInitialForm] = useState<EmployeeFormData>(form);
   const [buPopoverOpen, setBuPopoverOpen] = useState(false);
   const [approverPopoverOpen, setApproverPopoverOpen] = useState(false);
   const [validationError, setValidationError] = useState("");
+  const [orgErrors, setOrgErrors] = useState<{ location?: boolean; division?: boolean; lob?: boolean; channel?: boolean }>({});
 
   useEffect(() => {
     if (employee) {
       const inferredLoginType: LoginType = employee.email.endsWith("@cpaxtra.co.th") ? "sso" : "local";
+      const inferredRole =
+        employee.roles.includes("System Admin") ? "system_admin" :
+        employee.roles.includes("HO Finance") ? "ho_finance" :
+        employee.roles.includes("Store Manager") ? "store_manager" :
+        "store_user";
       const data: EmployeeFormData = {
         name: employee.name, code: employee.code, email: employee.email,
-        loginType: inferredLoginType,
+        phoneNumber: "0812345678",
+        loginType: inferredLoginType, role: inferredRole,
         dept: employee.dept, branch: employee.branch, buCode: employee.buCode,
         positionLevel: employee.positionLevel, employeeType: employee.employeeType,
         storeType: employee.employeeType === "Store" ? "Hypermarket" : "",
-        directApprover: "", costCenter: "CC-" + employee.code,
-        division: "", location: "", lob: "", channel: "",
+        storeName: employee.employeeType === "Store" ? "001001" : "",
+        directApprover: employee.code === "EMP001" ? "EMP002" : (mockEmployees.find((e) => e.code !== employee.code && e.active)?.code || ""),
+        costCenter: "CC-" + employee.code,
+        division: employee.employeeType === "HO" ? "92029" : "92032",
+        location: employee.employeeType === "HO" ? "099999" : "001001",
+        lob: "1001", channel: "9999",
         active: employee.active,
+        systemRoles: ["cardholder"], isActive: employee.active,
+        effectiveFrom: new Date(), effectiveTo: undefined,
+        cardLastFour: "", cardholderNameOnCard: employee.name.toUpperCase(),
+        cardIssuer: "", cardExpiry: "",
+        approvalLimitPerTxn: "", approvalLimitPerMonth: "",
       };
       setForm(data);
       setInitialForm(data);
@@ -185,7 +370,6 @@ export default function EmployeeEditPage() {
     }
   }, [form.positionLevel, selectedBU]);
 
-  // Reset position level if not in current list when employee type or store type changes
   useEffect(() => {
     if (!positionLevels.includes(form.positionLevel)) {
       setForm((prev) => ({ ...prev, positionLevel: "" }));
@@ -205,14 +389,10 @@ export default function EmployeeEditPage() {
     const isCorp = isCorporateEmail(form.email);
     let newEmail = form.email;
     let warning = "";
-
-    // Only clear email when switching SSO → Local with a corporate email
     if (newType === "local" && isCorp) {
       newEmail = "";
       warning = "Email cleared — corporate domain is not allowed for Local Password accounts.";
     }
-    // All other directions: preserve email
-
     setForm({ ...form, loginType: newType, email: newEmail });
     setEmailWarning(warning);
     setEmailError("");
@@ -227,255 +407,347 @@ export default function EmployeeEditPage() {
   const handleSave = () => {
     if (validationError) return;
     const emailErr = validateEmail(form.email, form.loginType);
-    if (emailErr) {
-      setEmailError(emailErr);
+    const phErr = validatePhone(form.phoneNumber);
+    const orgErr = {
+      location: !form.location,
+      division: !form.division,
+      lob: !form.lob,
+      channel: !form.channel,
+    };
+    const hasOrgErr = Object.values(orgErr).some(Boolean);
+    if (emailErr) setEmailError(emailErr);
+    if (phErr) setPhoneError(phErr);
+    if (hasOrgErr) setOrgErrors(orgErr);
+    if (!form.directApprover) {
+      toast.error("Direct Approver is required");
       return;
     }
+    if (form.directApprover === form.code) {
+      toast.error("Employee cannot be their own approver");
+      return;
+    }
+    if (emailErr || phErr || hasOrgErr) return;
     toast.success(`Employee ${form.code} updated successfully`);
     navigate("/admin/employees");
   };
 
   if (!employee) {
     return (
-      <div className="flex items-center justify-center h-64">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <p className="text-muted-foreground">Employee not found</p>
       </div>
     );
   }
 
+  const roleLabel = allRoles.find((r) => r.value === form.role)?.label || employee.roles[0] || "—";
+
   return (
-    <div className="min-h-full flex flex-col">
-      {/* Breadcrumb */}
-      <Breadcrumb className="mb-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/admin/employees">Admin Settings</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator><ChevronRight className="h-3.5 w-3.5" /></BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/admin/employees">Employee Profiles</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator><ChevronRight className="h-3.5 w-3.5" /></BreadcrumbSeparator>
-          <BreadcrumbItem>
-            <BreadcrumbPage>Edit Employee</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-[900px] mx-auto px-6 py-8 pb-32">
+        {/* Back link */}
+        <Link
+          to="/admin/employees"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+        >
+          <ArrowLeft className="h-4 w-4" /> Back to Employees
+        </Link>
 
-      {/* Page Title */}
-      <div className="flex items-center gap-3 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Edit Employee</h1>
-          <Badge variant="outline" className="mt-1 font-mono text-xs">{form.code}</Badge>
-        </div>
-      </div>
+        {/* Title */}
+        <h1 className="text-3xl font-bold text-foreground">Edit Employee</h1>
+        <p className="text-sm text-muted-foreground mt-2">
+          {employee.code} · {employee.name} · {roleLabel}
+        </p>
 
-      {/* 2-Column Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 flex-1 pb-24">
-        {/* LEFT COLUMN — 60% */}
-        <div className="lg:col-span-3 space-y-6">
-          {/* Card 1 — Basic Information */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Basic Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+        {/* Cards */}
+        <div className="mt-8 space-y-6">
+          {/* Section: Basic Information */}
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Basic Information"
+              description="Identity, login, and active status for this employee."
+            />
+            <div className="space-y-5">
+              <div className="grid grid-cols-2 gap-5">
                 <div>
-                  <Label>Employee Code <span className="text-destructive">*</span></Label>
-                  <Input value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="e.g. EMP005" />
+                  <Label>Employee Code <Req /></Label>
+                  <Input
+                    className="mt-1.5 rounded-md border-gray-300"
+                    value={form.code}
+                    onChange={(e) => setForm({ ...form, code: e.target.value })}
+                    placeholder="e.g. EMP005"
+                  />
                 </div>
                 <div>
-                  <Label>Full Name <span className="text-destructive">*</span></Label>
-                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+                  <Label>Full Name <Req /></Label>
+                  <Input
+                    className="mt-1.5 rounded-md border-gray-300"
+                    value={form.name}
+                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <Label htmlFor="email">Email <Req /></Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
+                    onBlur={handleEmailBlur}
+                    placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
+                    aria-invalid={!!emailError}
+                    aria-describedby={emailError ? "email-error" : undefined}
+                    className={cn(
+                      "mt-1.5 rounded-md border-gray-300",
+                      emailError ? "border-destructive" : "",
+                      emailWarning ? "border-orange-400" : ""
+                    )}
+                  />
+                  {emailError && <p id="email-error" className="text-xs text-destructive mt-1">{emailError}</p>}
+                  {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+                </div>
+                <div>
+                  <Label htmlFor="phone_number">Phone Number <Req /></Label>
+                  <div className="relative mt-1.5">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+                    <Input
+                      id="phone_number"
+                      name="phone_number"
+                      type="tel"
+                      inputMode="numeric"
+                      maxLength={phoneFocused ? 10 : 12}
+                      value={phoneFocused ? form.phoneNumber : formatPhoneDisplay(form.phoneNumber)}
+                      onFocus={() => setPhoneFocused(true)}
+                      onChange={(e) => {
+                        const normalized = normalizePhoneInput(e.target.value);
+                        setForm({ ...form, phoneNumber: normalized });
+                        if (phoneError) setPhoneError("");
+                      }}
+                      onBlur={() => {
+                        setPhoneFocused(false);
+                        setPhoneError(validatePhone(form.phoneNumber));
+                      }}
+                      onPaste={(e) => {
+                        e.preventDefault();
+                        const pasted = e.clipboardData.getData("text");
+                        const normalized = normalizePhoneInput(pasted);
+                        setForm({ ...form, phoneNumber: normalized });
+                      }}
+                      placeholder="08X-XXX-XXXX"
+                      aria-invalid={!!phoneError}
+                      aria-describedby={phoneError ? "phone-error" : undefined}
+                      className={cn(
+                        "pl-9 rounded-md border-gray-300",
+                        phoneError ? "border-destructive" : ""
+                      )}
+                    />
+                  </div>
+                  {phoneError && <p id="phone-error" className="text-xs text-destructive mt-1">{phoneError}</p>}
+                </div>
+              </div>
+
+
+              <div className="grid grid-cols-2 gap-5">
+                <div>
+                  <Label>Login Type <Req /></Label>
+                  <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
+                    <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
+                      <SelectItem value="local">🔑 Local Password</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1.5">
+                    HQ staff. Must have a @cpaxtra.co.th or @makro.co.th email to sign in via Microsoft.
+                  </p>
+                </div>
+                <div>
+                  <Label>Active Status</Label>
+                  <div className="mt-1.5 flex items-center justify-between rounded-md border border-gray-300 bg-background px-3 h-10">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span
+                        className={cn(
+                          "h-2 w-2 rounded-full",
+                          form.active ? "bg-emerald-500" : "bg-gray-400"
+                        )}
+                      />
+                      <span className={form.active ? "text-emerald-700" : "text-muted-foreground"}>
+                        {form.active ? "Active" : "Inactive"}
+                      </span>
+                    </div>
+                    <Switch
+                      checked={!!form.active}
+                      onCheckedChange={(v) => setForm({ ...form, active: v })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1.5">Employee can access the system</p>
+                </div>
+              </div>
+
+
+
+            </div>
+          </section>
+
+          {/* Section: Organization Structure */}
+          <section className="bg-white rounded-lg border border-gray-200 p-6 md:p-8">
+            <SectionHeader
+              title="Organization Structure"
+              description="Business unit, location, and reporting hierarchy."
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <Label htmlFor="org-bu" className="flex items-center gap-1.5">
+                  Business Unit <Req />
+                  <span title="Business Unit is set to Wholesale by default and cannot be changed" className="inline-flex">
+                    <LockIcon className="h-3.5 w-3.5 text-muted-foreground" aria-label="Business Unit is set to Wholesale by default and cannot be changed" />
+                  </span>
+                </Label>
+                <div
+                  id="org-bu"
+                  className="mt-1.5 flex items-center justify-between rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none"
+                  aria-readonly="true"
+                >
+                  <span className="truncate">WS-MK-TH — แม็คโคร ประเทศไทย</span>
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
                 </div>
               </div>
               <div>
-                <Label>Email <span className="text-destructive">*</span></Label>
-                <Input
-                  type="email"
-                  value={form.email}
-                  onChange={(e) => { setForm({ ...form, email: e.target.value }); setEmailWarning(""); }}
-                  onBlur={handleEmailBlur}
-                  placeholder={form.loginType === "sso" ? "name@cpaxtra.co.th" : "e.g. somchai@makro.co.th or store001@gmail.com"}
-                  className={cn(
-                    emailError ? "border-destructive" : "",
-                    emailWarning ? "border-orange-400" : ""
-                  )}
+                <Label htmlFor="org-location">Location <Req /></Label>
+                <MasterCombobox
+                  id="org-location"
+                  value={form.location}
+                  options={locationsMaster}
+                  placeholder="Select location..."
+                  onChange={(code) => { setForm({ ...form, location: code }); setOrgErrors((p) => ({ ...p, location: false })); }}
+                  error={orgErrors.location}
+                  highlightCodes={
+                    form.employeeType === "Store"
+                      ? locationsMaster.filter((l) => l.type === "Store").map((l) => l.code)
+                      : ["099999"]
+                  }
                 />
-                {emailError && <p className="text-xs text-destructive mt-1">{emailError}</p>}
-                {emailWarning && !emailError && <p className="text-xs text-orange-500 mt-1">{emailWarning}</p>}
+                {orgErrors.location && <p className="text-xs text-destructive mt-1">This field is required</p>}
               </div>
-
-              {/* Login Type */}
               <div>
-                <Label>Login Type <span className="text-destructive">*</span></Label>
-                <Select value={form.loginType} onValueChange={(v) => handleLoginTypeChange(v as LoginType)}>
-                  <SelectTrigger className="h-[44px] rounded-lg">
-                    <SelectValue />
+                <Label htmlFor="org-division">Division <Req /></Label>
+                <MasterCombobox
+                  id="org-division"
+                  value={form.division}
+                  options={divisionsMaster}
+                  placeholder="Select division..."
+                  onChange={(code) => { setForm({ ...form, division: code }); setOrgErrors((p) => ({ ...p, division: false })); }}
+                  error={orgErrors.division}
+                />
+                {orgErrors.division && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-lob" className="flex items-center gap-1.5">
+                  Line of Business <Req />
+                  <span title="Line of Business - used for GL posting and reporting" className="inline-flex">
+                    <Info className="h-3.5 w-3.5 text-muted-foreground" aria-label="Line of Business - used for GL posting and reporting" />
+                  </span>
+                </Label>
+                <MasterCombobox
+                  id="org-lob"
+                  value={form.lob}
+                  options={lobsMaster}
+                  placeholder="Select line of business..."
+                  onChange={(code) => { setForm({ ...form, lob: code }); setOrgErrors((p) => ({ ...p, lob: false })); }}
+                  error={orgErrors.lob}
+                />
+                {orgErrors.lob && <p className="text-xs text-destructive mt-1">This field is required</p>}
+              </div>
+              <div>
+                <Label htmlFor="org-channel" className="flex items-center gap-1.5">
+                  Channel <Req />
+                  <span title="Channel is set to All Channels by default and cannot be changed" className="inline-flex">
+                    <LockIcon className="h-3.5 w-3.5 text-muted-foreground" aria-label="Channel is set to All Channels by default and cannot be changed" />
+                  </span>
+                </Label>
+                <div
+                  id="org-channel"
+                  className="mt-1.5 flex items-center justify-between rounded-md border border-gray-200 bg-gray-100 px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none"
+                  aria-readonly="true"
+                >
+                  <span>9999 - Channel Center</span>
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              </div>
+              <div>
+                <Label>Employee Type <Req /></Label>
+                <Select
+                  value={form.employeeType === "Store" ? "STORE" : "HO"}
+                  onValueChange={(v) => {
+                    if (v === "HO") setForm({ ...form, employeeType: "HO", storeType: "", storeName: "" });
+                    else setForm({ ...form, employeeType: "Store" });
+                  }}
+                >
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue placeholder="Select employee type..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="sso">☁️ Microsoft 365 (SSO)</SelectItem>
-                    <SelectItem value="local">🔑 Local Password</SelectItem>
+                    <SelectItem value="HO">Head Office</SelectItem>
+                    <SelectItem value="STORE">Store</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {form.loginType === "sso"
-                    ? "HQ staff. Must have a @cpaxtra.co.th email to sign in via Microsoft."
-                    : "Store staff. Uses Employee Code + password. Must NOT have a @cpaxtra.co.th email."}
-                </p>
               </div>
-
-              {/* Employee Type Toggle */}
-              <div>
-                <Label>Employee Type <span className="text-destructive">*</span></Label>
-                <div className="flex mt-1.5 rounded-lg border overflow-hidden">
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, employeeType: "HO", storeType: "" })}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
-                      form.employeeType === "HO"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <Building2 className="h-4 w-4" /> HO (Head Office)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setForm({ ...form, employeeType: "Store" })}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-medium transition-all",
-                      form.employeeType === "Store"
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-background text-muted-foreground hover:bg-muted/50"
-                    )}
-                  >
-                    <Store className="h-4 w-4" /> Store
-                  </button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Card 2 — Business Unit & Position */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Business Unit & Position</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* BU Searchable Dropdown */}
-              <div>
-                <Label>Business Unit <span className="text-destructive">*</span></Label>
-                <Popover open={buPopoverOpen} onOpenChange={setBuPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" aria-expanded={buPopoverOpen} className="w-full justify-between font-normal">
-                      {form.buCode
-                        ? `${form.buCode} — ${activeBUs.find((b) => b.buCode === form.buCode)?.buNameTH || ""}`
-                        : "Select business unit..."}
-                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[440px] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Search business unit..." />
-                      <CommandList>
-                        <CommandEmpty>No business unit found.</CommandEmpty>
-                        <CommandGroup>
-                          {activeBUs.map((bu) => (
-                            <CommandItem
-                              key={bu.buCode}
-                              value={`${bu.buCode} ${bu.buNameTH} ${bu.buNameEN}`}
-                              onSelect={() => {
-                                setForm({ ...form, buCode: bu.buCode });
-                                setBuPopoverOpen(false);
-                              }}
-                            >
-                              <Check className={cn("mr-2 h-4 w-4", form.buCode === bu.buCode ? "opacity-100" : "opacity-0")} />
-                              <div className="flex flex-col">
-                                <span className="text-sm font-medium">{bu.buCode} — {bu.buNameTH}</span>
-                                <span className="text-xs text-muted-foreground">{bu.buNameEN} · {bu.buType}</span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {selectedBU && (
-                  <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                    <Info className="h-3 w-3" /> {selectedBU.loaTableRef}
-                  </p>
-                )}
-              </div>
-
-              {/* Auto-filled info */}
-              {selectedBU && (
-                <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Info className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-[11px] font-medium text-muted-foreground">Auto-filled from Business Unit</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">Entity / Company</span>
-                      <p className="font-mono text-xs font-medium text-foreground">{selectedBU.entity} — {linkedEntity?.name || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">Oracle Company Code</span>
-                      <p className="font-mono text-xs font-medium text-foreground">{linkedEntity?.oracleCode || "—"}</p>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">LOB Default</span>
-                      <p className="font-mono text-xs font-medium text-foreground">{selectedBU.lobCode}</p>
-                    </div>
-                    <div>
-                      <span className="text-[11px] text-muted-foreground">BU Type</span>
-                      <p className="text-xs font-medium text-foreground">{selectedBU.buType}</p>
-                    </div>
-                  </div>
+              {form.employeeType === "Store" && (
+                <div>
+                  <Label>Store Name <Req /></Label>
+                  <MasterCombobox
+                    id="org-store-name"
+                    value={form.storeName}
+                    options={storesMaster.map((s) => ({ code: s.code, name: s.name }))}
+                    placeholder="Select store..."
+                    onChange={(code) => {
+                      const s = storesMaster.find((x) => x.code === code);
+                      setForm({ ...form, storeName: code, storeType: s ? s.type : form.storeType });
+                    }}
+                  />
                 </div>
               )}
+            </div>
+          </section>
 
-            </CardContent>
-          </Card>
-
-          {/* Card 3 — Approval & Authorization */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold">Approval & Authorization</CardTitle>
-              <div className="border-b mt-2" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-
-              {/* Store Type — conditional */}
-              <div
-                className={cn(
-                  "transition-all duration-200 overflow-hidden",
-                  form.employeeType === "Store" ? "max-h-24 opacity-100" : "max-h-0 opacity-0"
-                )}
-              >
-                <Label>Store Type <span className="text-destructive">*</span></Label>
-                <Select value={form.storeType} onValueChange={(v) => setForm({ ...form, storeType: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select store type..." /></SelectTrigger>
+          {/* Section: Role & Authorization */}
+          <RoleAuthorizationSection
+            form={form}
+            setForm={setForm}
+            selectedBU={selectedBU}
+            approverPopoverOpen={approverPopoverOpen}
+            setApproverPopoverOpen={setApproverPopoverOpen}
+            currentEmployeeCode={form.code}
+            approverList={mockEmployees.map((e) => ({ code: e.code, name: e.name, positionLevel: e.positionLevel, active: e.active }))}
+            systemRoleSlot={
+              <div>
+                <Label>System Role <Req /></Label>
+                <Select value={form.role} onValueChange={(v) => setForm({ ...form, role: v as any })}>
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300">
+                    <SelectValue placeholder="Select role..." />
+                  </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                    <SelectItem value="Supermarket">Supermarket</SelectItem>
+                    {allRoles.map((r) => (
+                      <SelectItem key={r.value} value={r.value}>
+                        <div className="flex flex-col py-0.5">
+                          <span className="text-sm font-medium">{r.label}</span>
+                          <span className="text-[11px] text-muted-foreground">{r.description}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-
-              {/* Position Level */}
+            }
+            positionLevelSlot={
               <div>
-                <Label>Position Level <span className="text-destructive">*</span></Label>
+                <Label>Position Level <Req /></Label>
                 <Select value={form.positionLevel} onValueChange={(v) => setForm({ ...form, positionLevel: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select position level..." /></SelectTrigger>
+                  <SelectTrigger className="mt-1.5 rounded-md border-gray-300"><SelectValue placeholder="Select position level..." /></SelectTrigger>
                   <SelectContent>
                     {positionLevels
                       .filter((p) => {
@@ -492,200 +764,32 @@ export default function EmployeeEditPage() {
                     <Info className="h-3 w-3" /> {loaHints[form.positionLevel]}
                   </p>
                 )}
-              </div>
-
-              {/* Validation error */}
-              {validationError && (
-                <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
-                  <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
-                  <p className="text-xs text-destructive">{validationError}</p>
-                </div>
-              )}
-
-              {/* Direct Approver */}
-              <div>
-                <Label>Direct Approver <span className="text-destructive">*</span></Label>
-                <Popover open={approverPopoverOpen} onOpenChange={setApproverPopoverOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" role="combobox" className="w-full justify-between font-normal">
-                      {form.directApprover
-                        ? mockEmployees.find((e) => e.code === form.directApprover)?.name || form.directApprover
-                        : "Search by name or employee code"}
-                      <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-[440px] p-0" align="start">
-                    <Command>
-                      <CommandInput placeholder="Search by name or employee code..." />
-                      <CommandList>
-                        <CommandEmpty>No employee found.</CommandEmpty>
-                        <CommandGroup>
-                          {mockEmployees
-                            .filter((e) => e.code !== form.code && e.active)
-                            .map((e) => (
-                              <CommandItem
-                                key={e.code}
-                                value={`${e.code} ${e.name}`}
-                                onSelect={() => {
-                                  setForm({ ...form, directApprover: e.code });
-                                  setApproverPopoverOpen(false);
-                                }}
-                              >
-                                <Check className={cn("mr-2 h-4 w-4", form.directApprover === e.code ? "opacity-100" : "opacity-0")} />
-                                <div className="flex flex-col">
-                                  <span className="text-sm font-medium">{e.name}</span>
-                                  <span className="text-xs text-muted-foreground">{e.code} · {e.positionLevel}</span>
-                                </div>
-                              </CommandItem>
-                            ))}
-                        </CommandGroup>
-                      </CommandList>
-                    </Command>
-                  </PopoverContent>
-                </Popover>
-                {form.directApprover && (() => {
-                  const approver = mockEmployees.find((e) => e.code === form.directApprover);
-                  return approver ? (
-                    <div className="mt-1.5">
-                      <Badge variant="secondary" className="text-xs gap-1">
-                        <User className="h-3 w-3" />
-                        {approver.name} — {approver.positionLevel}
-                        <button
-                          type="button"
-                          onClick={() => setForm({ ...form, directApprover: "" })}
-                          className="ml-1 hover:text-destructive"
-                        >×</button>
-                      </Badge>
-                    </div>
-                  ) : null;
-                })()}
-              </div>
-
-              {/* Cost Center */}
-              <div>
-                <Label>Cost Center <span className="text-destructive">*</span></Label>
-                <Input value={form.costCenter} onChange={(e) => setForm({ ...form, costCenter: e.target.value })} placeholder="e.g. CC-1001-BKK" />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Card 4 — Accounting */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-bold">Accounting</CardTitle>
-              <div className="border-b mt-2" />
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Division</Label>
-                  <Input value={form.division} onChange={(e) => setForm({ ...form, division: e.target.value })} placeholder="e.g. 01" />
-                </div>
-                <div>
-                  <Label>Location</Label>
-                  <Input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. BKK-01" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>LOB</Label>
-                  <Input value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
-                </div>
-                <div>
-                  <Label>Channel</Label>
-                  <Input value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* RIGHT COLUMN — 40% */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Card 3 — Status & Summary */}
-          <Card>
-            <CardHeader className="pb-4">
-              <CardTitle className="text-base">Status & Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-5">
-              {/* Active toggle */}
-              <div className="flex items-center justify-between rounded-lg border p-4">
-                <div>
-                  <Label className="text-sm font-medium">Active Status</Label>
-                  <p className="text-xs text-muted-foreground mt-0.5">Employee can access the system</p>
-                </div>
-                <Switch checked={form.active} onCheckedChange={(v) => setForm({ ...form, active: v })} />
-              </div>
-
-              {/* Summary box */}
-              <div className="rounded-lg border bg-muted/20 p-4 space-y-3">
-                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Summary</h4>
-
-                <div className="space-y-2.5">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Employee Type</span>
-                    <Badge variant={form.employeeType === "HO" ? "default" : "secondary"} className="text-xs">
-                      {form.employeeType === "HO" ? (
-                        <><Building2 className="h-3 w-3 mr-1" /> HO</>
-                      ) : (
-                        <><Store className="h-3 w-3 mr-1" /> Store</>
-                      )}
-                    </Badge>
+                {validationError && (
+                  <div className="mt-2 flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 p-3">
+                    <AlertTriangle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+                    <p className="text-xs text-destructive">{validationError}</p>
                   </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Position Level</span>
-                    <span className="text-xs font-medium text-foreground">{form.positionLevel}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Approval Authority</span>
-                    <span className="text-xs font-medium text-foreground">
-                      {approvalAuthority[form.positionLevel] || "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Direct Approver</span>
-                    <span className="text-xs font-medium text-foreground">
-                      {form.directApprover
-                        ? mockEmployees.find((e) => e.code === form.directApprover)?.name || "—"
-                        : "—"}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">Last Updated</span>
-                    <span className="text-xs text-foreground flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {new Date().toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
-                    </span>
-                  </div>
-                </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            }
+          />
         </div>
       </div>
 
       {/* Sticky Bottom Action Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-background border-t z-50">
-        <div className="flex items-center justify-between px-8 py-3 max-w-screen-2xl mx-auto">
-          <Link to="/admin/employees" className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors">
-            <ArrowLeft className="h-4 w-4" /> Back to Employee Profiles
-          </Link>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => navigate("/admin/employees")}>Cancel</Button>
-            <Button
-              onClick={handleSave}
-              disabled={!!validationError || !!emailError}
-              className="relative"
-            >
-              Save Changes
-              {isDirty && (
-                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
-              )}
-            </Button>
-          </div>
+        <div className="max-w-[900px] mx-auto px-6 py-3 flex items-center justify-end gap-3">
+          <Button variant="outline" onClick={() => navigate("/admin/employees")}>Cancel</Button>
+          <Button
+            onClick={handleSave}
+            disabled={!!validationError || !!emailError}
+            className="relative"
+          >
+            Save Changes
+            {isDirty && (
+              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
+            )}
+          </Button>
         </div>
       </div>
     </div>

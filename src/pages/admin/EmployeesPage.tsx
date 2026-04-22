@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +22,7 @@ import {
   Plus, Upload, UserPlus, Eye, Pencil, Search, Users, UserCheck,
   ShieldCheck, Settings, CreditCard, ChevronsUpDown, Check, AlertTriangle, Info,
   Building2, Store, User, Calendar, Mail, AlertCircle,
+  Lock as LockIcon,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -76,12 +78,12 @@ interface Employee {
 }
 
 const mockEmployees: Employee[] = [
-  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
-  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Bangkok", roles: ["Store User", "Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent", loginType: "sso" },
-  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
-  { name: "พิม ดี", code: "ACC001", email: "pim@cpaxtra.co.th", dept: "Finance", branch: "Bangkok", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
-  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@cpaxtra.co.th", dept: "IT", branch: "Bangkok", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
-  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed", loginType: "sso" },
+  { name: "สมชาย ใจดี", code: "EMP001", email: "somchai@makro.co.th", dept: "Sales", branch: "Makro Ladprao", roles: ["Store User"], active: true, buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "สมหญิง แก้วสาย", code: "EMP002", email: "somying@makro.co.th", dept: "Sales", branch: "Makro Ladprao", roles: ["Store Manager"], active: true, buCode: "WS-MK-TH", positionLevel: "Area Manager", employeeType: "Store", isFirstLogin: true, emailStatus: "sent", loginType: "sso" },
+  { name: "วิชาญ เจริญ", code: "EMP003", email: "wichai@makro.co.th", dept: "Engineering", branch: "Makro Chiang Mai", roles: ["Store User"], active: true, buCode: "RT-LT-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "พิม ดี", code: "ACC001", email: "pim@cpaxtra.co.th", dept: "Finance", branch: "Makro Rama 4", roles: ["HO Finance"], active: true, buCode: "HQ-CP", positionLevel: "Senior Manager", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "ณัฏฐพงษ์ ศรีสุข", code: "ADM001", email: "nattapong@cpaxtra.co.th", dept: "IT", branch: "Head Office", roles: ["System Admin"], active: true, buCode: "HQ-CP", positionLevel: "Director", employeeType: "HO", isFirstLogin: false, emailStatus: "sent", loginType: "sso" },
+  { name: "มานพ เก่ง", code: "EMP004", email: "manop@makro.co.th", dept: "Operations", branch: "Makro Phuket", roles: ["Store User"], active: false, buCode: "DC-MK-TH", positionLevel: "Staff", employeeType: "Store", isFirstLogin: true, emailStatus: "failed", loginType: "sso" },
 ];
 
 const roleBadgeColor: Record<string, string> = {
@@ -165,13 +167,14 @@ const allRoles = [
 
 const emptyForm: EmployeeForm = {
   name: "", code: "", email: "", loginType: "sso", role: "store_user", dept: "", branch: "",
-  buCode: "", positionLevel: "Staff", employeeType: "Store",
+  buCode: "WS-MK-TH", positionLevel: "Staff", employeeType: "Store",
   storeType: "", directApprover: "", costCenter: "",
-  division: "", location: "", lob: "", channel: "", active: true,
+  division: "", location: "", lob: "", channel: "9999", active: true,
 };
 
 export default function EmployeesPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const isStoreManager = user?.role === "store_manager";
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -265,7 +268,7 @@ export default function EmployeesPage() {
       positionLevel: emp.positionLevel, employeeType: emp.employeeType,
       storeType: emp.employeeType === "Store" ? "Hypermarket" : "",
       directApprover: "", costCenter: "CC-" + emp.code,
-      division: "", location: "", lob: "", channel: "",
+      division: "", location: "", lob: "", channel: "9999",
       active: emp.active,
     });
     setEmailWarning("");
@@ -344,19 +347,6 @@ export default function EmployeesPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-5 gap-3 my-4">
-        {stats.map((s) => (
-          <Card key={s.label}>
-            <CardContent className="p-4 flex items-center gap-3">
-              <s.icon className={`h-5 w-5 ${s.color}`} />
-              <div>
-                <div className="text-lg font-semibold">{s.count}</div>
-                <div className="text-[11px] text-muted-foreground">{s.label}</div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
       <div className="flex items-center gap-3 mb-4">
         <div className="relative flex-1">
@@ -436,7 +426,7 @@ export default function EmployeesPage() {
                 <TableCell className="text-right">
                   <div className="flex items-center justify-end gap-1">
                     <Button variant="ghost" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => openEdit(e)}><Pencil className="h-4 w-4" /></Button>
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(`/admin/employees/${e.code}/edit`)}><Pencil className="h-4 w-4" /></Button>
                     
                   </div>
                 </TableCell>
@@ -606,45 +596,18 @@ export default function EmployeesPage() {
             {/* Business Unit & Position */}
             <h3 className="text-sm font-semibold text-foreground border-b pb-1">Business Unit & Position</h3>
 
-            {/* BU Searchable Dropdown */}
+            {/* BU — locked to Wholesale by default */}
             <div className="space-y-1.5">
-              <Label>Business Unit <span className="text-destructive">*</span></Label>
-              <Popover open={buPopoverOpen} onOpenChange={setBuPopoverOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" role="combobox" aria-expanded={buPopoverOpen} className="w-full justify-between font-normal">
-                    {form.buCode
-                      ? `${form.buCode} — ${activeBUs.find((b) => b.buCode === form.buCode)?.buNameTH || ""}`
-                      : "Select business unit..."}
-                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[440px] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Search business unit..." />
-                    <CommandList>
-                      <CommandEmpty>No business unit found.</CommandEmpty>
-                      <CommandGroup>
-                        {activeBUs.map((bu) => (
-                          <CommandItem
-                            key={bu.buCode}
-                            value={`${bu.buCode} ${bu.buNameTH} ${bu.buNameEN}`}
-                            onSelect={() => {
-                              setForm({ ...form, buCode: bu.buCode });
-                              setBuPopoverOpen(false);
-                            }}
-                          >
-                            <Check className={cn("mr-2 h-4 w-4", form.buCode === bu.buCode ? "opacity-100" : "opacity-0")} />
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">{bu.buCode} — {bu.buNameTH}</span>
-                              <span className="text-xs text-muted-foreground">{bu.buNameEN} · {bu.buType}</span>
-                            </div>
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Label className="flex items-center gap-1.5">
+                Business Unit <span className="text-destructive">*</span>
+                <span title="Business Unit is set to Wholesale by default and cannot be changed" className="inline-flex">
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </span>
+              </Label>
+              <div className="flex items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
+                <span>WS-MK-TH — แม็คโคร ประเทศไทย</span>
+                <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+              </div>
               {selectedBU && (
                 <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
                   <Info className="h-3 w-3" /> {selectedBU.loaTableRef}
@@ -680,19 +643,6 @@ export default function EmployeesPage() {
               </div>
             )}
 
-            {/* Store Type — conditional */}
-            {form.employeeType === "Store" && (
-              <div className="space-y-1.5">
-                <Label>Store Type <span className="text-destructive">*</span></Label>
-                <Select value={form.storeType} onValueChange={(v) => setForm({ ...form, storeType: v })}>
-                  <SelectTrigger><SelectValue placeholder="Select store type..." /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                    <SelectItem value="Supermarket">Supermarket</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             {/* Position Level */}
             <div className="space-y-1.5">
@@ -806,12 +756,20 @@ export default function EmployeesPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>LOB</Label>
+                <Label>Line of Business</Label>
                 <Input value={form.lob} onChange={(e) => setForm({ ...form, lob: e.target.value })} placeholder="e.g. 1001" />
               </div>
               <div className="space-y-1.5">
-                <Label>Channel</Label>
-                <Input value={form.channel} onChange={(e) => setForm({ ...form, channel: e.target.value })} placeholder="e.g. Wholesale" />
+                <Label className="flex items-center gap-1.5">
+                  Channel
+                  <span title="Channel is set to All Channels by default and cannot be changed" className="inline-flex">
+                    <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                  </span>
+                </Label>
+                <div className="flex items-center justify-between rounded-md border border-input bg-muted px-3 py-2 text-sm text-muted-foreground cursor-not-allowed select-none">
+                  <span>9999 - All Channels</span>
+                  <LockIcon className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
               </div>
             </div>
 

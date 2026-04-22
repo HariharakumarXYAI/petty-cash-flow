@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,6 +17,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
+import {
+  PageShell,
+  PageHeader,
+  SectionCard,
+  FormGrid,
+  FormField,
+  FormActions,
+  RequiredMark,
+} from "@/components/layout";
 
 export default function StoreEdit() {
   const { storeId } = useParams();
@@ -25,10 +33,11 @@ export default function StoreEdit() {
   const { user } = useAuth();
   const store = stores.find(s => s.id === storeId);
 
-  // HO Finance can only edit Petty Cash Fund section; everything else is read-only
   const isInfoReadOnly = user?.role === "ho_finance";
+  const isSystemAdmin = user?.role === "system_admin";
+  // Branch Accounting Code is an Oracle Fusion ERP field — admin-only edit.
+  const isBranchAcctCodeReadOnly = !isSystemAdmin;
 
-  // --- Initial values (used for dirty check) ---
   const initialValues = useRef({
     thaiName: "แม็คโคร ลาดพร้าว",
     pp20Code: "00002",
@@ -43,7 +52,6 @@ export default function StoreEdit() {
     province: "นนทบุรี",
     postalCode: "",
     pettyCashFund: store?.floatLimit ?? 0,
-    maxFund: store?.maxFloat ?? 0,
     minBalance: store?.minBalance ?? 0,
     replenishAt: store?.replenishmentThreshold ?? 0,
   });
@@ -61,13 +69,10 @@ export default function StoreEdit() {
   const [province, setProvince] = useState(initialValues.current.province);
   const [postalCode, setPostalCode] = useState(initialValues.current.postalCode);
 
-  // Petty cash fund fields
   const [pettyCashFund, setPettyCashFund] = useState(initialValues.current.pettyCashFund);
-  const [maxFund, setMaxFund] = useState(initialValues.current.maxFund);
   const [minBalance, setMinBalance] = useState(initialValues.current.minBalance);
   const [replenishAt, setReplenishAt] = useState(initialValues.current.replenishAt);
 
-  // Validation & dialog state
   const [taxIdError, setTaxIdError] = useState("");
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
   const [showZeroFundDialog, setShowZeroFundDialog] = useState(false);
@@ -86,7 +91,6 @@ export default function StoreEdit() {
     return parts.join(" ");
   }, [houseNo, moo, soi, street, subDistrict, district, province, postalCode]);
 
-  // --- Dirty check ---
   const isDirty = useCallback(() => {
     const iv = initialValues.current;
     return (
@@ -103,24 +107,19 @@ export default function StoreEdit() {
       province !== iv.province ||
       postalCode !== iv.postalCode ||
       pettyCashFund !== iv.pettyCashFund ||
-      maxFund !== iv.maxFund ||
       minBalance !== iv.minBalance ||
       replenishAt !== iv.replenishAt
     );
-  }, [thaiName, pp20Code, branchAcctCode, taxId, houseNo, moo, soi, street, subDistrict, district, province, postalCode, pettyCashFund, maxFund, minBalance, replenishAt]);
+  }, [thaiName, pp20Code, branchAcctCode, taxId, houseNo, moo, soi, street, subDistrict, district, province, postalCode, pettyCashFund, minBalance, replenishAt]);
 
-  // --- Back navigation with unsaved check ---
+  const dirty = isDirty();
+
   const handleBack = () => {
-    if (isDirty()) {
-      setShowUnsavedDialog(true);
-    } else {
-      navigate("/masters/stores");
-    }
+    if (dirty) setShowUnsavedDialog(true);
+    else navigate("/masters/stores");
   };
 
-  // --- Save handler ---
   const handleSave = () => {
-    // Fix 1: Tax ID validation (on save) — skip if field is read-only for this role
     if (!isInfoReadOnly) {
       const digitsOnly = taxId.replace(/\D/g, "");
       if (digitsOnly.length !== 13) {
@@ -129,20 +128,14 @@ export default function StoreEdit() {
       }
       setTaxIdError("");
     }
-
-    // Fix 3: All-zeros fund check
-    if (pettyCashFund === 0 && maxFund === 0 && minBalance === 0 && replenishAt === 0) {
+    if (pettyCashFund === 0 && minBalance === 0 && replenishAt === 0) {
       setShowZeroFundDialog(true);
       return;
     }
-
     performSave();
   };
 
-  const performSave = () => {
-    // Placeholder save logic
-    navigate("/masters/stores");
-  };
+  const performSave = () => navigate("/masters/stores");
 
   if (!store) {
     return (
@@ -159,19 +152,17 @@ export default function StoreEdit() {
   const isWarning = !isCritical && store.currentBalance <= store.minBalance * 1.3;
 
   return (
-    <div className="space-y-6 max-w-2xl">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Edit Store</h1>
-          <p className="text-sm text-muted-foreground">{store.name} · {store.country} · {store.currency}</p>
-        </div>
-      </div>
-
-      {/* Critical Balance Banner */}
+    <PageShell
+      header={
+        <PageHeader
+          onBack={handleBack}
+          backLabel="Back to Stores"
+          title="Edit Store"
+          subtitle={`${store.name} · ${store.country} · ${store.currency}`}
+        />
+      }
+    >
+      {/* Balance banners */}
       {isCritical && (
         <div className="flex items-start gap-2 rounded-md bg-destructive/5 border border-destructive/15 p-3">
           <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
@@ -183,8 +174,6 @@ export default function StoreEdit() {
           </div>
         </div>
       )}
-
-      {/* Warning Balance Banner */}
       {isWarning && (
         <div className="flex items-start gap-2 rounded-md bg-status-hold/5 border border-status-hold/15 p-3">
           <AlertTriangle className="h-4 w-4 text-status-hold mt-0.5 flex-shrink-0" />
@@ -198,200 +187,162 @@ export default function StoreEdit() {
       )}
 
       {/* Store Information */}
-      <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <div className="flex items-center justify-between">
-          <p className="section-label">Store Information</p>
-          {isInfoReadOnly && (
-            <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">Read-only for your role</span>
-          )}
-        </div>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai) <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Legal Entity</Label>
-            <Input className="h-9" defaultValue={store.legalEntity} readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Type <span className="text-destructive">*</span></Label>
-              <Select defaultValue={store.type} required disabled={isInfoReadOnly}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                  <SelectItem value="Supermarket">Supermarket</SelectItem>
-                  <SelectItem value="Mini">Mini</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">TAX ID <span className="text-destructive">*</span></Label>
-              <Input
-                className={`h-9 ${taxIdError ? "border-destructive" : ""}`}
-                placeholder="e.g. 0107536000382"
-                value={taxId}
-                onChange={e => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 13);
-                  setTaxId(v);
-                  if (taxIdError) setTaxIdError("");
-                }}
-                maxLength={13}
-                required
-                readOnly={isInfoReadOnly}
-                disabled={isInfoReadOnly}
-              />
-              {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Branch Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Branch Accounting Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ที่อยู่ (Full Address)</Label>
-            <Input className="h-9 bg-amber-50 border-amber-200 text-foreground" readOnly value={composedAddress} />
-            <p className="text-[10px] text-muted-foreground">Auto-composed from address fields below</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">เลขที่ <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">หมู่</Label>
-              <Input className="h-9" value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ตรอก/ซอย</Label>
-            <Input className="h-9" value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ถนน</Label>
-            <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ตำบล/แขวง <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">อำเภอ/เขต <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">จังหวัด <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">รหัสไปรษณีย์ <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} required readOnly={isInfoReadOnly} disabled={isInfoReadOnly} />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Country <span className="text-destructive">*</span></Label>
-              <Select defaultValue={store.country} required disabled={isInfoReadOnly}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TH">Thailand</SelectItem>
-                  <SelectItem value="KH">Cambodia</SelectItem>
-                  <SelectItem value="MM">Myanmar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div />
-          </div>
-        </div>
-      </div>
+      <SectionCard
+        title="Store Information"
+        headerAside={
+          isInfoReadOnly ? (
+            <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
+              Read-only for your role
+            </span>
+          ) : null
+        }
+      >
+        <FormField>
+          <Label className="text-sm">Thai Store Name (ชื่อสถานประกอบการ) <RequiredMark /></Label>
+          <Input value={thaiName} onChange={e => setThaiName(e.target.value)} disabled={isInfoReadOnly} />
+        </FormField>
 
-      <Separator />
+        <FormField>
+          <Label className="text-sm">Legal Entity</Label>
+          <Input defaultValue={store.legalEntity} readOnly disabled />
+        </FormField>
 
-      {/* Petty Cash Fund Configuration */}
-      <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <p className="section-label">Petty Cash Fund Configuration</p>
-        <p className="text-xs text-muted-foreground">
-          Set the petty cash fund range and replenishment trigger for this store.
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Petty Cash Fund</Label>
-            <Input className="h-9 tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Maximum Fund</Label>
-            <Input className="h-9 tabular-nums" type="number" value={maxFund} onChange={e => setMaxFund(Number(e.target.value))} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Minimum Balance</Label>
-            <Input className="h-9 tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Replenish At</Label>
-            <Input className="h-9 tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Type <RequiredMark /></Label>
+            <Select defaultValue={store.type} disabled={isInfoReadOnly}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Hypermarket">Hypermarket</SelectItem>
+                <SelectItem value="Supermarket">Supermarket</SelectItem>
+                <SelectItem value="Mini">Mini</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Tax ID (เลขประจำตัวผู้เสียภาษี) <RequiredMark /></Label>
+            <Input
+              className={taxIdError ? "border-destructive" : ""}
+              placeholder="e.g. 0107536000382"
+              value={taxId}
+              onChange={e => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, 13);
+                setTaxId(v);
+                if (taxIdError) setTaxIdError("");
+              }}
+              maxLength={13}
+              disabled={isInfoReadOnly}
+            />
+            {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Branch Code <RequiredMark /></Label>
+            <Input value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Branch Accounting Code <RequiredMark /></Label>
+            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isBranchAcctCodeReadOnly} />
+            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by System Admin only)</p>
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Full Address (ที่อยู่)</Label>
+          <Input className="bg-muted/40" readOnly value={composedAddress} />
+          <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
+        </FormField>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">House No. (เลขที่) <RequiredMark /></Label>
+            <Input value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Moo (หมู่)</Label>
+            <Input value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Soi/Alley (ตรอก/ซอย)</Label>
+            <Input value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Street (ถนน)</Label>
+            <Input value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Sub-district (ตำบล/แขวง) <RequiredMark /></Label>
+            <Input value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">District (อำเภอ/เขต) <RequiredMark /></Label>
+            <Input value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Province (จังหวัด) <RequiredMark /></Label>
+            <Input value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Postal Code (รหัสไปรษณีย์) <RequiredMark /></Label>
+            <Input value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Country <RequiredMark /></Label>
+          <Select defaultValue={store.country} disabled={isInfoReadOnly}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TH">Thailand</SelectItem>
+              <SelectItem value="KH">Cambodia</SelectItem>
+              <SelectItem value="MM">Myanmar</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      </SectionCard>
+
+      {/* Petty Cash Fund */}
+      <SectionCard
+        title="Petty Cash Fund Configuration"
+        description="Set the petty cash fund and replenishment trigger for this store."
+      >
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Petty Cash Fund</Label>
+            <Input className="tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Minimum Balance</Label>
+            <Input className="tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Replenish At</Label>
+            <Input className="tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
             {replenishAt > pettyCashFund && (
-              <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
+              <p className="text-xs text-status-hold">Replenishment threshold is above the petty cash fund limit</p>
             )}
-          </div>
-        </div>
+          </FormField>
+        </FormGrid>
+      </SectionCard>
 
-        {/* Visual range */}
-        {maxFund > 0 && (
-          <div className="rounded-md bg-muted/50 p-3 space-y-2">
-            <div className="flex justify-between text-[10px] text-muted-foreground">
-              <span>Min: {minBalance.toLocaleString()}</span>
-              <span>Petty Cash Fund: {pettyCashFund.toLocaleString()}</span>
-              <span>Max: {maxFund.toLocaleString()}</span>
-            </div>
-            <div className="relative h-2 rounded-full bg-border">
-              {/* Min Balance marker - amber */}
-              <div
-                className="absolute top-0 h-full w-0.5 bg-status-hold z-10"
-                style={{ left: `${Math.round((minBalance / maxFund) * 100)}%` }}
-              />
-              {/* Petty Cash Fund marker - green */}
-              <div
-                className="absolute top-0 h-full w-0.5 bg-status-approved z-10"
-                style={{ left: `${Math.round((pettyCashFund / maxFund) * 100)}%` }}
-              />
-              {/* Current balance triangle marker */}
-              {(() => {
-                const pos = Math.min(Math.round((store.currentBalance / maxFund) * 100), 100);
-                const markerColor = store.currentBalance <= minBalance
-                  ? "text-destructive"
-                  : store.currentBalance <= minBalance * 1.3
-                    ? "text-status-hold"
-                    : "text-primary";
-                return (
-                  <div
-                    className={`absolute -bottom-3 ${markerColor} text-[10px] leading-none z-20`}
-                    style={{ left: `${pos}%`, transform: "translateX(-50%)" }}
-                  >
-                    ▲
-                  </div>
-                );
-              })()}
-            </div>
-            <p className="text-[10px] text-muted-foreground mt-3">
-              Current balance: <span className="font-semibold text-foreground">{store.currentBalance.toLocaleString()}</span>
-            </p>
-          </div>
-        )}
-      </div>
+      <FormActions
+        isDirty={dirty}
+        secondary={<Button variant="outline" onClick={handleBack}>Cancel</Button>}
+        primary={<Button onClick={handleSave}>Save Changes</Button>}
+      />
 
-      <div className="pb-6">
-        <Button className="w-full" onClick={handleSave}>Save Changes</Button>
-      </div>
-
-      {/* Fix 2: Unsaved changes confirmation */}
+      {/* Unsaved changes */}
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -409,7 +360,7 @@ export default function StoreEdit() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Fix 3: All-zeros fund confirmation */}
+      {/* Zero fund */}
       <AlertDialog open={showZeroFundDialog} onOpenChange={setShowZeroFundDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -420,12 +371,10 @@ export default function StoreEdit() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={performSave}>
-              Confirm
-            </AlertDialogAction>
+            <AlertDialogAction onClick={performSave}>Confirm</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Lock, Pencil, Save, X, Store as StoreIcon } from "lucide-react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Eye, Lock, Pencil, Store as StoreIcon } from "lucide-react";
+import { FormActions } from "@/components/layout";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -25,10 +26,14 @@ import {
   storeOptions, type ActionKey, type DataScope, type DynamicRole,
   type PermissionGrants, permissionCatalog,
 } from "@/lib/permissions-catalog";
+import { PermissionsMatrix } from "@/components/role/PermissionsMatrix";
+import { emptyModulePermissions, type ModulePermissions } from "@/lib/role-modules";
 
 export default function RoleDetailPage() {
   const { roleId } = useParams<{ roleId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewOnlyParam = searchParams.get("view") === "1";
   const [allRoles, setAllRoles] = useState<DynamicRole[]>([]);
   const [draft, setDraft] = useState<DynamicRole | null>(null);
   const [original, setOriginal] = useState<DynamicRole | null>(null);
@@ -74,7 +79,9 @@ export default function RoleDetailPage() {
     );
   }
 
-  const isLocked = draft.isSystem;
+  const isSystemLocked = draft.isSystem;
+  const isReadOnly = viewOnlyParam || isSystemLocked;
+  const isLocked = isReadOnly;
 
   /* ───────────── permission helpers ───────────── */
 
@@ -205,14 +212,14 @@ export default function RoleDetailPage() {
                   {!isLocked && <Pencil className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100" />}
                 </button>
               )}
-              {isLocked && (
+              {isSystemLocked && (
                 <Badge variant="outline" className="gap-1 border-amber-300 bg-amber-50 text-amber-700">
                   <Lock className="h-3 w-3" /> Protected
                 </Badge>
               )}
-              {isDirty && !isLocked && (
-                <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700">
-                  Unsaved changes
+              {viewOnlyParam && !isSystemLocked && (
+                <Badge variant="outline" className="gap-1 border-slate-300 bg-slate-50 text-slate-700">
+                  <Eye className="h-3 w-3" /> Read-only view
                 </Badge>
               )}
             </div>
@@ -225,84 +232,42 @@ export default function RoleDetailPage() {
             />
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
-          <Button variant="outline" onClick={() => setDiscardOpen(true)} disabled={!isDirty || isLocked} className="gap-2">
-            <X className="h-4 w-4" /> Discard
-          </Button>
-          <Button onClick={handleSave} disabled={!isDirty || isLocked} className="gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-            <Save className="h-4 w-4" /> Save Changes
-          </Button>
-        </div>
+        {viewOnlyParam && !isSystemLocked && (
+          <div className="shrink-0">
+            <Button variant="outline" onClick={() => setSearchParams({})} className="gap-2">
+              <Pencil className="h-4 w-4" /> Switch to edit
+            </Button>
+          </div>
+        )}
       </div>
 
-      {isLocked && (
+      {isSystemLocked && (
         <Card className="p-3 border-amber-200 bg-amber-50 text-amber-800 text-sm flex items-center gap-2">
           <Lock className="h-4 w-4" /> System Admin is a protected role. Permissions and stores cannot be edited.
         </Card>
       )}
+      {viewOnlyParam && !isSystemLocked && (
+        <Card className="p-3 border-slate-200 bg-slate-50 text-slate-700 text-sm flex items-center gap-2">
+          <Eye className="h-4 w-4" /> Read-only view. Toggles are disabled.
+        </Card>
+      )}
 
-      {/* Permission matrix */}
+      {/* Permission matrix (module-based) */}
       <Card className="p-0 overflow-hidden">
         <div className="px-5 py-4 border-b">
           <h2 className="font-semibold">Permissions</h2>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Toggle the actions allowed for each module. Checking a module also checks its sub-permissions for that action.
+            Toggle which actions this role can perform on each module.
           </p>
         </div>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-slate-50">
-                <TableHead className="min-w-[320px]">Module / Feature</TableHead>
-                {ALL_ACTIONS.map((a) => (
-                  <TableHead key={a} className="text-center w-28">
-                    <span className={cn("inline-flex px-2 py-0.5 rounded text-xs font-semibold border", actionMeta[a].tone, actionMeta[a].text)}>
-                      {actionMeta[a].label}
-                    </span>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {flat.map((row) => {
-                const grant = draft.grants[row.node.id] ?? {};
-                return (
-                  <TableRow key={row.node.id} className={row.depth === 0 ? "" : "bg-slate-50/40"}>
-                    <TableCell>
-                      <span
-                        className={cn(
-                          row.depth === 0 && "font-medium",
-                          row.depth > 0 && "pl-8 text-sm text-muted-foreground",
-                        )}
-                      >
-                        {row.node.label}
-                      </span>
-                    </TableCell>
-                    {ALL_ACTIONS.map((a) => {
-                      const applies = row.node.actions.includes(a);
-                      if (!applies) {
-                        return (
-                          <TableCell key={a} className="text-center text-muted-foreground">
-                            —
-                          </TableCell>
-                        );
-                      }
-                      return (
-                        <TableCell key={a} className="text-center">
-                          <Checkbox
-                            checked={!!grant[a]}
-                            disabled={isLocked}
-                            onCheckedChange={() => togglePerm(row.node.id, a)}
-                            className={cn("h-5 w-5", actionMeta[a].check, actionMeta[a].ring)}
-                          />
-                        </TableCell>
-                      );
-                    })}
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
+        <div className="p-5">
+          <PermissionsMatrix
+            value={draft.modulePermissions ?? emptyModulePermissions()}
+            onChange={(next: ModulePermissions) =>
+              update((d) => { d.modulePermissions = next; })
+            }
+            disabled={isLocked}
+          />
         </div>
       </Card>
 
@@ -414,6 +379,25 @@ export default function RoleDetailPage() {
         <Label>scope</Label>
         <span>{Object.keys({} as PermissionGrants).length}</span>
       </div>
+
+      {!isReadOnly && (
+        <FormActions
+          isDirty={isDirty}
+          secondary={
+            <Button
+              variant="outline"
+              onClick={() => (isDirty ? setDiscardOpen(true) : navigate("/admin/roles"))}
+            >
+              Cancel
+            </Button>
+          }
+          primary={
+            <Button onClick={handleSave} disabled={!isDirty}>
+              Save Changes
+            </Button>
+          }
+        />
+      )}
 
       {/* Discard confirm */}
       <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
