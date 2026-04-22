@@ -34,6 +34,9 @@ export default function StoreEdit() {
   const store = stores.find(s => s.id === storeId);
 
   const isInfoReadOnly = user?.role === "ho_finance";
+  const isSystemAdmin = user?.role === "system_admin";
+  // Branch Accounting Code is an Oracle Fusion ERP field — admin-only edit.
+  const isBranchAcctCodeReadOnly = !isSystemAdmin;
 
   const initialValues = useRef({
     thaiName: "แม็คโคร ลาดพร้าว",
