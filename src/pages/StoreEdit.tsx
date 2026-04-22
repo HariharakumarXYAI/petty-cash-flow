@@ -34,6 +34,9 @@ export default function StoreEdit() {
   const store = stores.find(s => s.id === storeId);
 
   const isInfoReadOnly = user?.role === "ho_finance";
+  const isSystemAdmin = user?.role === "system_admin";
+  // Branch Accounting Code is an Oracle Fusion ERP field — admin-only edit.
+  const isBranchAcctCodeReadOnly = !isSystemAdmin;
 
   const initialValues = useRef({
     thaiName: "แม็คโคร ลาดพร้าว",
@@ -109,8 +112,10 @@ export default function StoreEdit() {
     );
   }, [thaiName, pp20Code, branchAcctCode, taxId, houseNo, moo, soi, street, subDistrict, district, province, postalCode, pettyCashFund, minBalance, replenishAt]);
 
+  const dirty = isDirty();
+
   const handleBack = () => {
-    if (isDirty()) setShowUnsavedDialog(true);
+    if (dirty) setShowUnsavedDialog(true);
     else navigate("/masters/stores");
   };
 
@@ -239,14 +244,14 @@ export default function StoreEdit() {
           </FormField>
           <FormField>
             <Label className="text-sm">Branch Accounting Code <RequiredMark /></Label>
-            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isInfoReadOnly} />
-            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by Admin only)</p>
+            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isBranchAcctCodeReadOnly} />
+            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by System Admin only)</p>
           </FormField>
         </FormGrid>
 
         <FormField>
           <Label className="text-sm">Full Address (ที่อยู่)</Label>
-          <Input className="bg-yellow-50 border-yellow-200 text-foreground" readOnly value={composedAddress} />
+          <Input className="bg-muted/40" readOnly value={composedAddress} />
           <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
         </FormField>
 
@@ -325,13 +330,14 @@ export default function StoreEdit() {
             <Label className="text-sm">Replenish At</Label>
             <Input className="tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
             {replenishAt > pettyCashFund && (
-              <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
+              <p className="text-xs text-status-hold">Replenishment threshold is above the petty cash fund limit</p>
             )}
           </FormField>
         </FormGrid>
       </SectionCard>
 
       <FormActions
+        isDirty={dirty}
         secondary={<Button variant="outline" onClick={handleBack}>Cancel</Button>}
         primary={<Button onClick={handleSave}>Save Changes</Button>}
       />
