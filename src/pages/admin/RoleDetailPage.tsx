@@ -380,6 +380,25 @@ export default function RoleDetailPage() {
         <span>{Object.keys({} as PermissionGrants).length}</span>
       </div>
 
+      {!isReadOnly && (
+        <FormActions
+          isDirty={isDirty}
+          secondary={
+            <Button
+              variant="outline"
+              onClick={() => (isDirty ? setDiscardOpen(true) : navigate("/admin/roles"))}
+            >
+              Cancel
+            </Button>
+          }
+          primary={
+            <Button onClick={handleSave} disabled={!isDirty}>
+              Save Changes
+            </Button>
+          }
+        />
+      )}
+
       {/* Discard confirm */}
       <AlertDialog open={discardOpen} onOpenChange={setDiscardOpen}>
         <AlertDialogContent>
