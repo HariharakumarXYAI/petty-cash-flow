@@ -242,8 +242,8 @@ export default function StoreEdit() {
           </FormField>
           <FormField>
             <Label className="text-sm">Branch Accounting Code <RequiredMark /></Label>
-            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isInfoReadOnly} />
-            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by Admin only)</p>
+            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isBranchAcctCodeReadOnly} />
+            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by System Admin only)</p>
           </FormField>
         </FormGrid>
 
