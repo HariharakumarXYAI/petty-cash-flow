@@ -1,4 +1,4 @@
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useMemo, useRef, useCallback } from "react";
 import { stores } from "@/lib/mock-data";
 import { useAuth } from "@/contexts/AuthContext";
@@ -17,8 +17,15 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
-
-const Req = () => <span className="text-destructive">*</span>;
+import {
+  PageShell,
+  PageHeader,
+  SectionCard,
+  FormGrid,
+  FormField,
+  FormActions,
+  RequiredMark,
+} from "@/components/layout";
 
 export default function StoreEdit() {
   const { storeId } = useParams();
@@ -140,206 +147,194 @@ export default function StoreEdit() {
   const isWarning = !isCritical && store.currentBalance <= store.minBalance * 1.3;
 
   return (
-    <div className="-m-6 min-h-[calc(100vh-4rem)] bg-muted/30 p-8">
-      <div className="max-w-[900px] mx-auto space-y-6">
-        {/* Back link */}
-        <button
-          onClick={handleBack}
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          Back to Stores
-        </button>
-
-        {/* Title + subtitle */}
-        <div className="space-y-1">
-          <h1 className="text-3xl font-bold text-foreground">Edit Store</h1>
-          <p className="text-sm text-muted-foreground">
-            {store.name} · {store.country} · {store.currency}
-          </p>
-        </div>
-
-        {/* Balance banners */}
-        {isCritical && (
-          <div className="flex items-start gap-2 rounded-md bg-destructive/5 border border-destructive/15 p-3">
-            <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-destructive">Critical Balance</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Current balance ({store.currentBalance.toLocaleString()}) is below the minimum ({store.minBalance.toLocaleString()}). Immediate replenishment required.
-              </p>
-            </div>
-          </div>
-        )}
-        {isWarning && (
-          <div className="flex items-start gap-2 rounded-md bg-status-hold/5 border border-status-hold/15 p-3">
-            <AlertTriangle className="h-4 w-4 text-status-hold mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-status-hold">Low Balance Warning</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Current balance ({store.currentBalance.toLocaleString()}) is near or below minimum ({store.minBalance.toLocaleString()}).
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Store Information Card */}
-        <div className="bg-card rounded-lg border p-8 space-y-5">
-          <div className="flex items-center justify-between mb-1">
-            <h2 className="text-lg font-semibold text-foreground">Store Information</h2>
-            {isInfoReadOnly && (
-              <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">Read-only for your role</span>
-            )}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm">Thai Store Name (ชื่อสถานประกอบการ) <Req /></Label>
-            <Input value={thaiName} onChange={e => setThaiName(e.target.value)} disabled={isInfoReadOnly} />
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm">Legal Entity</Label>
-            <Input defaultValue={store.legalEntity} readOnly disabled />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Type <Req /></Label>
-              <Select defaultValue={store.type} disabled={isInfoReadOnly}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                  <SelectItem value="Supermarket">Supermarket</SelectItem>
-                  <SelectItem value="Mini">Mini</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Tax ID (เลขประจำตัวผู้เสียภาษี) <Req /></Label>
-              <Input
-                className={taxIdError ? "border-destructive" : ""}
-                placeholder="e.g. 0107536000382"
-                value={taxId}
-                onChange={e => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 13);
-                  setTaxId(v);
-                  if (taxIdError) setTaxIdError("");
-                }}
-                maxLength={13}
-                disabled={isInfoReadOnly}
-              />
-              {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Branch Code <Req /></Label>
-              <Input value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Branch Accounting Code <Req /></Label>
-              <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isInfoReadOnly} />
-              <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by Admin only)</p>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm">Full Address (ที่อยู่)</Label>
-            <Input className="bg-yellow-50 border-yellow-200 text-foreground" readOnly value={composedAddress} />
-            <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">House No. (เลขที่) <Req /></Label>
-              <Input value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Moo (หมู่)</Label>
-              <Input value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" disabled={isInfoReadOnly} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Soi/Alley (ตรอก/ซอย)</Label>
-              <Input value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Street (ถนน)</Label>
-              <Input value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" disabled={isInfoReadOnly} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Sub-district (ตำบล/แขวง) <Req /></Label>
-              <Input value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">District (อำเภอ/เขต) <Req /></Label>
-              <Input value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" disabled={isInfoReadOnly} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Province (จังหวัด) <Req /></Label>
-              <Input value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" disabled={isInfoReadOnly} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Postal Code (รหัสไปรษณีย์) <Req /></Label>
-              <Input value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} disabled={isInfoReadOnly} />
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm">Country <Req /></Label>
-            <Select defaultValue={store.country} disabled={isInfoReadOnly}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="TH">Thailand</SelectItem>
-                <SelectItem value="KH">Cambodia</SelectItem>
-                <SelectItem value="MM">Myanmar</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        {/* Petty Cash Fund Card */}
-        <div className="bg-card rounded-lg border p-8 space-y-5">
+    <PageShell
+      header={
+        <PageHeader
+          onBack={handleBack}
+          backLabel="Back to Stores"
+          title="Edit Store"
+          subtitle={`${store.name} · ${store.country} · ${store.currency}`}
+        />
+      }
+    >
+      {/* Balance banners */}
+      {isCritical && (
+        <div className="flex items-start gap-2 rounded-md bg-destructive/5 border border-destructive/15 p-3">
+          <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Petty Cash Fund Configuration</h2>
-            <p className="text-xs text-muted-foreground mt-1">
-              Set the petty cash fund and replenishment trigger for this store.
+            <p className="text-sm font-medium text-destructive">Critical Balance</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Current balance ({store.currentBalance.toLocaleString()}) is below the minimum ({store.minBalance.toLocaleString()}). Immediate replenishment required.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Petty Cash Fund</Label>
-              <Input className="tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Minimum Balance</Label>
-              <Input className="tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Replenish At</Label>
-              <Input className="tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
-              {replenishAt > pettyCashFund && (
-                <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
-              )}
-            </div>
+        </div>
+      )}
+      {isWarning && (
+        <div className="flex items-start gap-2 rounded-md bg-status-hold/5 border border-status-hold/15 p-3">
+          <AlertTriangle className="h-4 w-4 text-status-hold mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-status-hold">Low Balance Warning</p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Current balance ({store.currentBalance.toLocaleString()}) is near or below minimum ({store.minBalance.toLocaleString()}).
+            </p>
           </div>
         </div>
+      )}
 
-        {/* Actions */}
-        <div className="flex items-center justify-end gap-3 pb-6">
-          <Button variant="outline" onClick={handleBack}>Cancel</Button>
-          <Button onClick={handleSave}>Save Changes</Button>
-        </div>
-      </div>
+      {/* Store Information */}
+      <SectionCard
+        title="Store Information"
+        headerAside={
+          isInfoReadOnly ? (
+            <span className="text-[10px] text-muted-foreground bg-muted px-2 py-0.5 rounded">
+              Read-only for your role
+            </span>
+          ) : null
+        }
+      >
+        <FormField>
+          <Label className="text-sm">Thai Store Name (ชื่อสถานประกอบการ) <RequiredMark /></Label>
+          <Input value={thaiName} onChange={e => setThaiName(e.target.value)} disabled={isInfoReadOnly} />
+        </FormField>
+
+        <FormField>
+          <Label className="text-sm">Legal Entity</Label>
+          <Input defaultValue={store.legalEntity} readOnly disabled />
+        </FormField>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Type <RequiredMark /></Label>
+            <Select defaultValue={store.type} disabled={isInfoReadOnly}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Hypermarket">Hypermarket</SelectItem>
+                <SelectItem value="Supermarket">Supermarket</SelectItem>
+                <SelectItem value="Mini">Mini</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Tax ID (เลขประจำตัวผู้เสียภาษี) <RequiredMark /></Label>
+            <Input
+              className={taxIdError ? "border-destructive" : ""}
+              placeholder="e.g. 0107536000382"
+              value={taxId}
+              onChange={e => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, 13);
+                setTaxId(v);
+                if (taxIdError) setTaxIdError("");
+              }}
+              maxLength={13}
+              disabled={isInfoReadOnly}
+            />
+            {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Branch Code <RequiredMark /></Label>
+            <Input value={pp20Code} onChange={e => setPp20Code(e.target.value)} placeholder="e.g. 00002" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Branch Accounting Code <RequiredMark /></Label>
+            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} disabled={isInfoReadOnly} />
+            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code (editable by Admin only)</p>
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Full Address (ที่อยู่)</Label>
+          <Input className="bg-yellow-50 border-yellow-200 text-foreground" readOnly value={composedAddress} />
+          <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
+        </FormField>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">House No. (เลขที่) <RequiredMark /></Label>
+            <Input value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Moo (หมู่)</Label>
+            <Input value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Soi/Alley (ตรอก/ซอย)</Label>
+            <Input value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Street (ถนน)</Label>
+            <Input value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Sub-district (ตำบล/แขวง) <RequiredMark /></Label>
+            <Input value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">District (อำเภอ/เขต) <RequiredMark /></Label>
+            <Input value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Province (จังหวัด) <RequiredMark /></Label>
+            <Input value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" disabled={isInfoReadOnly} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Postal Code (รหัสไปรษณีย์) <RequiredMark /></Label>
+            <Input value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} disabled={isInfoReadOnly} />
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Country <RequiredMark /></Label>
+          <Select defaultValue={store.country} disabled={isInfoReadOnly}>
+            <SelectTrigger><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TH">Thailand</SelectItem>
+              <SelectItem value="KH">Cambodia</SelectItem>
+              <SelectItem value="MM">Myanmar</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      </SectionCard>
+
+      {/* Petty Cash Fund */}
+      <SectionCard
+        title="Petty Cash Fund Configuration"
+        description="Set the petty cash fund and replenishment trigger for this store."
+      >
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Petty Cash Fund</Label>
+            <Input className="tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Minimum Balance</Label>
+            <Input className="tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Replenish At</Label>
+            <Input className="tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
+            {replenishAt > pettyCashFund && (
+              <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
+            )}
+          </FormField>
+        </FormGrid>
+      </SectionCard>
+
+      <FormActions
+        secondary={<Button variant="outline" onClick={handleBack}>Cancel</Button>}
+        primary={<Button onClick={handleSave}>Save Changes</Button>}
+      />
 
       {/* Unsaved changes */}
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
@@ -374,6 +369,6 @@ export default function StoreEdit() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }
