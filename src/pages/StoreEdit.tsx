@@ -249,7 +249,7 @@ export default function StoreEdit() {
 
         <FormField>
           <Label className="text-sm">Full Address (ที่อยู่)</Label>
-          <Input className="bg-yellow-50 border-yellow-200 text-foreground" readOnly value={composedAddress} />
+          <Input className="bg-muted/40" readOnly value={composedAddress} />
           <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
         </FormField>
 
@@ -328,13 +328,14 @@ export default function StoreEdit() {
             <Label className="text-sm">Replenish At</Label>
             <Input className="tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
             {replenishAt > pettyCashFund && (
-              <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
+              <p className="text-xs text-status-hold">Replenishment threshold is above the petty cash fund limit</p>
             )}
           </FormField>
         </FormGrid>
       </SectionCard>
 
       <FormActions
+        isDirty={dirty}
         secondary={<Button variant="outline" onClick={handleBack}>Cancel</Button>}
         primary={<Button onClick={handleSave}>Save Changes</Button>}
       />
