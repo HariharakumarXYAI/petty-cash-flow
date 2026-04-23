@@ -35,7 +35,7 @@ export default function ExpenseTypesPage() {
             {filtered.length} types configured · {sensitiveCount} audit-sensitive · {docRequiredCount} require documents
           </p>
         </div>
-        <Button size="sm" onClick={() => navigate(`/admin/expense-types`)}>
+        <Button size="sm">
           <Plus className="h-3.5 w-3.5 mr-1.5" />Add Type
         </Button>
       </div>
@@ -67,7 +67,7 @@ export default function ExpenseTypesPage() {
           </TableHeader>
           <TableBody>
             {filtered.map((et) => (
-              <TableRow key={et.id} className="data-table-row cursor-pointer group" onClick={() => navigate(`/admin/expense-types/${et.id}/edit`)}>
+              <TableRow key={et.id} className="data-table-row group">
                 <TableCell className="font-medium text-sm">{et.category}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{et.subcategory}</TableCell>
                 <TableCell className="hidden md:table-cell">
