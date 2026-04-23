@@ -116,7 +116,7 @@ export default function StoreEdit() {
 
   const handleBack = () => {
     if (dirty) setShowUnsavedDialog(true);
-    else navigate("/masters/stores");
+    else navigate("/admin/stores");
   };
 
   const handleSave = () => {
@@ -135,12 +135,12 @@ export default function StoreEdit() {
     performSave();
   };
 
-  const performSave = () => navigate("/masters/stores");
+  const performSave = () => navigate("/admin/stores");
 
   if (!store) {
     return (
       <div className="space-y-4">
-        <Button variant="ghost" size="sm" onClick={() => navigate("/masters/stores")}>
+        <Button variant="ghost" size="sm" onClick={() => navigate("/admin/stores")}>
           <ArrowLeft className="h-4 w-4 mr-1.5" />Back to Stores
         </Button>
         <p className="text-muted-foreground">Store not found.</p>
@@ -353,7 +353,7 @@ export default function StoreEdit() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate("/masters/stores")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={() => navigate("/admin/stores")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Discard
             </AlertDialogAction>
           </AlertDialogFooter>

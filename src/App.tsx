@@ -100,9 +100,12 @@ function AppRoutes() {
         <Route path="audit" element={<AuditPage />} />
         {/* Redirect old masters/expense-types to admin */}
         <Route path="masters/expense-types" element={<Navigate to="/admin/expense-types" replace />} />
-        <Route path="masters/stores" element={<StoresPage />} />
-        <Route path="masters/stores/new" element={<StoreNew />} />
-        <Route path="masters/stores/:storeId/edit" element={<StoreEdit />} />
+        <Route path="masters/stores" element={<Navigate to="/admin/stores" replace />} />
+        <Route path="masters/stores/new" element={<Navigate to="/admin/stores/new" replace />} />
+        <Route path="masters/stores/:storeId/edit" element={<Navigate to="/admin/stores" replace />} />
+        <Route path="admin/stores" element={<AdminLayout><StoresPage /></AdminLayout>} />
+        <Route path="admin/stores/new" element={<AdminLayout><StoreNew /></AdminLayout>} />
+        <Route path="admin/stores/:storeId/edit" element={<AdminLayout><StoreEdit /></AdminLayout>} />
         
         <Route path="masters/rules" element={<RulesPage />} />
         <Route path="reports/spend-trends" element={<Reports />} />

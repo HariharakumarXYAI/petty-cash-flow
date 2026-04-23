@@ -33,9 +33,7 @@ export default function StoresPage() {
             )}
           </p>
         </div>
-        {user?.role === "system_admin" && (
-          <Button size="sm" onClick={() => navigate("/masters/stores/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />Add Store</Button>
-        )}
+        <Button size="sm" onClick={() => navigate("/admin/stores/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />Add Store</Button>
       </div>
 
       <div className="relative max-w-xs">
@@ -61,7 +59,7 @@ export default function StoresPage() {
               const isWarning = !isCritical && s.currentBalance <= s.minBalance * 1.3;
               const isLow = isCritical || isWarning;
               return (
-                <TableRow key={s.id} className="data-table-row cursor-pointer" onClick={() => navigate(`/masters/stores/${s.id}/edit`)}>
+                <TableRow key={s.id} className="data-table-row cursor-pointer" onClick={() => navigate(`/admin/stores/${s.id}/edit`)}>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {isLow && <AlertTriangle className={`h-3.5 w-3.5 flex-shrink-0 ${isCritical ? "text-destructive" : "text-status-hold"}`} />}

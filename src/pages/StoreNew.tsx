@@ -121,7 +121,7 @@ export default function StoreNew() {
 
   const handleBack = () => {
     if (dirty) setShowUnsavedDialog(true);
-    else navigate("/masters/stores");
+    else navigate("/admin/stores");
   };
 
   const handleSave = () => {
@@ -156,7 +156,7 @@ export default function StoreNew() {
   const performSave = () => {
     try {
       toast.success("Store created successfully");
-      navigate("/masters/stores");
+      navigate("/admin/stores");
     } catch {
       toast.error("Failed to save. Please try again.");
     }
@@ -341,7 +341,7 @@ export default function StoreNew() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => navigate("/masters/stores")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction onClick={() => navigate("/admin/stores")} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Discard
             </AlertDialogAction>
           </AlertDialogFooter>
