@@ -1,48 +1,46 @@
 import { useState } from "react";
+import { expenseTypes } from "@/lib/mock-data";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Plus, Upload, Download, Eye, Pencil, Trash2, Search, ChevronDown, ChevronRight } from "lucide-react";
-
-interface ExpenseType {
-  name: string;
-  subtypeCount: number;
-  subtypes: string[];
-  active: boolean;
-  updatedAt: string;
-}
-
-const mockExpenseTypes: ExpenseType[] = [
-  { name: "Entertainment", subtypeCount: 4, subtypes: ["Team Dinner", "Client Entertainment", "Company Event", "Sport/Recreation"], active: true, updatedAt: "2026-03-04" },
-  { name: "Hotel", subtypeCount: 9, subtypes: ["Business Travel", "Training", "Conference", "Transit", "Emergency", "Long-term", "Resort", "Hostel", "Serviced Apartment"], active: true, updatedAt: "2026-03-04" },
-  { name: "Meals & Entertainment", subtypeCount: 8, subtypes: ["Business Meal", "Client Lunch", "Team Lunch", "Working Dinner", "Snacks", "Coffee", "Catering", "Delivery"], active: true, updatedAt: "2026-03-04" },
-  { name: "Personal", subtypeCount: 1, subtypes: ["Miscellaneous"], active: true, updatedAt: "2026-03-04" },
-  { name: "Transportation", subtypeCount: 3, subtypes: ["Taxi/Grab", "Fuel Reimbursement", "Toll Fee"], active: true, updatedAt: "2026-03-04" },
-];
+import { Plus, Upload, Download, Pencil, Search, ChevronDown, ChevronRight, ShieldAlert, FileText } from "lucide-react";
 
 export default function AdminExpenseTypesPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const filtered = mockExpenseTypes.filter((e) => {
-    if (filter === "active" && !e.active) return false;
-    if (filter === "inactive" && e.active) return false;
-    if (search && !e.name.toLowerCase().includes(search.toLowerCase())) return false;
+  // Group expense types by category
+  const grouped = expenseTypes.reduce<
+    Record<string, typeof expenseTypes>
+  >((acc, et) => {
+    if (!acc[et.category]) acc[et.category] = [];
+    acc[et.category].push(et);
+    return acc;
+  }, {});
+
+  const categories = Object.entries(grouped).filter(([category, items]) => {
+    if (search && !category.toLowerCase().includes(search.toLowerCase()) &&
+        !items.some(i => i.subcategory.toLowerCase().includes(search.toLowerCase()))) {
+      return false;
+    }
     return true;
   });
+
+  const sensitiveCount = expenseTypes.filter(e => e.auditSensitive).length;
+  const docRequiredCount = expenseTypes.filter(e => e.documentRequired).length;
 
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <div>
-          <h1 className="text-xl font-semibold text-foreground">Expense Type</h1>
-          <p className="text-sm text-muted-foreground">Manage expense type categories and their sub-types</p>
+          <h1 className="text-xl font-semibold text-foreground">Expense Types</h1>
+          <p className="text-sm text-muted-foreground">
+            {expenseTypes.length} types configured · {sensitiveCount} audit-sensitive · {docRequiredCount} require documents
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
@@ -70,51 +68,119 @@ export default function AdminExpenseTypesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-10"><Checkbox /></TableHead>
-              <TableHead className="w-8"></TableHead>
+              <TableHead className="w-8" />
               <TableHead>Expense Type</TableHead>
               <TableHead>Subtypes</TableHead>
-              <TableHead>Active</TableHead>
-              <TableHead>Updated At</TableHead>
+              <TableHead className="hidden md:table-cell">Countries</TableHead>
+              <TableHead className="hidden lg:table-cell text-center">Docs</TableHead>
+              <TableHead className="hidden lg:table-cell text-right">Alert At</TableHead>
+              <TableHead className="hidden lg:table-cell text-right">Hard Stop</TableHead>
+              <TableHead className="hidden xl:table-cell text-center">Flags</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filtered.map((e) => (
-              <Collapsible key={e.name} open={expanded[e.name]} onOpenChange={(o) => setExpanded((p) => ({ ...p, [e.name]: o }))} asChild>
+            {categories.map(([category, items]) => (
+              <Collapsible
+                key={category}
+                open={expanded[category]}
+                onOpenChange={(o) => setExpanded((p) => ({ ...p, [category]: o }))}
+                asChild
+              >
                 <>
                   <TableRow>
-                    <TableCell><Checkbox /></TableCell>
                     <TableCell>
                       <CollapsibleTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-6 w-6">
-                          {expanded[e.name] ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
+                          {expanded[category] ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
                         </Button>
                       </CollapsibleTrigger>
                     </TableCell>
-                    <TableCell className="font-medium">{e.name}</TableCell>
-                    <TableCell><Badge variant="secondary" className="text-xs">{e.subtypeCount} subtypes</Badge></TableCell>
-                    <TableCell><Switch checked={e.active} /></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">{e.updatedAt}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Eye className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="h-4 w-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Trash2 className="h-4 w-4" /></Button>
+                    <TableCell className="font-medium">{category}</TableCell>
+                    <TableCell>
+                      <Badge variant="secondary" className="text-xs">{items.length} subtypes</Badge>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell">
+                      <div className="flex gap-1 flex-wrap">
+                        {[...new Set(items.flatMap(i => i.countries))].map(c => (
+                          <span key={c} className="inline-flex items-center rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                            {c}
+                          </span>
+                        ))}
                       </div>
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell text-center">
+                      {items.some(i => i.documentRequired) ? (
+                        <FileText className="h-3.5 w-3.5 text-primary mx-auto" />
+                      ) : (
+                        <span className="text-muted-foreground text-xs">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="hidden lg:table-cell" />
+                    <TableCell className="hidden lg:table-cell" />
+                    <TableCell className="hidden xl:table-cell">
+                      <div className="flex items-center justify-center gap-1.5">
+                        {items.some(i => i.auditSensitive) && (
+                          <span className="inline-flex items-center gap-0.5 rounded bg-status-hold/10 px-1.5 py-0.5 text-[10px] font-semibold text-status-hold">
+                            <ShieldAlert className="h-2.5 w-2.5" />Sensitive
+                          </span>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                   <CollapsibleContent asChild>
                     <>
-                      {e.subtypes.map((st) => (
-                        <TableRow key={st} className="bg-muted/30">
+                      {items.map((et) => (
+                        <TableRow key={et.id} className="bg-muted/30">
                           <TableCell />
+                          <TableCell className="pl-12 text-sm text-muted-foreground">{et.subcategory}</TableCell>
                           <TableCell />
-                          <TableCell className="pl-12 text-sm text-muted-foreground">{st}</TableCell>
-                          <TableCell />
-                          <TableCell />
-                          <TableCell />
-                          <TableCell />
+                          <TableCell className="hidden md:table-cell">
+                            <div className="flex gap-1 flex-wrap">
+                              {et.countries.map(c => (
+                                <span key={c} className="inline-flex items-center rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground">
+                                  {c}
+                                </span>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell text-center">
+                            {et.documentRequired ? (
+                              <FileText className="h-3.5 w-3.5 text-primary mx-auto" />
+                            ) : (
+                              <span className="text-muted-foreground text-xs">—</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-sm text-right tabular-nums hidden lg:table-cell">
+                            <span className="text-status-validating font-medium">{et.alertThreshold.toLocaleString()}</span>
+                          </TableCell>
+                          <TableCell className="text-sm text-right tabular-nums hidden lg:table-cell">
+                            <span className="text-status-hold font-semibold">{et.hardStopThreshold.toLocaleString()}</span>
+                          </TableCell>
+                          <TableCell className="hidden xl:table-cell">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {et.auditSensitive && (
+                                <span className="inline-flex items-center gap-0.5 rounded bg-status-hold/10 px-1.5 py-0.5 text-[10px] font-semibold text-status-hold">
+                                  <ShieldAlert className="h-2.5 w-2.5" />Sensitive
+                                </span>
+                              )}
+                              {et.advanceAllowed && (
+                                <span className="inline-flex items-center rounded bg-status-approved/10 px-1.5 py-0.5 text-[10px] font-medium text-status-approved">
+                                  Advance
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Pencil className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
                         </TableRow>
                       ))}
                     </>
@@ -122,6 +188,13 @@ export default function AdminExpenseTypesPage() {
                 </>
               </Collapsible>
             ))}
+            {categories.length === 0 && (
+              <TableRow>
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground">
+                  No expense types found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

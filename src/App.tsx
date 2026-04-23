@@ -50,6 +50,7 @@ import DepartmentsPage from "./pages/admin/DepartmentsPage";
 
 import BusinessUnitsPage from "./pages/admin/BusinessUnitsPage";
 import PositionLevelsPage from "./pages/admin/PositionLevelsPage";
+import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
 
 const queryClient = new QueryClient();
 
@@ -97,7 +98,8 @@ function AppRoutes() {
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="investigations" element={<Investigations />} />
         <Route path="audit" element={<AuditPage />} />
-        <Route path="masters/expense-types" element={<ExpenseTypes />} />
+        {/* Redirect old masters/expense-types to admin */}
+        <Route path="masters/expense-types" element={<Navigate to="/admin/expense-types" replace />} />
         <Route path="masters/stores" element={<StoresPage />} />
         <Route path="masters/stores/new" element={<StoreNew />} />
         <Route path="masters/stores/:storeId/edit" element={<StoreEdit />} />
@@ -125,6 +127,7 @@ function AppRoutes() {
         <Route path="admin/roles" element={<AdminLayout><RolesPermissionsPage /></AdminLayout>} />
         <Route path="admin/roles/new" element={<AdminLayout><RoleNewPage /></AdminLayout>} />
         <Route path="admin/roles/:roleId" element={<AdminLayout><RoleDetailPage /></AdminLayout>} />
+        <Route path="admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
         <Route path="admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
         <Route path="admin/documents/:id/edit" element={<AdminLayout><DocumentEditPage /></AdminLayout>} />
         <Route path="admin/policy" element={<AdminLayout><PolicyPage /></AdminLayout>} />
