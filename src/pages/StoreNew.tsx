@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +15,16 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
+import {
+  PageShell,
+  PageHeader,
+  SectionCard,
+  FormGrid,
+  FormField,
+  FormActions,
+  RequiredMark,
+} from "@/components/layout";
 
 export default function StoreNew() {
   const navigate = useNavigate();
@@ -40,7 +47,6 @@ export default function StoreNew() {
     postalCode: "",
     country: "",
     pettyCashFund: 0,
-    maxFund: 0,
     minBalance: 0,
     replenishAt: 0,
   });
@@ -63,11 +69,9 @@ export default function StoreNew() {
   const [country, setCountry] = useState("");
 
   const [pettyCashFund, setPettyCashFund] = useState(0);
-  const [maxFund, setMaxFund] = useState(0);
   const [minBalance, setMinBalance] = useState(0);
   const [replenishAt, setReplenishAt] = useState(0);
 
-  // Validation errors
   const [taxIdError, setTaxIdError] = useState("");
   const [branchCodeError, setBranchCodeError] = useState("");
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -108,22 +112,19 @@ export default function StoreNew() {
       postalCode !== iv.postalCode ||
       country !== iv.country ||
       pettyCashFund !== iv.pettyCashFund ||
-      maxFund !== iv.maxFund ||
       minBalance !== iv.minBalance ||
       replenishAt !== iv.replenishAt
     );
-  }, [storeName, thaiName, legalEntity, type, taxId, pp20Code, branchAcctCode, houseNo, moo, soi, street, subDistrict, district, province, postalCode, country, pettyCashFund, maxFund, minBalance, replenishAt]);
+  }, [storeName, thaiName, legalEntity, type, taxId, pp20Code, branchAcctCode, houseNo, moo, soi, street, subDistrict, district, province, postalCode, country, pettyCashFund, minBalance, replenishAt]);
+
+  const dirty = isDirty();
 
   const handleBack = () => {
-    if (isDirty()) {
-      setShowUnsavedDialog(true);
-    } else {
-      navigate("/masters/stores");
-    }
+    if (dirty) setShowUnsavedDialog(true);
+    else navigate("/masters/stores");
   };
 
   const handleSave = () => {
-    // Tax ID validation
     const digitsOnly = taxId.replace(/\D/g, "");
     if (digitsOnly.length !== 13) {
       setTaxIdError("Tax ID must be exactly 13 digits");
@@ -131,26 +132,18 @@ export default function StoreNew() {
     }
     setTaxIdError("");
 
-    // Branch Code uniqueness check
-    const duplicateBranch = stores.some(s => s.id !== undefined && pp20Code && s.id && pp20Code === pp20Code);
-    // Simple mock: check if branch code already exists in mock data
-    const branchExists = stores.some(s => {
-      // Mock check — in real app this would be an API call
-      return false;
-    });
+    const branchExists = false; // mock
     if (branchExists) {
       setBranchCodeError("Branch Code must be unique");
       return;
     }
     setBranchCodeError("");
 
-    // All-zeros fund check
-    if (pettyCashFund === 0 && maxFund === 0 && minBalance === 0 && replenishAt === 0) {
+    if (pettyCashFund === 0 && minBalance === 0 && replenishAt === 0) {
       setShowZeroFundDialog(true);
       return;
     }
 
-    // Duplicate store name check
     const nameExists = stores.some(s => s.name.toLowerCase() === storeName.trim().toLowerCase());
     if (nameExists) {
       setShowDuplicateNameDialog(true);
@@ -162,7 +155,6 @@ export default function StoreNew() {
 
   const performSave = () => {
     try {
-      // Placeholder save logic
       toast.success("Store created successfully");
       navigate("/masters/stores");
     } catch {
@@ -170,207 +162,175 @@ export default function StoreNew() {
     }
   };
 
-  const maxFundForBar = maxFund || 1; // prevent div by zero
-
   return (
-    <div className="space-y-6 max-w-2xl">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Add New Store</h1>
-          <p className="text-sm text-muted-foreground">Create a new store with petty cash fund configuration</p>
-        </div>
-      </div>
-
+    <PageShell
+      header={
+        <PageHeader
+          onBack={handleBack}
+          backLabel="Back to Stores"
+          title="Add New Store"
+          subtitle="Create a new store with petty cash fund configuration"
+        />
+      }
+    >
       {/* Store Information */}
-      <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <p className="section-label">Store Information</p>
-        <div className="space-y-3">
-          <div className="space-y-1.5">
-            <Label className="text-sm">Store Name (EN) <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={storeName} onChange={e => setStoreName(e.target.value)} placeholder="e.g. Makro Ladprao" required />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ชื่อสถานประกอบการ (Store Name in Thai) <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={thaiName} onChange={e => setThaiName(e.target.value)} placeholder="e.g. แม็คโคร ลาดพร้าว" required />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">Legal Entity</Label>
-            <Input className="h-9" value={legalEntity} onChange={e => setLegalEntity(e.target.value)} placeholder="e.g. Siam Makro PCL" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Type <span className="text-destructive">*</span></Label>
-              <Select value={type} onValueChange={setType} required>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Select type" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Hypermarket">Hypermarket</SelectItem>
-                  <SelectItem value="Supermarket">Supermarket</SelectItem>
-                  <SelectItem value="Mini">Mini</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">TAX ID <span className="text-destructive">*</span></Label>
-              <Input
-                className={`h-9 ${taxIdError ? "border-destructive" : ""}`}
-                placeholder="e.g. 0107536000382"
-                value={taxId}
-                onChange={e => {
-                  const v = e.target.value.replace(/\D/g, "").slice(0, 13);
-                  setTaxId(v);
-                  if (taxIdError) setTaxIdError("");
-                }}
-                maxLength={13}
-                required
-              />
-              {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Branch Code <span className="text-destructive">*</span></Label>
-              <Input
-                className={`h-9 ${branchCodeError ? "border-destructive" : ""}`}
-                value={pp20Code}
-                onChange={e => { setPp20Code(e.target.value); if (branchCodeError) setBranchCodeError(""); }}
-                placeholder="e.g. 00002"
-                required
-              />
-              {branchCodeError && <p className="text-xs text-destructive mt-1">{branchCodeError}</p>}
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">Branch Accounting Code <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} required />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ที่อยู่ (Full Address)</Label>
-            <Input className="h-9 bg-amber-50 border-amber-200 text-foreground" readOnly value={composedAddress} />
-            <p className="text-[10px] text-muted-foreground">Auto-composed from address fields below</p>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">เลขที่ <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" required />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">หมู่</Label>
-              <Input className="h-9" value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" />
-            </div>
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ตรอก/ซอย</Label>
-            <Input className="h-9" value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ถนน</Label>
-            <Input className="h-9" value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">ตำบล/แขวง <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" required />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-sm">อำเภอ/เขต <span className="text-destructive">*</span></Label>
-            <Input className="h-9" value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" required />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">จังหวัด <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" required />
-            </div>
-            <div className="space-y-1.5">
-              <Label className="text-sm">รหัสไปรษณีย์ <span className="text-destructive">*</span></Label>
-              <Input className="h-9" value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} required />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <Label className="text-sm">Country <span className="text-destructive">*</span></Label>
-              <Select value={country} onValueChange={setCountry} required>
-                <SelectTrigger className="h-9"><SelectValue placeholder="Select country" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="TH">Thailand</SelectItem>
-                  <SelectItem value="KH">Cambodia</SelectItem>
-                  <SelectItem value="MM">Myanmar</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div />
-          </div>
-        </div>
-      </div>
+      <SectionCard title="Store Information">
+        <FormField>
+          <Label className="text-sm">Store Name (EN) <RequiredMark /></Label>
+          <Input value={storeName} onChange={e => setStoreName(e.target.value)} placeholder="e.g. Makro Ladprao" />
+        </FormField>
 
-      <Separator />
+        <FormField>
+          <Label className="text-sm">Thai Store Name (ชื่อสถานประกอบการ) <RequiredMark /></Label>
+          <Input value={thaiName} onChange={e => setThaiName(e.target.value)} placeholder="e.g. แม็คโคร ลาดพร้าว" />
+        </FormField>
+
+        <FormField>
+          <Label className="text-sm">Legal Entity</Label>
+          <Input value={legalEntity} onChange={e => setLegalEntity(e.target.value)} placeholder="e.g. Siam Makro PCL" />
+        </FormField>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Type <RequiredMark /></Label>
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger><SelectValue placeholder="Select type" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Hypermarket">Hypermarket</SelectItem>
+                <SelectItem value="Supermarket">Supermarket</SelectItem>
+                <SelectItem value="Mini">Mini</SelectItem>
+              </SelectContent>
+            </Select>
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Tax ID (เลขประจำตัวผู้เสียภาษี) <RequiredMark /></Label>
+            <Input
+              className={taxIdError ? "border-destructive" : ""}
+              placeholder="e.g. 0107536000382"
+              value={taxId}
+              onChange={e => {
+                const v = e.target.value.replace(/\D/g, "").slice(0, 13);
+                setTaxId(v);
+                if (taxIdError) setTaxIdError("");
+              }}
+              maxLength={13}
+            />
+            {taxIdError && <p className="text-xs text-destructive mt-1">{taxIdError}</p>}
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Branch Code <RequiredMark /></Label>
+            <Input
+              className={branchCodeError ? "border-destructive" : ""}
+              value={pp20Code}
+              onChange={e => { setPp20Code(e.target.value); if (branchCodeError) setBranchCodeError(""); }}
+              placeholder="e.g. 00002"
+            />
+            {branchCodeError && <p className="text-xs text-destructive mt-1">{branchCodeError}</p>}
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Branch Accounting Code <RequiredMark /></Label>
+            <Input value={branchAcctCode} onChange={e => setBranchAcctCode(e.target.value)} placeholder="e.g. 010002" maxLength={10} />
+            <p className="text-xs text-muted-foreground">Oracle Fusion ERP branch code</p>
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Full Address (ที่อยู่)</Label>
+          <Input className="bg-muted/40" readOnly value={composedAddress} />
+          <p className="text-xs text-muted-foreground">Auto-composed from address fields below</p>
+        </FormField>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">House No. (เลขที่) <RequiredMark /></Label>
+            <Input value={houseNo} onChange={e => setHouseNo(e.target.value)} placeholder="e.g. 34/54" />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Moo (หมู่)</Label>
+            <Input value={moo} onChange={e => setMoo(e.target.value)} placeholder="e.g. 1" />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Soi/Alley (ตรอก/ซอย)</Label>
+            <Input value={soi} onChange={e => setSoi(e.target.value)} placeholder="e.g. ซอยลาดพร้าว 1" />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Street (ถนน)</Label>
+            <Input value={street} onChange={e => setStreet(e.target.value)} placeholder="e.g. ถนนลาดพร้าว" />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Sub-district (ตำบล/แขวง) <RequiredMark /></Label>
+            <Input value={subDistrict} onChange={e => setSubDistrict(e.target.value)} placeholder="e.g. คลองเกลือ" />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">District (อำเภอ/เขต) <RequiredMark /></Label>
+            <Input value={district} onChange={e => setDistrict(e.target.value)} placeholder="e.g. ปากเกร็ด" />
+          </FormField>
+        </FormGrid>
+
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Province (จังหวัด) <RequiredMark /></Label>
+            <Input value={province} onChange={e => setProvince(e.target.value)} placeholder="e.g. นนทบุรี" />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Postal Code (รหัสไปรษณีย์) <RequiredMark /></Label>
+            <Input value={postalCode} onChange={e => { const v = e.target.value.replace(/\D/g, '').slice(0, 5); setPostalCode(v); }} placeholder="e.g. 10240" maxLength={5} />
+          </FormField>
+        </FormGrid>
+
+        <FormField>
+          <Label className="text-sm">Country <RequiredMark /></Label>
+          <Select value={country} onValueChange={setCountry}>
+            <SelectTrigger><SelectValue placeholder="Select country" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TH">Thailand</SelectItem>
+              <SelectItem value="KH">Cambodia</SelectItem>
+              <SelectItem value="MM">Myanmar</SelectItem>
+            </SelectContent>
+          </Select>
+        </FormField>
+      </SectionCard>
 
       {/* Petty Cash Fund Configuration */}
-      <div className="bg-card rounded-lg border shadow-sm p-6 space-y-4">
-        <p className="section-label">Petty Cash Fund Configuration</p>
-        <p className="text-xs text-muted-foreground">
-          Set the petty cash fund range and replenishment trigger for this store.
-        </p>
-        <div className="grid grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Petty Cash Fund</Label>
-            <Input className="h-9 tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Maximum Fund</Label>
-            <Input className="h-9 tabular-nums" type="number" value={maxFund} onChange={e => setMaxFund(Number(e.target.value))} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Minimum Balance</Label>
-            <Input className="h-9 tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
-          </div>
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Replenish At</Label>
-            <Input className="h-9 tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
+      <SectionCard
+        title="Petty Cash Fund Configuration"
+        description="Set the petty cash fund and replenishment trigger for this store."
+      >
+        <FormGrid>
+          <FormField>
+            <Label className="text-sm">Petty Cash Fund</Label>
+            <Input className="tabular-nums" type="number" value={pettyCashFund} onChange={e => setPettyCashFund(Number(e.target.value))} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Minimum Balance</Label>
+            <Input className="tabular-nums" type="number" value={minBalance} onChange={e => setMinBalance(Number(e.target.value))} />
+          </FormField>
+          <FormField>
+            <Label className="text-sm">Replenish At</Label>
+            <Input className="tabular-nums" type="number" value={replenishAt} onChange={e => setReplenishAt(Number(e.target.value))} />
             {replenishAt > pettyCashFund && (
-              <p className="text-xs text-amber-600">Replenishment threshold is above the petty cash fund limit</p>
+              <p className="text-xs text-status-hold">Replenishment threshold is above the petty cash fund limit</p>
             )}
-          </div>
-        </div>
+          </FormField>
+        </FormGrid>
+      </SectionCard>
 
-        {/* Visual range */}
-        <div className="rounded-md bg-muted/50 p-3 space-y-1.5">
-          <div className="flex justify-between text-[10px] text-muted-foreground">
-            <span>Min: {minBalance.toLocaleString()}</span>
-            <span>Fund: {pettyCashFund.toLocaleString()}</span>
-            <span>Max: {maxFund.toLocaleString()}</span>
-          </div>
-          <div className="relative h-2 rounded-full bg-muted overflow-hidden">
-            <div
-              className="absolute inset-y-0 left-0 rounded-full bg-primary/60"
-              style={{ width: "0%" }}
-            />
-            {maxFund > 0 && (
-              <>
-                <div
-                  className="absolute top-0 h-full w-px bg-status-hold"
-                  style={{ left: `${Math.round((minBalance / maxFundForBar) * 100)}%` }}
-                />
-                <div
-                  className="absolute top-0 h-full w-px bg-status-approved"
-                  style={{ left: `${Math.round((pettyCashFund / maxFundForBar) * 100)}%` }}
-                />
-              </>
-            )}
-          </div>
-          <p className="text-[10px] text-muted-foreground">
-            Current balance: <span className="font-medium text-foreground">0</span>
-          </p>
-        </div>
-      </div>
+      <FormActions
+        isDirty={dirty}
+        secondary={<Button variant="outline" onClick={handleBack}>Cancel</Button>}
+        primary={<Button onClick={handleSave}>Create Store</Button>}
+      />
 
-      <div className="pb-6">
-        <Button className="w-full" onClick={handleSave}>Create Store</Button>
-      </div>
-
-      {/* Unsaved changes confirmation */}
+      {/* Unsaved changes */}
       <AlertDialog open={showUnsavedDialog} onOpenChange={setShowUnsavedDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -388,7 +348,7 @@ export default function StoreNew() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* All-zeros fund confirmation */}
+      {/* Zero fund */}
       <AlertDialog open={showZeroFundDialog} onOpenChange={setShowZeroFundDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -406,23 +366,23 @@ export default function StoreNew() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Duplicate store name warning */}
+      {/* Duplicate name */}
       <AlertDialog open={showDuplicateNameDialog} onOpenChange={setShowDuplicateNameDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Duplicate Store Name</AlertDialogTitle>
             <AlertDialogDescription>
-              A store with this name already exists. Continue?
+              A store with this name already exists. Continue anyway?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={() => { setShowDuplicateNameDialog(false); performSave(); }}>
-              Allow
+              Continue
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </PageShell>
   );
 }
