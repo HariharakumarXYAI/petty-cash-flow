@@ -340,35 +340,114 @@ export default function RoleDetailPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-          {storeOptions.map((s) => {
-            const checked = draft.storeCodes.includes(s.code);
-            const disabled = storeSelectionDisabled || isLocked;
-            return (
-              <label
-                key={s.code}
-                className={cn(
-                  "flex items-center gap-3 rounded-lg border p-3 transition-colors cursor-pointer",
-                  checked ? "border-blue-500 bg-blue-50" : "border-slate-200 hover:border-slate-300 bg-white",
-                  disabled && "opacity-60 cursor-not-allowed",
-                )}
-              >
-                <Checkbox
-                  checked={checked}
+        {(() => {
+          const disabled = storeSelectionDisabled || isLocked;
+          const selected = storeOptions.filter((s) => draft.storeCodes.includes(s.code));
+          const filtered = storeOptions.filter((s) => {
+            const q = storeSearch.trim().toLowerCase();
+            if (!q) return true;
+            return s.code.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+          });
+          return (
+            <Popover open={storeDropdownOpen} onOpenChange={(o) => { if (!disabled) setStoreDropdownOpen(o); }}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
                   disabled={disabled}
-                  onCheckedChange={() => toggleStore(s.code)}
-                />
-                <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center shrink-0">
-                  <StoreIcon className="h-4 w-4 text-slate-600" />
+                  className={cn(
+                    "w-full min-h-[48px] flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left transition-colors hover:border-slate-300",
+                    disabled && "opacity-60 cursor-not-allowed",
+                  )}
+                >
+                  <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+                    {selected.length === 0 ? (
+                      <span className="text-sm text-muted-foreground px-1">Select stores…</span>
+                    ) : (
+                      selected.map((s) => (
+                        <span
+                          key={s.code}
+                          className="inline-flex items-center gap-1 rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 text-xs"
+                        >
+                          <span className="text-muted-foreground">[{s.code}]</span>
+                          <span className="font-medium text-foreground">{s.name}</span>
+                          <span
+                            role="button"
+                            tabIndex={0}
+                            onClick={(e) => { e.stopPropagation(); toggleStore(s.code); }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault(); e.stopPropagation(); toggleStore(s.code);
+                              }
+                            }}
+                            className="ml-0.5 rounded hover:bg-blue-100 p-0.5 cursor-pointer"
+                            aria-label={`Remove ${s.name}`}
+                          >
+                            <X className="h-3 w-3" />
+                          </span>
+                        </span>
+                      ))
+                    )}
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 text-muted-foreground shrink-0 transition-transform",
+                      storeDropdownOpen && "rotate-180",
+                    )}
+                  />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="p-0 rounded-xl shadow-lg"
+                align="start"
+                style={{ width: "var(--radix-popover-trigger-width)" }}
+              >
+                <div className="p-2 border-b">
+                  <div className="relative">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      autoFocus
+                      placeholder="Search by code or name…"
+                      value={storeSearch}
+                      onChange={(e) => setStoreSearch(e.target.value)}
+                      className="pl-8 h-9"
+                    />
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs text-muted-foreground">[{s.code}]</div>
-                  <div className="text-sm font-medium truncate">{s.name}</div>
+                <div className="max-h-72 overflow-y-auto py-1">
+                  {filtered.length === 0 ? (
+                    <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+                      No stores found
+                    </div>
+                  ) : (
+                    filtered.map((s) => {
+                      const checked = draft.storeCodes.includes(s.code);
+                      return (
+                        <div
+                          key={s.code}
+                          role="button"
+                          onClick={() => toggleStore(s.code)}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors",
+                            checked ? "bg-blue-50 hover:bg-blue-100" : "hover:bg-slate-50",
+                          )}
+                        >
+                          <Checkbox checked={checked} onCheckedChange={() => toggleStore(s.code)} />
+                          <div className="h-8 w-8 rounded bg-slate-100 flex items-center justify-center shrink-0">
+                            <StoreIcon className="h-4 w-4 text-slate-600" />
+                          </div>
+                          <div className="min-w-0 flex items-baseline gap-1.5">
+                            <span className="text-xs text-muted-foreground">[{s.code}]</span>
+                            <span className="text-sm font-medium text-foreground truncate">{s.name}</span>
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
-              </label>
-            );
-          })}
-        </div>
+              </PopoverContent>
+            </Popover>
+          );
+        })()}
       </Card>
 
       {/* hidden Select used to satisfy import (UI offers card buttons) */}
