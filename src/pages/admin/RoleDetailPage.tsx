@@ -40,6 +40,8 @@ export default function RoleDetailPage() {
   const [original, setOriginal] = useState<DynamicRole | null>(null);
   const [editingName, setEditingName] = useState(false);
   const [discardOpen, setDiscardOpen] = useState(false);
+  const [storeDropdownOpen, setStoreDropdownOpen] = useState(false);
+  const [storeSearch, setStoreSearch] = useState("");
 
   useEffect(() => {
     const list = loadRoles();
