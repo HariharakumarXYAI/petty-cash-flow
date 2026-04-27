@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Eye, Lock, Pencil, Store as StoreIcon } from "lucide-react";
+import { ArrowLeft, ChevronDown, Eye, Lock, Pencil, Search, Store as StoreIcon, X } from "lucide-react";
 import { FormActions } from "@/components/layout";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
