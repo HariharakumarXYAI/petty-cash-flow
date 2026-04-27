@@ -169,15 +169,15 @@ export interface StoreOption {
 }
 
 export const storeOptions: StoreOption[] = [
-  { code: "001", name: "Makro Lardprao" },
-  { code: "002", name: "Makro Store 002" },
-  { code: "003", name: "Makro Bangkapi" },
+  { code: "001", name: "Makro Bangkapi" },
+  { code: "002", name: "Makro Sathorn" },
+  { code: "003", name: "Makro Rama 4" },
   { code: "004", name: "Makro Chaengwattana" },
-  { code: "005", name: "Makro Samut Prakan" },
-  { code: "006", name: "Lotus's Rama 4" },
-  { code: "007", name: "Lotus's Bangna" },
-  { code: "008", name: "Lotus's Pinklao" },
-  { code: "009", name: "Lotus's Rangsit" },
+  { code: "005", name: "Makro Pattaya" },
+  { code: "006", name: "Makro Chiang Mai" },
+  { code: "007", name: "Makro Phnom Penh 1" },
+  { code: "008", name: "Makro Siem Reap" },
+  { code: "009", name: "Makro Lardprao" },
 ];
 
 // Permissions storage: { [permissionId]: { view?: bool, create?: bool, edit?: bool, delete?: bool } }
