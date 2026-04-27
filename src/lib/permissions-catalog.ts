@@ -183,12 +183,11 @@ export const storeOptions: StoreOption[] = [
 // Permissions storage: { [permissionId]: { view?: bool, create?: bool, edit?: bool, delete?: bool } }
 export type PermissionGrants = Record<string, Partial<Record<ActionKey, boolean>>>;
 
-export type DataScope = "own_store_only" | "own_store" | "assigned_region" | "all_stores";
+export type DataScope = "own_store_only" | "own_store" | "all_stores";
 
 export const dataScopeOptions: { value: DataScope; label: string; description: string }[] = [
   { value: "own_store_only", label: "Own store only", description: "Restricted to the user's own store" },
   { value: "own_store", label: "Own store", description: "User's store and team data" },
-  { value: "assigned_region", label: "Assigned region", description: "All stores in the user's assigned region" },
   { value: "all_stores", label: "All stores", description: "Enterprise-wide access" },
 ];
 
