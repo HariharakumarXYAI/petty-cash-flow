@@ -3,35 +3,102 @@ import { expenseTypes } from "@/lib/mock-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { toast } from "@/hooks/use-toast";
 import { Plus, Upload, Download, Pencil, Search, ChevronDown, ChevronRight, ShieldAlert, FileText } from "lucide-react";
+
+type ExpenseRow = (typeof expenseTypes)[number];
+
+type EditTarget =
+  | { mode: "category"; category: string; items: ExpenseRow[] }
+  | { mode: "subtype"; row: ExpenseRow };
 
 export default function AdminExpenseTypesPage() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [editTarget, setEditTarget] = useState<EditTarget | null>(null);
+
+  // Edit form state
+  const [form, setForm] = useState({
+    name: "",
+    alertThreshold: 0,
+    hardStopThreshold: 0,
+    maxAmount: 0,
+    documentRequired: false,
+    auditSensitive: false,
+    advanceAllowed: false,
+  });
 
   // Group expense types by category
-  const grouped = expenseTypes.reduce<
-    Record<string, typeof expenseTypes>
-  >((acc, et) => {
+  const grouped = expenseTypes.reduce<Record<string, ExpenseRow[]>>((acc, et) => {
     if (!acc[et.category]) acc[et.category] = [];
     acc[et.category].push(et);
     return acc;
   }, {});
 
   const categories = Object.entries(grouped).filter(([category, items]) => {
-    if (search && !category.toLowerCase().includes(search.toLowerCase()) &&
-        !items.some(i => i.subcategory.toLowerCase().includes(search.toLowerCase()))) {
+    if (
+      search &&
+      !category.toLowerCase().includes(search.toLowerCase()) &&
+      !items.some((i) => i.subcategory.toLowerCase().includes(search.toLowerCase()))
+    ) {
       return false;
     }
     return true;
   });
 
-  const sensitiveCount = expenseTypes.filter(e => e.auditSensitive).length;
-  const docRequiredCount = expenseTypes.filter(e => e.documentRequired).length;
+  const sensitiveCount = expenseTypes.filter((e) => e.auditSensitive).length;
+  const docRequiredCount = expenseTypes.filter((e) => e.documentRequired).length;
+
+  const openEditCategory = (category: string, items: ExpenseRow[]) => {
+    setEditTarget({ mode: "category", category, items });
+    setForm({
+      name: category,
+      alertThreshold: 0,
+      hardStopThreshold: 0,
+      maxAmount: 0,
+      documentRequired: items.some((i) => i.documentRequired),
+      auditSensitive: items.some((i) => i.auditSensitive),
+      advanceAllowed: items.some((i) => i.advanceAllowed),
+    });
+  };
+
+  const openEditSubtype = (row: ExpenseRow) => {
+    setEditTarget({ mode: "subtype", row });
+    setForm({
+      name: row.subcategory,
+      alertThreshold: row.alertThreshold,
+      hardStopThreshold: row.hardStopThreshold,
+      maxAmount: row.maxAmount,
+      documentRequired: row.documentRequired,
+      auditSensitive: row.auditSensitive,
+      advanceAllowed: row.advanceAllowed,
+    });
+  };
+
+  const handleSave = () => {
+    toast({
+      title: "Changes saved",
+      description:
+        editTarget?.mode === "category"
+          ? `Updated category "${form.name}".`
+          : `Updated subtype "${form.name}".`,
+    });
+    setEditTarget(null);
+  };
 
   return (
     <div>
@@ -128,7 +195,13 @@ export default function AdminExpenseTypesPage() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={() => openEditCategory(category, items)}
+                        aria-label={`Edit ${category}`}
+                      >
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </TableCell>
@@ -177,7 +250,13 @@ export default function AdminExpenseTypesPage() {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                              onClick={() => openEditSubtype(et)}
+                              aria-label={`Edit ${et.subcategory}`}
+                            >
                               <Pencil className="h-4 w-4" />
                             </Button>
                           </TableCell>
@@ -198,6 +277,98 @@ export default function AdminExpenseTypesPage() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!editTarget} onOpenChange={(o) => !o && setEditTarget(null)}>
+        <DialogContent className="sm:max-w-[520px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editTarget?.mode === "category" ? "Edit Expense Type" : "Edit Subtype"}
+            </DialogTitle>
+            <DialogDescription>
+              {editTarget?.mode === "category"
+                ? "Update the category name and default flags."
+                : "Update thresholds, document requirement, and flags for this subtype."}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="name">
+                {editTarget?.mode === "category" ? "Category Name" : "Subtype Name"}
+              </Label>
+              <Input
+                id="name"
+                value={form.name}
+                onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              />
+            </div>
+
+            {editTarget?.mode === "subtype" && (
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="alert">Alert At</Label>
+                  <Input
+                    id="alert"
+                    type="number"
+                    value={form.alertThreshold}
+                    onChange={(e) => setForm((f) => ({ ...f, alertThreshold: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="hardstop">Hard Stop</Label>
+                  <Input
+                    id="hardstop"
+                    type="number"
+                    value={form.hardStopThreshold}
+                    onChange={(e) => setForm((f) => ({ ...f, hardStopThreshold: Number(e.target.value) }))}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="max">Max Amount</Label>
+                  <Input
+                    id="max"
+                    type="number"
+                    value={form.maxAmount}
+                    onChange={(e) => setForm((f) => ({ ...f, maxAmount: Number(e.target.value) }))}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="space-y-3 rounded-md border p-3">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="docs" className="text-sm font-normal">Document required</Label>
+                <Switch
+                  id="docs"
+                  checked={form.documentRequired}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, documentRequired: v }))}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="sensitive" className="text-sm font-normal">Audit sensitive</Label>
+                <Switch
+                  id="sensitive"
+                  checked={form.auditSensitive}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, auditSensitive: v }))}
+                />
+              </div>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="advance" className="text-sm font-normal">Advance allowed</Label>
+                <Switch
+                  id="advance"
+                  checked={form.advanceAllowed}
+                  onCheckedChange={(v) => setForm((f) => ({ ...f, advanceAllowed: v }))}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditTarget(null)}>Cancel</Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
