@@ -430,7 +430,7 @@ export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPa
               id="et-alert-at"
               type="number"
               value={alertAt}
-              onChange={(e) => setAlertAt(Number(e.target.value))}
+              onChange={(e) => setAlertAt(e.target.value === "" ? "" : Number(e.target.value))}
               className="tabular-nums"
             />
           </div>
