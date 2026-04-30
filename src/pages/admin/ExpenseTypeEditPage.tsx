@@ -202,7 +202,7 @@ export default function ExpenseTypeEditPage() {
     >
       <SectionCard
         title="Expense Type Details"
-        description="Configure how this expense category behaves in claim submissions."
+        description="Configure how this Expense Type behaves in claim submissions."
       >
         <FormField>
           <Label htmlFor="et-name" className="text-sm">
@@ -224,7 +224,7 @@ export default function ExpenseTypeEditPage() {
           <div className="space-y-1">
             <Label className="text-sm font-medium">Audit Sensitive</Label>
             <p className="text-xs text-muted-foreground">
-              Flag this category for additional audit review and compliance tracking.
+              Flag this Expense Type for additional audit review and compliance tracking.
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -253,7 +253,7 @@ export default function ExpenseTypeEditPage() {
 
       <SectionCard
         title="Subtypes"
-        description="Configure subtypes, country availability, and spending thresholds for this category."
+        description="Configure subtypes, country availability, and spending thresholds for this Expense Type."
         headerAside={
           <Button variant="outline" size="sm" onClick={openAddSubtype}>
             <Plus className="h-4 w-4 mr-1" /> Add Subtype
