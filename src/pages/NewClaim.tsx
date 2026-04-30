@@ -92,7 +92,7 @@ export default function NewClaim() {
         </Button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-foreground">New Claim</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Capture receipt → verify details → submit · Under 60 seconds</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Verify details → capture receipt → submit · Under 60 seconds</p>
         </div>
       </div>
 
