@@ -457,29 +457,6 @@ export default function ExpenseTypeEditPage() {
               </FormField>
 
               <FormField>
-                <Label className="text-sm">Countries</Label>
-                <div className="flex items-center gap-4 pt-1">
-                  {ALL_COUNTRIES.map((c) => {
-                    const checked = editingSubtype.countries.includes(c);
-                    return (
-                      <label key={c} className="flex items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(v) => {
-                            const next = v
-                              ? [...editingSubtype.countries, c]
-                              : editingSubtype.countries.filter((x) => x !== c);
-                            setEditingSubtype({ ...editingSubtype, countries: next });
-                          }}
-                        />
-                        {c}
-                      </label>
-                    );
-                  })}
-                </div>
-              </FormField>
-
-              <FormField>
                 <Label className="text-sm">Max Amount</Label>
                 <Input
                   type="number"
