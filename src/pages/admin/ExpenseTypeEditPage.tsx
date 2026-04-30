@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Pencil, Trash2, Plus, FileText, ShieldAlert } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, FileText, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
