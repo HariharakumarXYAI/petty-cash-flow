@@ -177,6 +177,10 @@ function DocMultiSelect({
 export default function ExpenseTypeEditPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const documentOptions = useMemo(
+    () => loadDocuments().filter((d) => d.active).map((d) => ({ id: d.id, name: d.name })),
+    [],
+  );
 
   // Resolve the parent category from the row id used in the URL
   const original = useMemo(() => expenseTypes.find((e) => e.id === id), [id]);
