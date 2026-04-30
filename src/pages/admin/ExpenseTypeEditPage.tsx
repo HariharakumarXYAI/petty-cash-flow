@@ -222,21 +222,6 @@ export default function ExpenseTypeEditPage() {
 
         <div className="flex items-center justify-between border-t pt-5">
           <div className="space-y-1">
-            <Label className="text-sm font-medium">Document Required</Label>
-            <p className="text-xs text-muted-foreground">
-              Require employees to attach a supporting document for this expense type.
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground tabular-nums w-20 text-right">
-              {documentRequired ? "Required" : "Optional"}
-            </span>
-            <Switch checked={documentRequired} onCheckedChange={setDocumentRequired} />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between border-t pt-5">
-          <div className="space-y-1">
             <Label className="text-sm font-medium">Audit Sensitive</Label>
             <p className="text-xs text-muted-foreground">
               Flag this category for additional audit review and compliance tracking.
