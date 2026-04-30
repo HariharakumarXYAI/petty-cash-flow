@@ -428,7 +428,7 @@ export default function NewClaim() {
             {/* ═══════════════════════════════════════════ */}
             {/* STICKY SUMMARY — Validation + Outcome      */}
             {/* ═══════════════════════════════════════════ */}
-            <div className="lg:sticky lg:top-4 space-y-4">
+            <div className="space-y-4">
               <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
                 <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
                   <div className="flex items-center gap-2">
