@@ -99,9 +99,14 @@ export default function ExpenseTypeEditPage() {
       ]),
     ),
   );
+  // Category-level countries: union of all subtype country lists
+  const initialCountries = Array.from(
+    new Set(originalSiblings.flatMap((e) => e.countries as Country[])),
+  ) as Country[];
   const [alertAt, setAlertAt] = useState<number>(initialAlertAt);
   const [hardStop, setHardStop] = useState<number>(initialHardStop);
   const [flags, setFlags] = useState<string[]>(initialFlags);
+  const [countries, setCountries] = useState<Country[]>(initialCountries);
 
   // Subtype list (local draft)
   const [subtypes, setSubtypes] = useState<SubtypeDraft[]>(
