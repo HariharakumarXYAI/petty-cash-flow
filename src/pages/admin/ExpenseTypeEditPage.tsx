@@ -206,9 +206,10 @@ export default function ExpenseTypeEditPage() {
   const [saving, setSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  // Subtype dialog state
-  const [editingSubtype, setEditingSubtype] = useState<SubtypeDraft | null>(null);
-  const [isNewSubtype, setIsNewSubtype] = useState(false);
+  // Per-row required-field errors
+  const [subtypeErrors, setSubtypeErrors] = useState<
+    Record<string, { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean }>
+  >({});
 
   useEffect(() => {
     if (!original) {
@@ -227,9 +228,12 @@ export default function ExpenseTypeEditPage() {
       const orig = originalSiblings.find((o) => o.id === s.id);
       if (!orig) return true;
       return (
-        s.subcategory !== orig.subcategory ||
-        s.maxAmount !== orig.maxAmount ||
-        s.documentRequired !== orig.documentRequired
+        s.subExpenseType !== orig.subcategory ||
+        s.accountNameEn !== "" ||
+        s.accountCode !== "" ||
+        s.requiredDocumentIds.length > 0 ||
+        s.supportedDocumentIds.length > 0 ||
+        s.active !== true
       );
     });
 
@@ -246,9 +250,27 @@ export default function ExpenseTypeEditPage() {
 
   const disabled = !isDirty || saving;
 
+  const validateSubtypes = () => {
+    const errs: Record<string, { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean }> = {};
+    let ok = true;
+    subtypes.forEach((s) => {
+      const rowErr: { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean } = {};
+      if (!s.subExpenseType.trim()) { rowErr.subExpenseType = true; ok = false; }
+      if (!s.accountNameEn.trim()) { rowErr.accountNameEn = true; ok = false; }
+      if (!s.accountCode.trim()) { rowErr.accountCode = true; ok = false; }
+      if (Object.keys(rowErr).length) errs[s.id] = rowErr;
+    });
+    setSubtypeErrors(errs);
+    return ok;
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       setNameError("Name is required.");
+      return;
+    }
+    if (!validateSubtypes()) {
+      toast.error("Please fill in all required subtype fields");
       return;
     }
     setSaving(true);
@@ -260,28 +282,36 @@ export default function ExpenseTypeEditPage() {
 
   const handleCancel = () => navigate("/admin/expense-types");
 
-  const openAddSubtype = () => {
-    setEditingSubtype(emptySubtype());
-    setIsNewSubtype(true);
+  const updateSubtype = <K extends keyof SubtypeDraft>(sid: string, key: K, value: SubtypeDraft[K]) => {
+    setSubtypes((prev) => prev.map((s) => (s.id === sid ? { ...s, [key]: value } : s)));
+    const errKey = key as "subExpenseType" | "accountNameEn" | "accountCode";
+    if (subtypeErrors[sid]?.[errKey]) {
+      setSubtypeErrors((prev) => {
+        const next = { ...prev };
+        const row = { ...next[sid] };
+        delete row[errKey];
+        if (Object.keys(row).length === 0) delete next[sid];
+        else next[sid] = row;
+        return next;
+      });
+    }
   };
-  const openEditSubtype = (s: SubtypeDraft) => {
-    setEditingSubtype({ ...s });
-    setIsNewSubtype(false);
+
+  const addSubtype = () => {
+    setSubtypes((prev) => [...prev, emptySubtype()]);
   };
+
   const deleteSubtype = (sid: string) => {
-    setSubtypes((prev) => prev.filter((s) => s.id !== sid));
-  };
-  const commitSubtype = () => {
-    if (!editingSubtype) return;
-    if (!editingSubtype.subcategory.trim()) {
-      toast.error("Subtype name is required");
+    if (subtypes.length <= 1) {
+      toast.error("At least one sub expense type is required");
       return;
     }
-    setSubtypes((prev) => {
-      if (isNewSubtype) return [...prev, editingSubtype];
-      return prev.map((s) => (s.id === editingSubtype.id ? editingSubtype : s));
+    setSubtypes((prev) => prev.filter((s) => s.id !== sid));
+    setSubtypeErrors((prev) => {
+      const next = { ...prev };
+      delete next[sid];
+      return next;
     });
-    setEditingSubtype(null);
   };
 
   return (
