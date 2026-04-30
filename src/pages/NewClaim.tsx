@@ -92,161 +92,19 @@ export default function NewClaim() {
         </Button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-foreground">New Claim</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Capture receipt → verify details → submit · Under 60 seconds</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Verify details → capture receipt → submit · Under 60 seconds</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="space-y-4">
+
+
 
           {/* ═══════════════════════════════════════════ */}
-          {/* LEFT COLUMN — Receipt Capture + OCR        */}
+          {/* CLAIM DETAILS + STICKY SUMMARY (full width)*/}
           {/* ═══════════════════════════════════════════ */}
-          <div className="lg:col-span-5 space-y-4">
-
-            {/* Receipt Capture Card */}
-            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-              <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
-                <Scan className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-semibold text-foreground">Receipt Capture</h3>
-                {ocrDone && (
-                  <Badge variant="approved" className="ml-auto text-[10px]">Scanned</Badge>
-                )}
-              </div>
-
-              {!uploaded ? (
-                <div
-                  className="p-8 text-center cursor-pointer hover:bg-muted/20 transition-colors group"
-                  onClick={handleUpload}
-                >
-                  <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/8 flex items-center justify-center mb-4 group-hover:bg-primary/12 transition-colors">
-                    <Receipt className="h-7 w-7 text-primary" />
-                  </div>
-                  <p className="text-sm font-semibold text-foreground">Tap to capture or upload receipt</p>
-                  <p className="text-xs text-muted-foreground mt-1.5">JPG, PNG, or PDF · Max 10 MB</p>
-                  <p className="text-[11px] text-primary/80 mt-3 flex items-center justify-center gap-1">
-                    <Zap className="h-3 w-3" /> OCR will extract vendor, amount, and date automatically
-                  </p>
-                  <div className="flex gap-2 mt-5 justify-center">
-                    <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs">
-                      <Camera className="h-3.5 w-3.5" /> Camera
-                    </Button>
-                    <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs">
-                      <Upload className="h-3.5 w-3.5" /> Upload File
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 space-y-3">
-                  {/* Uploaded file */}
-                  <div className="bg-muted/40 rounded-lg p-4 flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-status-approved/10 flex items-center justify-center shrink-0">
-                      <FileCheck className="h-5 w-5 text-status-approved" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">receipt_20260306.jpg</p>
-                      <p className="text-[11px] text-muted-foreground">2.4 MB · Uploaded just now</p>
-                    </div>
-                    <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground shrink-0">
-                      <Eye className="h-3.5 w-3.5 mr-1" /> View
-                    </Button>
-                  </div>
-
-                  {/* OCR Processing / Result */}
-                  {ocrProcessing ? (
-                    <div className="border border-border rounded-lg p-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                        <span className="text-sm font-medium text-foreground">Extracting receipt data…</span>
-                      </div>
-                      <Progress value={65} className="h-1.5" />
-                      <p className="text-[11px] text-muted-foreground">Running OCR and duplicate check</p>
-                    </div>
-                  ) : ocrDone ? (
-                    <div className="border border-primary/20 bg-primary/[0.02] rounded-lg overflow-hidden">
-                      <div className="px-3.5 py-2.5 border-b border-primary/10 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Scan className="h-3.5 w-3.5 text-primary" />
-                          <span className="text-xs font-semibold text-foreground">OCR Extracted Data</span>
-                        </div>
-                        <div className="flex items-center gap-1.5">
-                          <div className="h-2 w-2 rounded-full bg-status-approved" />
-                          <span className="text-[11px] font-semibold text-status-approved">{ocrData.confidence}% confidence</span>
-                        </div>
-                      </div>
-                      <div className="p-3.5 space-y-2.5">
-                        {[
-                          { label: "Vendor", value: ocrData.vendor, icon: "🏪" },
-                          { label: "Amount", value: `฿${ocrData.amount}`, icon: "💰" },
-                          { label: "Date", value: ocrData.date, icon: "📅" },
-                          { label: "Tax ID", value: ocrData.taxId, icon: "🔖" },
-                        ].map((field) => (
-                          <div key={field.label} className="flex items-center justify-between py-1">
-                            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{field.label}</span>
-                            <span className="text-sm font-semibold text-foreground font-mono bg-primary/5 px-2 py-0.5 rounded">
-                              {field.value}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                      <div className="px-3.5 py-2 border-t border-primary/10 bg-primary/[0.03]">
-                        <p className="text-[10px] text-muted-foreground">
-                          OCR values auto-fill the form below. Review and adjust if needed.
-                        </p>
-                      </div>
-                    </div>
-                  ) : null}
-
-                  {/* Duplicate Check */}
-                  {ocrDone && (
-                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-approved/5 border border-status-approved/15">
-                      <ShieldCheck className="h-4 w-4 text-status-approved shrink-0" />
-                      <span className="text-xs text-status-approved font-medium">No duplicate receipt detected</span>
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* OCR vs User Input Comparison (desktop) */}
-            {ocrDone && (
-              <div className="hidden lg:block bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-                <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
-                  <Eye className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold text-foreground">OCR vs Your Input</h3>
-                </div>
-                <div className="divide-y divide-border">
-                  {[
-                    { field: "Vendor", ocr: ocrData.vendor, user: vendor || "—" },
-                    { field: "Amount", ocr: `฿${ocrData.amount}`, user: amountNum > 0 ? `฿${amountNum.toLocaleString()}` : "—" },
-                    { field: "Date", ocr: ocrData.date, user: receiptDate || "—" },
-                  ].map((row) => {
-                    const match = row.ocr === row.user || (row.field === "Amount" && row.ocr === `฿${amountNum.toLocaleString()}.00`);
-                    return (
-                      <div key={row.field} className="grid grid-cols-3 px-3.5 py-2.5 text-xs items-center">
-                        <span className="text-muted-foreground font-medium uppercase tracking-wide">{row.field}</span>
-                        <span className="font-mono text-foreground/70 bg-muted/50 px-1.5 py-0.5 rounded text-center">{row.ocr}</span>
-                        <span className={`font-mono px-1.5 py-0.5 rounded text-center font-semibold ${match ? "bg-status-approved/8 text-status-approved" : "bg-status-validating/8 text-status-validating"}`}>
-                          {row.user}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="px-3.5 py-2 bg-muted/20 border-t border-border">
-                  <div className="flex gap-3 text-[10px] text-muted-foreground">
-                    <span className="flex items-center gap-1"><CircleDot className="h-2.5 w-2.5 text-foreground/40" /> OCR extracted</span>
-                    <span className="flex items-center gap-1"><CircleDot className="h-2.5 w-2.5 text-primary" /> Your input</span>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* ═══════════════════════════════════════════ */}
-          {/* RIGHT COLUMN — Form + Sticky Summary       */}
-          {/* ═══════════════════════════════════════════ */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="space-y-4">
 
             {/* Claim Form */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
@@ -426,9 +284,151 @@ export default function NewClaim() {
             </div>
 
             {/* ═══════════════════════════════════════════ */}
+            {/* RECEIPT CAPTURE + OCR (full width)         */}
+            {/* ═══════════════════════════════════════════ */}
+
+            {/* Receipt Capture Card */}
+            <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+              <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
+                <Scan className="h-4 w-4 text-primary" />
+                <h3 className="text-sm font-semibold text-foreground">Receipt Capture</h3>
+                {ocrDone && (
+                  <Badge variant="approved" className="ml-auto text-[10px]">Scanned</Badge>
+                )}
+              </div>
+
+              {!uploaded ? (
+                <div
+                  className="p-8 text-center cursor-pointer hover:bg-muted/20 transition-colors group"
+                  onClick={handleUpload}
+                >
+                  <div className="mx-auto h-16 w-16 rounded-2xl bg-primary/8 flex items-center justify-center mb-4 group-hover:bg-primary/12 transition-colors">
+                    <Receipt className="h-7 w-7 text-primary" />
+                  </div>
+                  <p className="text-sm font-semibold text-foreground">Tap to capture or upload receipt</p>
+                  <p className="text-xs text-muted-foreground mt-1.5">JPG, PNG, or PDF · Max 10 MB</p>
+                  <p className="text-[11px] text-primary/80 mt-3 flex items-center justify-center gap-1">
+                    <Zap className="h-3 w-3" /> OCR will extract vendor, amount, and date automatically
+                  </p>
+                  <div className="flex gap-2 mt-5 justify-center">
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs">
+                      <Camera className="h-3.5 w-3.5" /> Camera
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs">
+                      <Upload className="h-3.5 w-3.5" /> Upload File
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-4 space-y-3">
+                  {/* Uploaded file */}
+                  <div className="bg-muted/40 rounded-lg p-4 flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-status-approved/10 flex items-center justify-center shrink-0">
+                      <FileCheck className="h-5 w-5 text-status-approved" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">receipt_20260306.jpg</p>
+                      <p className="text-[11px] text-muted-foreground">2.4 MB · Uploaded just now</p>
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" className="text-xs text-muted-foreground shrink-0">
+                      <Eye className="h-3.5 w-3.5 mr-1" /> View
+                    </Button>
+                  </div>
+
+                  {/* OCR Processing / Result */}
+                  {ocrProcessing ? (
+                    <div className="border border-border rounded-lg p-4 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-4 w-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm font-medium text-foreground">Extracting receipt data…</span>
+                      </div>
+                      <Progress value={65} className="h-1.5" />
+                      <p className="text-[11px] text-muted-foreground">Running OCR and duplicate check</p>
+                    </div>
+                  ) : ocrDone ? (
+                    <div className="border border-primary/20 bg-primary/[0.02] rounded-lg overflow-hidden">
+                      <div className="px-3.5 py-2.5 border-b border-primary/10 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Scan className="h-3.5 w-3.5 text-primary" />
+                          <span className="text-xs font-semibold text-foreground">OCR Extracted Data</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-2 w-2 rounded-full bg-status-approved" />
+                          <span className="text-[11px] font-semibold text-status-approved">{ocrData.confidence}% confidence</span>
+                        </div>
+                      </div>
+                      <div className="p-3.5 space-y-2.5">
+                        {[
+                          { label: "Vendor", value: ocrData.vendor, icon: "🏪" },
+                          { label: "Amount", value: `฿${ocrData.amount}`, icon: "💰" },
+                          { label: "Date", value: ocrData.date, icon: "📅" },
+                          { label: "Tax ID", value: ocrData.taxId, icon: "🔖" },
+                        ].map((field) => (
+                          <div key={field.label} className="flex items-center justify-between py-1">
+                            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wide">{field.label}</span>
+                            <span className="text-sm font-semibold text-foreground font-mono bg-primary/5 px-2 py-0.5 rounded">
+                              {field.value}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="px-3.5 py-2 border-t border-primary/10 bg-primary/[0.03]">
+                        <p className="text-[10px] text-muted-foreground">
+                          OCR values auto-fill the form above. Review and adjust if needed.
+                        </p>
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Duplicate Check */}
+                  {ocrDone && (
+                    <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-status-approved/5 border border-status-approved/15">
+                      <ShieldCheck className="h-4 w-4 text-status-approved shrink-0" />
+                      <span className="text-xs text-status-approved font-medium">No duplicate receipt detected</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* OCR vs User Input Comparison (desktop) */}
+            {ocrDone && (
+              <div className="hidden lg:block bg-card border border-border rounded-xl overflow-hidden shadow-sm">
+                <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center gap-2">
+                  <Eye className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-foreground">OCR vs Your Input</h3>
+                </div>
+                <div className="divide-y divide-border">
+                  {[
+                    { field: "Vendor", ocr: ocrData.vendor, user: vendor || "—" },
+                    { field: "Amount", ocr: `฿${ocrData.amount}`, user: amountNum > 0 ? `฿${amountNum.toLocaleString()}` : "—" },
+                    { field: "Date", ocr: ocrData.date, user: receiptDate || "—" },
+                  ].map((row) => {
+                    const match = row.ocr === row.user || (row.field === "Amount" && row.ocr === `฿${amountNum.toLocaleString()}.00`);
+                    return (
+                      <div key={row.field} className="grid grid-cols-3 px-3.5 py-2.5 text-xs items-center">
+                        <span className="text-muted-foreground font-medium uppercase tracking-wide">{row.field}</span>
+                        <span className="font-mono text-foreground/70 bg-muted/50 px-1.5 py-0.5 rounded text-center">{row.ocr}</span>
+                        <span className={`font-mono px-1.5 py-0.5 rounded text-center font-semibold ${match ? "bg-status-approved/8 text-status-approved" : "bg-status-validating/8 text-status-validating"}`}>
+                          {row.user}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="px-3.5 py-2 bg-muted/20 border-t border-border">
+                  <div className="flex gap-3 text-[10px] text-muted-foreground">
+                    <span className="flex items-center gap-1"><CircleDot className="h-2.5 w-2.5 text-foreground/40" /> OCR extracted</span>
+                    <span className="flex items-center gap-1"><CircleDot className="h-2.5 w-2.5 text-primary" /> Your input</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ═══════════════════════════════════════════ */}
             {/* STICKY SUMMARY — Validation + Outcome      */}
             {/* ═══════════════════════════════════════════ */}
-            <div className="lg:sticky lg:top-4 space-y-4">
+            <div className="space-y-4">
               <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
                 <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
                   <div className="flex items-center gap-2">
