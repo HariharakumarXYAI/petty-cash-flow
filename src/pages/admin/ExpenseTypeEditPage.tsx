@@ -42,7 +42,6 @@ type SubtypeDraft = {
   id: string;
   subcategory: string;
   documentRequired: boolean;
-  advanceAllowed: boolean;
   maxAmount: number;
 };
 
@@ -50,7 +49,6 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   id: e.id,
   subcategory: e.subcategory,
   documentRequired: e.documentRequired,
-  advanceAllowed: e.advanceAllowed,
   maxAmount: e.maxAmount,
 });
 
@@ -58,7 +56,6 @@ const emptySubtype = (): SubtypeDraft => ({
   id: `new-${Math.random().toString(36).slice(2, 8)}`,
   subcategory: "",
   documentRequired: true,
-  advanceAllowed: false,
   maxAmount: 0,
 });
 
@@ -139,8 +136,7 @@ export default function ExpenseTypeEditPage() {
       return (
         s.subcategory !== orig.subcategory ||
         s.maxAmount !== orig.maxAmount ||
-        s.documentRequired !== orig.documentRequired ||
-        s.advanceAllowed !== orig.advanceAllowed
+        s.documentRequired !== orig.documentRequired
       );
     });
 
@@ -477,15 +473,6 @@ export default function ExpenseTypeEditPage() {
                   checked={editingSubtype.documentRequired}
                   onCheckedChange={(v) =>
                     setEditingSubtype({ ...editingSubtype, documentRequired: v })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Advance Allowed</Label>
-                <Switch
-                  checked={editingSubtype.advanceAllowed}
-                  onCheckedChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, advanceAllowed: v })
                   }
                 />
               </div>
