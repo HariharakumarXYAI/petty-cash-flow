@@ -188,10 +188,6 @@ export default function ExpenseTypeEditPage() {
       toast.error("Subtype name is required");
       return;
     }
-    if (editingSubtype.countries.length === 0) {
-      toast.error("Select at least one country");
-      return;
-    }
     setSubtypes((prev) => {
       if (isNewSubtype) return [...prev, editingSubtype];
       return prev.map((s) => (s.id === editingSubtype.id ? editingSubtype : s));
