@@ -244,9 +244,9 @@ export default function NewClaim() {
           </div>
 
           {/* ═══════════════════════════════════════════ */}
-          {/* RIGHT COLUMN — Form + Sticky Summary       */}
+          {/* CLAIM DETAILS + STICKY SUMMARY (full width)*/}
           {/* ═══════════════════════════════════════════ */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="space-y-4">
 
             {/* Claim Form */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
