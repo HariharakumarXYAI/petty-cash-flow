@@ -92,6 +92,21 @@ export default function ExpenseTypeEditPage() {
     originalSiblings.some((e) => e.advanceAllowed),
   );
 
+  // Category-level thresholds & flags (migrated from subtype level)
+  const initialAlertAt = Math.max(0, ...originalSiblings.map((e) => e.alertThreshold));
+  const initialHardStop = Math.max(0, ...originalSiblings.map((e) => e.hardStopThreshold));
+  const initialFlags = Array.from(
+    new Set(
+      originalSiblings.flatMap((e) => [
+        ...(e.auditSensitive ? ["Sensitive"] : []),
+        ...(e.advanceAllowed ? ["Advance"] : []),
+      ]),
+    ),
+  );
+  const [alertAt, setAlertAt] = useState<number>(initialAlertAt);
+  const [hardStop, setHardStop] = useState<number>(initialHardStop);
+  const [flags, setFlags] = useState<string[]>(initialFlags);
+
   // Subtype list (local draft)
   const [subtypes, setSubtypes] = useState<SubtypeDraft[]>(
     originalSiblings.map(fromExpense),
