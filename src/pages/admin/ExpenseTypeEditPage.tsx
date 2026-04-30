@@ -351,9 +351,6 @@ export default function ExpenseTypeEditPage() {
                   <TableHead>Sub Expense Type Name</TableHead>
                   <TableHead>Countries</TableHead>
                   <TableHead className="text-center">Docs</TableHead>
-                  <TableHead className="text-right">Alert At</TableHead>
-                  <TableHead className="text-right">Hard Stop</TableHead>
-                  <TableHead className="text-center">Flags</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
