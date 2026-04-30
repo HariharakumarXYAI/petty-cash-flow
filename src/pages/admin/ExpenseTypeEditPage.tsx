@@ -593,6 +593,67 @@ export default function ExpenseTypeEditPage() {
                   }
                 />
               </div>
+
+              <FormField>
+                <Label className="text-sm">
+                  Account Name (EN) <RequiredMark />
+                </Label>
+                <Input
+                  placeholder="e.g., Account TC001"
+                  value={editingSubtype.accountNameEn}
+                  onChange={(e) =>
+                    setEditingSubtype({ ...editingSubtype, accountNameEn: e.target.value })
+                  }
+                />
+              </FormField>
+
+              <FormField>
+                <Label className="text-sm">
+                  Account Code <RequiredMark />
+                </Label>
+                <Input
+                  placeholder="e.g., ACC-TC001"
+                  value={editingSubtype.accountCode}
+                  onChange={(e) =>
+                    setEditingSubtype({ ...editingSubtype, accountCode: e.target.value })
+                  }
+                />
+              </FormField>
+
+              <FormField>
+                <Label className="text-sm">Required Documents</Label>
+                <DocMultiSelect
+                  value={editingSubtype.requiredDocumentIds}
+                  onChange={(v) =>
+                    setEditingSubtype({ ...editingSubtype, requiredDocumentIds: v })
+                  }
+                  placeholder="Select required documents..."
+                  options={documentOptions}
+                />
+              </FormField>
+
+              <FormField>
+                <Label className="text-sm">Supported Documents</Label>
+                <DocMultiSelect
+                  value={editingSubtype.supportedDocumentIds}
+                  onChange={(v) =>
+                    setEditingSubtype({ ...editingSubtype, supportedDocumentIds: v })
+                  }
+                  placeholder="Select supported documents..."
+                  options={documentOptions}
+                  closedLabel={(n) => `${n} selected`}
+                />
+              </FormField>
+
+              <div className="flex items-center justify-between border-t pt-3">
+                <Label className="text-sm">Active</Label>
+                <Switch
+                  checked={editingSubtype.active}
+                  onCheckedChange={(v) =>
+                    setEditingSubtype({ ...editingSubtype, active: v })
+                  }
+                />
+              </div>
             </div>
           )}
           <DialogFooter>
