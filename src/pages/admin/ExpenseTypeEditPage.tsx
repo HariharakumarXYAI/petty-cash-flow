@@ -41,7 +41,6 @@ const ALL_COUNTRIES: Country[] = ["TH", "KH", "MM"];
 type SubtypeDraft = {
   id: string;
   subcategory: string;
-  countries: Country[];
   documentRequired: boolean;
   advanceAllowed: boolean;
   maxAmount: number;
@@ -50,7 +49,6 @@ type SubtypeDraft = {
 const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   id: e.id,
   subcategory: e.subcategory,
-  countries: [...e.countries] as Country[],
   documentRequired: e.documentRequired,
   advanceAllowed: e.advanceAllowed,
   maxAmount: e.maxAmount,
@@ -59,7 +57,6 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
 const emptySubtype = (): SubtypeDraft => ({
   id: `new-${Math.random().toString(36).slice(2, 8)}`,
   subcategory: "",
-  countries: ["TH"],
   documentRequired: true,
   advanceAllowed: false,
   maxAmount: 0,
@@ -102,9 +99,14 @@ export default function ExpenseTypeEditPage() {
       ]),
     ),
   );
+  // Category-level countries: union of all subtype country lists
+  const initialCountries = Array.from(
+    new Set(originalSiblings.flatMap((e) => e.countries as Country[])),
+  ) as Country[];
   const [alertAt, setAlertAt] = useState<number>(initialAlertAt);
   const [hardStop, setHardStop] = useState<number>(initialHardStop);
   const [flags, setFlags] = useState<string[]>(initialFlags);
+  const [countries, setCountries] = useState<Country[]>(initialCountries);
 
   // Subtype list (local draft)
   const [subtypes, setSubtypes] = useState<SubtypeDraft[]>(
@@ -138,9 +140,7 @@ export default function ExpenseTypeEditPage() {
         s.subcategory !== orig.subcategory ||
         s.maxAmount !== orig.maxAmount ||
         s.documentRequired !== orig.documentRequired ||
-        s.advanceAllowed !== orig.advanceAllowed ||
-        s.countries.slice().sort().join(",") !==
-          (orig.countries as string[]).slice().sort().join(",")
+        s.advanceAllowed !== orig.advanceAllowed
       );
     });
 
@@ -152,6 +152,7 @@ export default function ExpenseTypeEditPage() {
     alertAt !== initialAlertAt ||
     hardStop !== initialHardStop ||
     flags.slice().sort().join(",") !== initialFlags.slice().sort().join(",") ||
+    countries.slice().sort().join(",") !== initialCountries.slice().sort().join(",") ||
     subtypesChanged;
 
   const disabled = !isDirty || saving;
@@ -185,10 +186,6 @@ export default function ExpenseTypeEditPage() {
     if (!editingSubtype) return;
     if (!editingSubtype.subcategory.trim()) {
       toast.error("Subtype name is required");
-      return;
-    }
-    if (editingSubtype.countries.length === 0) {
-      toast.error("Select at least one country");
       return;
     }
     setSubtypes((prev) => {
@@ -258,6 +255,38 @@ export default function ExpenseTypeEditPage() {
               <span className="text-sm text-muted-foreground tabular-nums">
                 {advanceAllowed ? "Allowed" : "Not Allowed"}
               </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Countries</Label>
+            <p className="text-xs text-muted-foreground">
+              Select the countries where this expense type is available.
+            </p>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {ALL_COUNTRIES.map((c) => {
+                const active = countries.includes(c);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() =>
+                      setCountries((prev) =>
+                        active ? prev.filter((x) => x !== c) : [...prev, c],
+                      )
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-input hover:bg-muted",
+                    )}
+                  >
+                    {c}
+                    {active && <X className="h-3 w-3" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -346,7 +375,6 @@ export default function ExpenseTypeEditPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Sub Expense Type Name</TableHead>
-                  <TableHead>Countries</TableHead>
                   <TableHead className="text-center">Docs</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -355,18 +383,6 @@ export default function ExpenseTypeEditPage() {
                 {subtypes.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.subcategory}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {s.countries.map((c) => (
-                          <span
-                            key={c}
-                            className="inline-flex items-center rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground"
-                          >
-                            {c}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
                     <TableCell className="text-center">
                       {s.documentRequired ? (
                         <FileText className="h-3.5 w-3.5 text-primary mx-auto" />
@@ -438,29 +454,6 @@ export default function ExpenseTypeEditPage() {
                     setEditingSubtype({ ...editingSubtype, subcategory: e.target.value })
                   }
                 />
-              </FormField>
-
-              <FormField>
-                <Label className="text-sm">Countries</Label>
-                <div className="flex items-center gap-4 pt-1">
-                  {ALL_COUNTRIES.map((c) => {
-                    const checked = editingSubtype.countries.includes(c);
-                    return (
-                      <label key={c} className="flex items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(v) => {
-                            const next = v
-                              ? [...editingSubtype.countries, c]
-                              : editingSubtype.countries.filter((x) => x !== c);
-                            setEditingSubtype({ ...editingSubtype, countries: next });
-                          }}
-                        />
-                        {c}
-                      </label>
-                    );
-                  })}
-                </div>
               </FormField>
 
               <FormField>
