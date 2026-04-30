@@ -211,7 +211,7 @@ export default function ExpenseTypeEditPage() {
         description="Configure how this Expense Type behaves in claim submissions."
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-          {/* Row 1: Expense Type | Audit Sensitive */}
+          {/* Row 1: Expense Type | Countries */}
           <div className="space-y-1.5">
             <Label htmlFor="et-name" className="text-sm font-medium flex items-center h-5">
               Expense Type <RequiredMark />
@@ -229,33 +229,6 @@ export default function ExpenseTypeEditPage() {
               className={cn(nameError && "border-destructive focus-visible:ring-destructive")}
             />
             {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
-          </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium flex items-center h-5">Audit Sensitive</Label>
-            <p className="text-xs text-muted-foreground">
-              Flag this Expense Type for additional audit review and compliance tracking.
-            </p>
-            <div className="flex items-center gap-3 h-10">
-              <Switch checked={auditSensitive} onCheckedChange={setAuditSensitive} />
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {auditSensitive ? "Sensitive" : "Standard"}
-              </span>
-            </div>
-          </div>
-
-          {/* Row 2: Advance Allowed | Alert At */}
-          <div className="space-y-1.5">
-            <Label className="text-sm font-medium flex items-center h-5">Advance Allowed</Label>
-            <p className="text-xs text-muted-foreground">
-              Allow employees to request a cash advance against this expense type.
-            </p>
-            <div className="flex items-center gap-3 h-10">
-              <Switch checked={advanceAllowed} onCheckedChange={setAdvanceAllowed} />
-              <span className="text-sm text-muted-foreground tabular-nums">
-                {advanceAllowed ? "Allowed" : "Not Allowed"}
-              </span>
-            </div>
           </div>
 
           <div className="space-y-1.5">
@@ -290,6 +263,34 @@ export default function ExpenseTypeEditPage() {
             </div>
           </div>
 
+          {/* Row 2: Advance Allowed | Audit Sensitive */}
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Advance Allowed</Label>
+            <p className="text-xs text-muted-foreground">
+              Allow employees to request a cash advance against this expense type.
+            </p>
+            <div className="flex items-center gap-3 h-10">
+              <Switch checked={advanceAllowed} onCheckedChange={setAdvanceAllowed} />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {advanceAllowed ? "Allowed" : "Not Allowed"}
+              </span>
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Audit Sensitive</Label>
+            <p className="text-xs text-muted-foreground">
+              Flag this Expense Type for additional audit review and compliance tracking.
+            </p>
+            <div className="flex items-center gap-3 h-10">
+              <Switch checked={auditSensitive} onCheckedChange={setAuditSensitive} />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {auditSensitive ? "Sensitive" : "Standard"}
+              </span>
+            </div>
+          </div>
+
+          {/* Row 3: Alert At | Hard Stop */}
           <div className="space-y-1.5">
             <Label htmlFor="et-alert-at" className="text-sm font-medium flex items-center h-5">Alert At</Label>
             <p className="text-xs text-muted-foreground">
@@ -304,7 +305,7 @@ export default function ExpenseTypeEditPage() {
             />
           </div>
 
-          {/* Row 3: Hard Stop | Flags */}
+          {/* Row 4: Flags (full width pairing) */}
           <div className="space-y-1.5">
             <Label htmlFor="et-hard-stop" className="text-sm font-medium flex items-center h-5">Hard Stop</Label>
             <p className="text-xs text-muted-foreground">
