@@ -50,7 +50,7 @@ export default function AdminExpenseTypesPage() {
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
           <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" /> Export CSV</Button>
-          <Button size="sm"><Plus className="h-4 w-4 mr-1" /> Add Expense Type</Button>
+          <Button size="sm" onClick={() => navigate("/admin/expense-types/new")}><Plus className="h-4 w-4 mr-1" /> Add Expense Type</Button>
         </div>
       </div>
 
