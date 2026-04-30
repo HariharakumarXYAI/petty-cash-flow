@@ -97,12 +97,12 @@ export default function NewClaim() {
       </div>
 
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+        <div className="space-y-4">
 
           {/* ═══════════════════════════════════════════ */}
-          {/* LEFT COLUMN — Receipt Capture + OCR        */}
+          {/* RECEIPT CAPTURE + OCR (full width)         */}
           {/* ═══════════════════════════════════════════ */}
-          <div className="lg:col-span-5 space-y-4">
+          <div className="space-y-4">
 
             {/* Receipt Capture Card */}
             <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
