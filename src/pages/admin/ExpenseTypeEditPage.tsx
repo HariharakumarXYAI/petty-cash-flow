@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Pencil, Trash2, Plus, FileText, ShieldAlert } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, FileText, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -42,10 +43,7 @@ type SubtypeDraft = {
   subcategory: string;
   countries: Country[];
   documentRequired: boolean;
-  auditSensitive: boolean;
   advanceAllowed: boolean;
-  alertThreshold: number;
-  hardStopThreshold: number;
   maxAmount: number;
 };
 
@@ -54,10 +52,7 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   subcategory: e.subcategory,
   countries: [...e.countries] as Country[],
   documentRequired: e.documentRequired,
-  auditSensitive: e.auditSensitive,
   advanceAllowed: e.advanceAllowed,
-  alertThreshold: e.alertThreshold,
-  hardStopThreshold: e.hardStopThreshold,
   maxAmount: e.maxAmount,
 });
 
@@ -66,12 +61,11 @@ const emptySubtype = (): SubtypeDraft => ({
   subcategory: "",
   countries: ["TH"],
   documentRequired: true,
-  auditSensitive: false,
   advanceAllowed: false,
-  alertThreshold: 0,
-  hardStopThreshold: 0,
   maxAmount: 0,
 });
+
+const FLAG_OPTIONS = ["Sensitive", "Advance", "Tax", "Travel", "Recurring"];
 
 export default function ExpenseTypeEditPage() {
   const { id = "" } = useParams();
@@ -96,6 +90,21 @@ export default function ExpenseTypeEditPage() {
   const [advanceAllowed, setAdvanceAllowed] = useState(
     originalSiblings.some((e) => e.advanceAllowed),
   );
+
+  // Category-level thresholds & flags (migrated from subtype level)
+  const initialAlertAt = Math.max(0, ...originalSiblings.map((e) => e.alertThreshold));
+  const initialHardStop = Math.max(0, ...originalSiblings.map((e) => e.hardStopThreshold));
+  const initialFlags = Array.from(
+    new Set(
+      originalSiblings.flatMap((e) => [
+        ...(e.auditSensitive ? ["Sensitive"] : []),
+        ...(e.advanceAllowed ? ["Advance"] : []),
+      ]),
+    ),
+  );
+  const [alertAt, setAlertAt] = useState<number>(initialAlertAt);
+  const [hardStop, setHardStop] = useState<number>(initialHardStop);
+  const [flags, setFlags] = useState<string[]>(initialFlags);
 
   // Subtype list (local draft)
   const [subtypes, setSubtypes] = useState<SubtypeDraft[]>(
@@ -127,11 +136,8 @@ export default function ExpenseTypeEditPage() {
       if (!orig) return true;
       return (
         s.subcategory !== orig.subcategory ||
-        s.alertThreshold !== orig.alertThreshold ||
-        s.hardStopThreshold !== orig.hardStopThreshold ||
         s.maxAmount !== orig.maxAmount ||
         s.documentRequired !== orig.documentRequired ||
-        s.auditSensitive !== orig.auditSensitive ||
         s.advanceAllowed !== orig.advanceAllowed ||
         s.countries.slice().sort().join(",") !==
           (orig.countries as string[]).slice().sort().join(",")
@@ -143,6 +149,9 @@ export default function ExpenseTypeEditPage() {
     documentRequired !== originalSiblings.some((e) => e.documentRequired) ||
     auditSensitive !== originalSiblings.some((e) => e.auditSensitive) ||
     advanceAllowed !== originalSiblings.some((e) => e.advanceAllowed) ||
+    alertAt !== initialAlertAt ||
+    hardStop !== initialHardStop ||
+    flags.slice().sort().join(",") !== initialFlags.slice().sort().join(",") ||
     subtypesChanged;
 
   const disabled = !isDirty || saving;
@@ -249,6 +258,72 @@ export default function ExpenseTypeEditPage() {
             <Switch checked={advanceAllowed} onCheckedChange={setAdvanceAllowed} />
           </div>
         </div>
+
+        <div className="flex items-center justify-between border-t pt-5">
+          <div className="space-y-1 pr-4">
+            <Label htmlFor="et-alert-at" className="text-sm font-medium">Alert At</Label>
+            <p className="text-xs text-muted-foreground">
+              Warn employees when a single claim reaches this amount.
+            </p>
+          </div>
+          <Input
+            id="et-alert-at"
+            type="number"
+            value={alertAt}
+            onChange={(e) => setAlertAt(Number(e.target.value))}
+            className="w-40 text-right tabular-nums"
+          />
+        </div>
+
+        <div className="flex items-center justify-between border-t pt-5">
+          <div className="space-y-1 pr-4">
+            <Label htmlFor="et-hard-stop" className="text-sm font-medium">Hard Stop</Label>
+            <p className="text-xs text-muted-foreground">
+              Block claims that exceed this amount.
+            </p>
+          </div>
+          <Input
+            id="et-hard-stop"
+            type="number"
+            value={hardStop}
+            onChange={(e) => setHardStop(Number(e.target.value))}
+            className="w-40 text-right tabular-nums"
+          />
+        </div>
+
+        <div className="flex items-start justify-between border-t pt-5 gap-4">
+          <div className="space-y-1 pr-4 pt-2">
+            <Label className="text-sm font-medium">Flags</Label>
+            <p className="text-xs text-muted-foreground">
+              Tag this expense type for special handling.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5 justify-end max-w-[60%]">
+            {FLAG_OPTIONS.map((f) => {
+              const active = flags.includes(f);
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() =>
+                    setFlags((prev) =>
+                      active ? prev.filter((x) => x !== f) : [...prev, f],
+                    )
+                  }
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-input hover:bg-muted",
+                  )}
+                >
+                  {f}
+                  {active && <X className="h-3 w-3" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </SectionCard>
 
       <SectionCard
@@ -275,9 +350,6 @@ export default function ExpenseTypeEditPage() {
                   <TableHead>Sub Expense Type Name</TableHead>
                   <TableHead>Countries</TableHead>
                   <TableHead className="text-center">Docs</TableHead>
-                  <TableHead className="text-right">Alert At</TableHead>
-                  <TableHead className="text-right">Hard Stop</TableHead>
-                  <TableHead className="text-center">Flags</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -303,31 +375,6 @@ export default function ExpenseTypeEditPage() {
                       ) : (
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-sm">
-                      <span className="text-status-validating font-medium">
-                        {s.alertThreshold.toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-sm">
-                      <span className="text-status-hold font-semibold">
-                        {s.hardStopThreshold.toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1.5">
-                        {s.auditSensitive && (
-                          <span className="inline-flex items-center gap-0.5 rounded bg-status-hold/10 px-1.5 py-0.5 text-[10px] font-semibold text-status-hold">
-                            <ShieldAlert className="h-2.5 w-2.5" />
-                            Sensitive
-                          </span>
-                        )}
-                        {s.advanceAllowed && (
-                          <span className="inline-flex items-center rounded bg-status-approved/10 px-1.5 py-0.5 text-[10px] font-medium text-status-approved">
-                            Advance
-                          </span>
-                        )}
-                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
@@ -418,47 +465,19 @@ export default function ExpenseTypeEditPage() {
                 </div>
               </FormField>
 
-              <div className="grid grid-cols-3 gap-3">
-                <FormField>
-                  <Label className="text-sm">Alert At</Label>
-                  <Input
-                    type="number"
-                    value={editingSubtype.alertThreshold}
-                    onChange={(e) =>
-                      setEditingSubtype({
-                        ...editingSubtype,
-                        alertThreshold: Number(e.target.value),
-                      })
-                    }
-                  />
-                </FormField>
-                <FormField>
-                  <Label className="text-sm">Hard Stop</Label>
-                  <Input
-                    type="number"
-                    value={editingSubtype.hardStopThreshold}
-                    onChange={(e) =>
-                      setEditingSubtype({
-                        ...editingSubtype,
-                        hardStopThreshold: Number(e.target.value),
-                      })
-                    }
-                  />
-                </FormField>
-                <FormField>
-                  <Label className="text-sm">Max Amount</Label>
-                  <Input
-                    type="number"
-                    value={editingSubtype.maxAmount}
-                    onChange={(e) =>
-                      setEditingSubtype({
-                        ...editingSubtype,
-                        maxAmount: Number(e.target.value),
-                      })
-                    }
-                  />
-                </FormField>
-              </div>
+              <FormField>
+                <Label className="text-sm">Max Amount</Label>
+                <Input
+                  type="number"
+                  value={editingSubtype.maxAmount}
+                  onChange={(e) =>
+                    setEditingSubtype({
+                      ...editingSubtype,
+                      maxAmount: Number(e.target.value),
+                    })
+                  }
+                />
+              </FormField>
 
               <div className="flex items-center justify-between border-t pt-3">
                 <Label className="text-sm">Document Required</Label>
@@ -466,15 +485,6 @@ export default function ExpenseTypeEditPage() {
                   checked={editingSubtype.documentRequired}
                   onCheckedChange={(v) =>
                     setEditingSubtype({ ...editingSubtype, documentRequired: v })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Audit Sensitive</Label>
-                <Switch
-                  checked={editingSubtype.auditSensitive}
-                  onCheckedChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, auditSensitive: v })
                   }
                 />
               </div>
