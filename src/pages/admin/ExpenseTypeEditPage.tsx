@@ -1,29 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Pencil, Trash2, Plus, FileText, X, ChevronDown, Check } from "lucide-react";
+import { Loader2, Trash2, Plus, X, ChevronDown, Check, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { expenseTypes, type ExpenseType } from "@/lib/mock-data";
@@ -32,7 +15,6 @@ import {
   PageShell,
   PageHeader,
   SectionCard,
-  FormField,
   FormActions,
   RequiredMark,
 } from "@/components/layout";
@@ -42,9 +24,7 @@ const ALL_COUNTRIES: Country[] = ["TH", "KH", "MM"];
 
 type SubtypeDraft = {
   id: string;
-  subcategory: string;
-  documentRequired: boolean;
-  maxAmount: number;
+  subExpenseType: string;
   accountNameEn: string;
   accountCode: string;
   requiredDocumentIds: string[];
@@ -54,9 +34,7 @@ type SubtypeDraft = {
 
 const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   id: e.id,
-  subcategory: e.subcategory,
-  documentRequired: e.documentRequired,
-  maxAmount: e.maxAmount,
+  subExpenseType: e.subcategory,
   accountNameEn: "",
   accountCode: "",
   requiredDocumentIds: [],
@@ -66,9 +44,7 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
 
 const emptySubtype = (): SubtypeDraft => ({
   id: `new-${Math.random().toString(36).slice(2, 8)}`,
-  subcategory: "",
-  documentRequired: true,
-  maxAmount: 0,
+  subExpenseType: "",
   accountNameEn: "",
   accountCode: "",
   requiredDocumentIds: [],
@@ -230,9 +206,10 @@ export default function ExpenseTypeEditPage() {
   const [saving, setSaving] = useState(false);
   const [nameError, setNameError] = useState<string | null>(null);
 
-  // Subtype dialog state
-  const [editingSubtype, setEditingSubtype] = useState<SubtypeDraft | null>(null);
-  const [isNewSubtype, setIsNewSubtype] = useState(false);
+  // Per-row required-field errors
+  const [subtypeErrors, setSubtypeErrors] = useState<
+    Record<string, { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean }>
+  >({});
 
   useEffect(() => {
     if (!original) {
@@ -251,9 +228,12 @@ export default function ExpenseTypeEditPage() {
       const orig = originalSiblings.find((o) => o.id === s.id);
       if (!orig) return true;
       return (
-        s.subcategory !== orig.subcategory ||
-        s.maxAmount !== orig.maxAmount ||
-        s.documentRequired !== orig.documentRequired
+        s.subExpenseType !== orig.subcategory ||
+        s.accountNameEn !== "" ||
+        s.accountCode !== "" ||
+        s.requiredDocumentIds.length > 0 ||
+        s.supportedDocumentIds.length > 0 ||
+        s.active !== true
       );
     });
 
@@ -270,9 +250,27 @@ export default function ExpenseTypeEditPage() {
 
   const disabled = !isDirty || saving;
 
+  const validateSubtypes = () => {
+    const errs: Record<string, { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean }> = {};
+    let ok = true;
+    subtypes.forEach((s) => {
+      const rowErr: { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean } = {};
+      if (!s.subExpenseType.trim()) { rowErr.subExpenseType = true; ok = false; }
+      if (!s.accountNameEn.trim()) { rowErr.accountNameEn = true; ok = false; }
+      if (!s.accountCode.trim()) { rowErr.accountCode = true; ok = false; }
+      if (Object.keys(rowErr).length) errs[s.id] = rowErr;
+    });
+    setSubtypeErrors(errs);
+    return ok;
+  };
+
   const handleSave = async () => {
     if (!name.trim()) {
       setNameError("Name is required.");
+      return;
+    }
+    if (!validateSubtypes()) {
+      toast.error("Please fill in all required subtype fields");
       return;
     }
     setSaving(true);
@@ -284,28 +282,36 @@ export default function ExpenseTypeEditPage() {
 
   const handleCancel = () => navigate("/admin/expense-types");
 
-  const openAddSubtype = () => {
-    setEditingSubtype(emptySubtype());
-    setIsNewSubtype(true);
+  const updateSubtype = <K extends keyof SubtypeDraft>(sid: string, key: K, value: SubtypeDraft[K]) => {
+    setSubtypes((prev) => prev.map((s) => (s.id === sid ? { ...s, [key]: value } : s)));
+    const errKey = key as "subExpenseType" | "accountNameEn" | "accountCode";
+    if (subtypeErrors[sid]?.[errKey]) {
+      setSubtypeErrors((prev) => {
+        const next = { ...prev };
+        const row = { ...next[sid] };
+        delete row[errKey];
+        if (Object.keys(row).length === 0) delete next[sid];
+        else next[sid] = row;
+        return next;
+      });
+    }
   };
-  const openEditSubtype = (s: SubtypeDraft) => {
-    setEditingSubtype({ ...s });
-    setIsNewSubtype(false);
+
+  const addSubtype = () => {
+    setSubtypes((prev) => [...prev, emptySubtype()]);
   };
+
   const deleteSubtype = (sid: string) => {
-    setSubtypes((prev) => prev.filter((s) => s.id !== sid));
-  };
-  const commitSubtype = () => {
-    if (!editingSubtype) return;
-    if (!editingSubtype.subcategory.trim()) {
-      toast.error("Subtype name is required");
+    if (subtypes.length <= 1) {
+      toast.error("At least one sub expense type is required");
       return;
     }
-    setSubtypes((prev) => {
-      if (isNewSubtype) return [...prev, editingSubtype];
-      return prev.map((s) => (s.id === editingSubtype.id ? editingSubtype : s));
+    setSubtypes((prev) => prev.filter((s) => s.id !== sid));
+    setSubtypeErrors((prev) => {
+      const next = { ...prev };
+      delete next[sid];
+      return next;
     });
-    setEditingSubtype(null);
   };
 
   return (
@@ -468,70 +474,137 @@ export default function ExpenseTypeEditPage() {
       </SectionCard>
 
       <SectionCard
-        title="Sub Expense Types"
+        title={
+          <span className="inline-flex items-center gap-2">
+            <Layers className="h-4 w-4 text-muted-foreground" />
+            Sub Expense Types
+            <span className="inline-flex items-center justify-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
+              {subtypes.length}
+            </span>
+          </span>
+        }
         description="Configure sub expense types, country availability, and spending thresholds for this Expense Type."
         headerAside={
-          <Button variant="outline" size="sm" onClick={openAddSubtype}>
-            <Plus className="h-4 w-4 mr-1" /> Add Sub Expense Type
+          <Button variant="outline" size="sm" onClick={addSubtype}>
+            <Plus className="h-4 w-4 mr-1" /> Add
           </Button>
         }
       >
-        {subtypes.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <p className="text-sm text-muted-foreground">No sub expense types configured yet</p>
-            <Button variant="outline" size="sm" onClick={openAddSubtype}>
-              <Plus className="h-4 w-4 mr-1" /> Add Sub Expense Type
-            </Button>
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Sub Expense Type Name</TableHead>
-                  <TableHead className="text-center">Docs</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subtypes.map((s) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.subcategory}</TableCell>
-                    <TableCell className="text-center">
-                      {s.documentRequired ? (
-                        <FileText className="h-3.5 w-3.5 text-primary mx-auto" />
-                      ) : (
-                        <span className="text-muted-foreground text-xs">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => openEditSubtype(s)}
-                          aria-label={`Edit ${s.subcategory}`}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => deleteSubtype(s.id)}
-                          aria-label={`Delete ${s.subcategory}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+        <div className="space-y-4">
+          {subtypes.map((s, idx) => {
+            const errs = subtypeErrors[s.id] || {};
+            return (
+              <div key={s.id} className="rounded-lg border bg-card p-6 space-y-4">
+                {/* Header */}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium text-muted-foreground">
+                    Sub Type #{idx + 1}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      s.active
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-muted text-muted-foreground",
+                    )}
+                  >
+                    {s.active ? "Active" : "Inactive"}
+                  </span>
+                </div>
+
+                {/* Row 1: 3-column grid */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">
+                      Sub Expense Type <RequiredMark />
+                    </Label>
+                    <Input
+                      placeholder="e.g., FAT90-Sub-TC001-..."
+                      value={s.subExpenseType}
+                      onChange={(e) => updateSubtype(s.id, "subExpenseType", e.target.value)}
+                      className={cn(errs.subExpenseType && "border-destructive focus-visible:ring-destructive")}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">
+                      Account Name (EN) <RequiredMark />
+                    </Label>
+                    <Input
+                      placeholder="e.g., Account TC001"
+                      value={s.accountNameEn}
+                      onChange={(e) => updateSubtype(s.id, "accountNameEn", e.target.value)}
+                      className={cn(errs.accountNameEn && "border-destructive focus-visible:ring-destructive")}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">
+                      Account Code <RequiredMark />
+                    </Label>
+                    <Input
+                      placeholder="e.g., ACC-TC001"
+                      value={s.accountCode}
+                      onChange={(e) => updateSubtype(s.id, "accountCode", e.target.value)}
+                      className={cn(errs.accountCode && "border-destructive focus-visible:ring-destructive")}
+                    />
+                  </div>
+                </div>
+
+                {/* Row 2: Required Documents */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Required Documents</Label>
+                  <DocMultiSelect
+                    value={s.requiredDocumentIds}
+                    onChange={(v) => updateSubtype(s.id, "requiredDocumentIds", v)}
+                    placeholder="Select required documents..."
+                    options={documentOptions}
+                  />
+                </div>
+
+                {/* Row 3: Supported Documents */}
+                <div className="space-y-1.5">
+                  <Label className="text-sm">Supported Documents</Label>
+                  <DocMultiSelect
+                    value={s.supportedDocumentIds}
+                    onChange={(v) => updateSubtype(s.id, "supportedDocumentIds", v)}
+                    placeholder="Select supported documents..."
+                    options={documentOptions}
+                    closedLabel={(n) => `${n} selected`}
+                  />
+                </div>
+
+                {/* Footer */}
+                <div className="flex items-center justify-between border-t pt-4">
+                  <div className="flex items-center gap-3">
+                    <Label className="text-sm">Active</Label>
+                    <Switch
+                      checked={s.active}
+                      onCheckedChange={(v) => updateSubtype(s.id, "active", v)}
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-destructive hover:text-destructive"
+                    onClick={() => deleteSubtype(s.id)}
+                    disabled={subtypes.length <= 1}
+                    aria-label={`Delete Sub Type #${idx + 1}`}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+
+          {subtypes.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
+              <p className="text-sm text-muted-foreground">No sub expense types configured yet</p>
+              <Button variant="outline" size="sm" onClick={addSubtype}>
+                <Plus className="h-4 w-4 mr-1" /> Add Sub Expense Type
+              </Button>
+            </div>
+          )}
+        </div>
       </SectionCard>
 
       <FormActions
@@ -547,125 +620,6 @@ export default function ExpenseTypeEditPage() {
           </Button>
         }
       />
-
-      <Dialog
-        open={editingSubtype !== null}
-        onOpenChange={(o) => !o && setEditingSubtype(null)}
-      >
-        <DialogContent className="max-w-xl">
-          <DialogHeader>
-            <DialogTitle>{isNewSubtype ? "Add Subtype" : "Edit Subtype"}</DialogTitle>
-          </DialogHeader>
-          {editingSubtype && (
-            <div className="space-y-4">
-              <FormField>
-                <Label className="text-sm">
-                  Subtype Name <RequiredMark />
-                </Label>
-                <Input
-                  value={editingSubtype.subcategory}
-                  onChange={(e) =>
-                    setEditingSubtype({ ...editingSubtype, subcategory: e.target.value })
-                  }
-                />
-              </FormField>
-
-              <FormField>
-                <Label className="text-sm">Max Amount</Label>
-                <Input
-                  type="number"
-                  value={editingSubtype.maxAmount}
-                  onChange={(e) =>
-                    setEditingSubtype({
-                      ...editingSubtype,
-                      maxAmount: Number(e.target.value),
-                    })
-                  }
-                />
-              </FormField>
-
-              <div className="flex items-center justify-between border-t pt-3">
-                <Label className="text-sm">Document Required</Label>
-                <Switch
-                  checked={editingSubtype.documentRequired}
-                  onCheckedChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, documentRequired: v })
-                  }
-                />
-              </div>
-
-              <FormField>
-                <Label className="text-sm">
-                  Account Name (EN) <RequiredMark />
-                </Label>
-                <Input
-                  placeholder="e.g., Account TC001"
-                  value={editingSubtype.accountNameEn}
-                  onChange={(e) =>
-                    setEditingSubtype({ ...editingSubtype, accountNameEn: e.target.value })
-                  }
-                />
-              </FormField>
-
-              <FormField>
-                <Label className="text-sm">
-                  Account Code <RequiredMark />
-                </Label>
-                <Input
-                  placeholder="e.g., ACC-TC001"
-                  value={editingSubtype.accountCode}
-                  onChange={(e) =>
-                    setEditingSubtype({ ...editingSubtype, accountCode: e.target.value })
-                  }
-                />
-              </FormField>
-
-              <FormField>
-                <Label className="text-sm">Required Documents</Label>
-                <DocMultiSelect
-                  value={editingSubtype.requiredDocumentIds}
-                  onChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, requiredDocumentIds: v })
-                  }
-                  placeholder="Select required documents..."
-                  options={documentOptions}
-                />
-              </FormField>
-
-              <FormField>
-                <Label className="text-sm">Supported Documents</Label>
-                <DocMultiSelect
-                  value={editingSubtype.supportedDocumentIds}
-                  onChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, supportedDocumentIds: v })
-                  }
-                  placeholder="Select supported documents..."
-                  options={documentOptions}
-                  closedLabel={(n) => `${n} selected`}
-                />
-              </FormField>
-
-              <div className="flex items-center justify-between border-t pt-3">
-                <Label className="text-sm">Active</Label>
-                <Switch
-                  checked={editingSubtype.active}
-                  onCheckedChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, active: v })
-                  }
-                />
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingSubtype(null)}>
-              Cancel
-            </Button>
-            <Button onClick={commitSubtype}>
-              {isNewSubtype ? "Add Subtype" : "Save Subtype"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </PageShell>
   );
 }

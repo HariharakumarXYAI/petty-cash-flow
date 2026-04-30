@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface SectionCardProps {
-  title: string;
+  title: ReactNode;
   description?: ReactNode;
   /** Right-aligned slot in the section header (e.g. read-only badge). */
   headerAside?: ReactNode;
