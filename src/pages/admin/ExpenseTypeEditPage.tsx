@@ -211,7 +211,7 @@ export default function ExpenseTypeEditPage() {
         description="Configure how this Expense Type behaves in claim submissions."
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
-          {/* Row 1: Expense Type | Audit Sensitive */}
+          {/* Row 1: Expense Type | Countries */}
           <div className="space-y-1.5">
             <Label htmlFor="et-name" className="text-sm font-medium flex items-center h-5">
               Expense Type <RequiredMark />
