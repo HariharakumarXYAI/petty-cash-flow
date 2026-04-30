@@ -375,7 +375,6 @@ export default function ExpenseTypeEditPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Sub Expense Type Name</TableHead>
-                  <TableHead>Countries</TableHead>
                   <TableHead className="text-center">Docs</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
@@ -384,18 +383,6 @@ export default function ExpenseTypeEditPage() {
                 {subtypes.map((s) => (
                   <TableRow key={s.id}>
                     <TableCell className="font-medium">{s.subcategory}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1 flex-wrap">
-                        {s.countries.map((c) => (
-                          <span
-                            key={c}
-                            className="inline-flex items-center rounded bg-secondary px-1.5 py-0.5 text-[10px] font-medium text-secondary-foreground"
-                          >
-                            {c}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
                     <TableCell className="text-center">
                       {s.documentRequired ? (
                         <FileText className="h-3.5 w-3.5 text-primary mx-auto" />
