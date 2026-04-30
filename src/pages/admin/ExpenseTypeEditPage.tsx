@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Trash2, Plus, X, ChevronDown, Check, Layers } from "lucide-react";
+import { Loader2, Plus, X, ChevronDown, Check, Layers } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -301,18 +301,6 @@ export default function ExpenseTypeEditPage() {
     setSubtypes((prev) => [...prev, emptySubtype()]);
   };
 
-  const deleteSubtype = (sid: string) => {
-    if (subtypes.length <= 1) {
-      toast.error("At least one sub expense type is required");
-      return;
-    }
-    setSubtypes((prev) => prev.filter((s) => s.id !== sid));
-    setSubtypeErrors((prev) => {
-      const next = { ...prev };
-      delete next[sid];
-      return next;
-    });
-  };
 
   return (
     <PageShell
@@ -573,7 +561,7 @@ export default function ExpenseTypeEditPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between border-t pt-4">
+                <div className="flex items-center border-t pt-4">
                   <div className="flex items-center gap-3">
                     <Label className="text-sm">Active</Label>
                     <Switch
@@ -581,16 +569,6 @@ export default function ExpenseTypeEditPage() {
                       onCheckedChange={(v) => updateSubtype(s.id, "active", v)}
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => deleteSubtype(s.id)}
-                    disabled={subtypes.length <= 1}
-                    aria-label={`Delete Sub Type #${idx + 1}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             );
