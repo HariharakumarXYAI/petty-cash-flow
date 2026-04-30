@@ -445,7 +445,7 @@ export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPa
               id="et-hard-stop"
               type="number"
               value={hardStop}
-              onChange={(e) => setHardStop(Number(e.target.value))}
+              onChange={(e) => setHardStop(e.target.value === "" ? "" : Number(e.target.value))}
               className="tabular-nums"
             />
           </div>
