@@ -259,6 +259,38 @@ export default function ExpenseTypeEditPage() {
           </div>
 
           <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Countries</Label>
+            <p className="text-xs text-muted-foreground">
+              Select the countries where this expense type is available.
+            </p>
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {ALL_COUNTRIES.map((c) => {
+                const active = countries.includes(c);
+                return (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() =>
+                      setCountries((prev) =>
+                        active ? prev.filter((x) => x !== c) : [...prev, c],
+                      )
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-input hover:bg-muted",
+                    )}
+                  >
+                    {c}
+                    {active && <X className="h-3 w-3" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-1.5">
             <Label htmlFor="et-alert-at" className="text-sm font-medium flex items-center h-5">Alert At</Label>
             <p className="text-xs text-muted-foreground">
               Warn employees when a single claim reaches this amount.
