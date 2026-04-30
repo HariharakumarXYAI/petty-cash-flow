@@ -201,12 +201,12 @@ export default function ExpenseTypeEditPage() {
       }
     >
       <SectionCard
-        title="Category Details"
+        title="Expense Type Details"
         description="Configure how this expense category behaves in claim submissions."
       >
         <FormField>
           <Label htmlFor="et-name" className="text-sm">
-            Category Name <RequiredMark />
+            Expense Type <RequiredMark />
           </Label>
           <Input
             id="et-name"
