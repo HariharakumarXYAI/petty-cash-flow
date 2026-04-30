@@ -466,47 +466,19 @@ export default function ExpenseTypeEditPage() {
                 </div>
               </FormField>
 
-              <div className="grid grid-cols-3 gap-3">
-                <FormField>
-                  <Label className="text-sm">Alert At</Label>
-                  <Input
-                    type="number"
-                    value={editingSubtype.alertThreshold}
-                    onChange={(e) =>
-                      setEditingSubtype({
-                        ...editingSubtype,
-                        alertThreshold: Number(e.target.value),
-                      })
-                    }
-                  />
-                </FormField>
-                <FormField>
-                  <Label className="text-sm">Hard Stop</Label>
-                  <Input
-                    type="number"
-                    value={editingSubtype.hardStopThreshold}
-                    onChange={(e) =>
-                      setEditingSubtype({
-                        ...editingSubtype,
-                        hardStopThreshold: Number(e.target.value),
-                      })
-                    }
-                  />
-                </FormField>
-                <FormField>
-                  <Label className="text-sm">Max Amount</Label>
-                  <Input
-                    type="number"
-                    value={editingSubtype.maxAmount}
-                    onChange={(e) =>
-                      setEditingSubtype({
-                        ...editingSubtype,
-                        maxAmount: Number(e.target.value),
-                      })
-                    }
-                  />
-                </FormField>
-              </div>
+              <FormField>
+                <Label className="text-sm">Max Amount</Label>
+                <Input
+                  type="number"
+                  value={editingSubtype.maxAmount}
+                  onChange={(e) =>
+                    setEditingSubtype({
+                      ...editingSubtype,
+                      maxAmount: Number(e.target.value),
+                    })
+                  }
+                />
+              </FormField>
 
               <div className="flex items-center justify-between border-t pt-3">
                 <Label className="text-sm">Document Required</Label>
@@ -514,15 +486,6 @@ export default function ExpenseTypeEditPage() {
                   checked={editingSubtype.documentRequired}
                   onCheckedChange={(v) =>
                     setEditingSubtype({ ...editingSubtype, documentRequired: v })
-                  }
-                />
-              </div>
-              <div className="flex items-center justify-between">
-                <Label className="text-sm">Audit Sensitive</Label>
-                <Switch
-                  checked={editingSubtype.auditSensitive}
-                  onCheckedChange={(v) =>
-                    setEditingSubtype({ ...editingSubtype, auditSensitive: v })
                   }
                 />
               </div>
