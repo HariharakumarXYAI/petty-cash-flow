@@ -293,11 +293,17 @@ export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPa
     setSaving(true);
     await new Promise((r) => setTimeout(r, 400));
     setSaving(false);
-    toast.success("Expense type updated");
+    toast.success(isCreate ? "Expense type created successfully" : "Expense type updated");
     navigate("/admin/expense-types");
   };
 
-  const handleCancel = () => navigate("/admin/expense-types");
+  const handleCancel = () => {
+    if (isDirty) {
+      const ok = window.confirm("You have unsaved changes. Discard and leave this page?");
+      if (!ok) return;
+    }
+    navigate("/admin/expense-types");
+  };
 
   const updateSubtype = <K extends keyof SubtypeDraft>(sid: string, key: K, value: SubtypeDraft[K]) => {
     setSubtypes((prev) => prev.map((s) => (s.id === sid ? { ...s, [key]: value } : s)));
