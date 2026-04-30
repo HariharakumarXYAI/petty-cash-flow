@@ -41,7 +41,6 @@ const ALL_COUNTRIES: Country[] = ["TH", "KH", "MM"];
 type SubtypeDraft = {
   id: string;
   subcategory: string;
-  countries: Country[];
   documentRequired: boolean;
   advanceAllowed: boolean;
   maxAmount: number;
@@ -50,7 +49,6 @@ type SubtypeDraft = {
 const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   id: e.id,
   subcategory: e.subcategory,
-  countries: [...e.countries] as Country[],
   documentRequired: e.documentRequired,
   advanceAllowed: e.advanceAllowed,
   maxAmount: e.maxAmount,
@@ -59,7 +57,6 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
 const emptySubtype = (): SubtypeDraft => ({
   id: `new-${Math.random().toString(36).slice(2, 8)}`,
   subcategory: "",
-  countries: ["TH"],
   documentRequired: true,
   advanceAllowed: false,
   maxAmount: 0,
