@@ -213,115 +213,113 @@ export default function ExpenseTypeEditPage() {
         title="Expense Type Details"
         description="Configure how this Expense Type behaves in claim submissions."
       >
-        <FormField>
-          <Label htmlFor="et-name" className="text-sm">
-            Expense Type <RequiredMark />
-          </Label>
-          <Input
-            id="et-name"
-            value={name}
-            onChange={(e) => {
-              setName(e.target.value);
-              setNameError(null);
-            }}
-            className={cn(nameError && "border-destructive focus-visible:ring-destructive")}
-          />
-          {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
-        </FormField>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start">
+          {/* Row 1: Expense Type | Audit Sensitive */}
+          <div className="space-y-1.5">
+            <Label htmlFor="et-name" className="text-sm font-medium flex items-center h-5">
+              Expense Type <RequiredMark />
+            </Label>
+            <p className="text-xs text-muted-foreground">
+              The display name for this Expense Type.
+            </p>
+            <Input
+              id="et-name"
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value);
+                setNameError(null);
+              }}
+              className={cn(nameError && "border-destructive focus-visible:ring-destructive")}
+            />
+            {nameError && <p className="text-xs text-destructive mt-1">{nameError}</p>}
+          </div>
 
-        <div className="flex items-center justify-between border-t pt-5">
-          <div className="space-y-1">
-            <Label className="text-sm font-medium">Audit Sensitive</Label>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Audit Sensitive</Label>
             <p className="text-xs text-muted-foreground">
               Flag this Expense Type for additional audit review and compliance tracking.
             </p>
+            <div className="flex items-center gap-3 h-10">
+              <Switch checked={auditSensitive} onCheckedChange={setAuditSensitive} />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {auditSensitive ? "Sensitive" : "Standard"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground tabular-nums w-20 text-right">
-              {auditSensitive ? "Sensitive" : "Standard"}
-            </span>
-            <Switch checked={auditSensitive} onCheckedChange={setAuditSensitive} />
-          </div>
-        </div>
 
-        <div className="flex items-center justify-between border-t pt-5">
-          <div className="space-y-1">
-            <Label className="text-sm font-medium">Advance Allowed</Label>
+          {/* Row 2: Advance Allowed | Alert At */}
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Advance Allowed</Label>
             <p className="text-xs text-muted-foreground">
               Allow employees to request a cash advance against this expense type.
             </p>
+            <div className="flex items-center gap-3 h-10">
+              <Switch checked={advanceAllowed} onCheckedChange={setAdvanceAllowed} />
+              <span className="text-sm text-muted-foreground tabular-nums">
+                {advanceAllowed ? "Allowed" : "Not Allowed"}
+              </span>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-muted-foreground tabular-nums w-24 text-right">
-              {advanceAllowed ? "Allowed" : "Not Allowed"}
-            </span>
-            <Switch checked={advanceAllowed} onCheckedChange={setAdvanceAllowed} />
-          </div>
-        </div>
 
-        <div className="flex items-center justify-between border-t pt-5">
-          <div className="space-y-1 pr-4">
-            <Label htmlFor="et-alert-at" className="text-sm font-medium">Alert At</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="et-alert-at" className="text-sm font-medium flex items-center h-5">Alert At</Label>
             <p className="text-xs text-muted-foreground">
               Warn employees when a single claim reaches this amount.
             </p>
+            <Input
+              id="et-alert-at"
+              type="number"
+              value={alertAt}
+              onChange={(e) => setAlertAt(Number(e.target.value))}
+              className="tabular-nums"
+            />
           </div>
-          <Input
-            id="et-alert-at"
-            type="number"
-            value={alertAt}
-            onChange={(e) => setAlertAt(Number(e.target.value))}
-            className="w-40 text-right tabular-nums"
-          />
-        </div>
 
-        <div className="flex items-center justify-between border-t pt-5">
-          <div className="space-y-1 pr-4">
-            <Label htmlFor="et-hard-stop" className="text-sm font-medium">Hard Stop</Label>
+          {/* Row 3: Hard Stop | Flags */}
+          <div className="space-y-1.5">
+            <Label htmlFor="et-hard-stop" className="text-sm font-medium flex items-center h-5">Hard Stop</Label>
             <p className="text-xs text-muted-foreground">
               Block claims that exceed this amount.
             </p>
+            <Input
+              id="et-hard-stop"
+              type="number"
+              value={hardStop}
+              onChange={(e) => setHardStop(Number(e.target.value))}
+              className="tabular-nums"
+            />
           </div>
-          <Input
-            id="et-hard-stop"
-            type="number"
-            value={hardStop}
-            onChange={(e) => setHardStop(Number(e.target.value))}
-            className="w-40 text-right tabular-nums"
-          />
-        </div>
 
-        <div className="flex items-start justify-between border-t pt-5 gap-4">
-          <div className="space-y-1 pr-4 pt-2">
-            <Label className="text-sm font-medium">Flags</Label>
+          <div className="space-y-1.5">
+            <Label className="text-sm font-medium flex items-center h-5">Flags</Label>
             <p className="text-xs text-muted-foreground">
               Tag this expense type for special handling.
             </p>
-          </div>
-          <div className="flex flex-wrap gap-1.5 justify-end max-w-[60%]">
-            {FLAG_OPTIONS.map((f) => {
-              const active = flags.includes(f);
-              return (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() =>
-                    setFlags((prev) =>
-                      active ? prev.filter((x) => x !== f) : [...prev, f],
-                    )
-                  }
-                  className={cn(
-                    "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-                    active
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-muted-foreground border-input hover:bg-muted",
-                  )}
-                >
-                  {f}
-                  {active && <X className="h-3 w-3" />}
-                </button>
-              );
-            })}
+            <div className="flex flex-wrap gap-1.5 pt-1">
+              {FLAG_OPTIONS.map((f) => {
+                const active = flags.includes(f);
+                return (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() =>
+                      setFlags((prev) =>
+                        active ? prev.filter((x) => x !== f) : [...prev, f],
+                      )
+                    }
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                      active
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-input hover:bg-muted",
+                    )}
+                  >
+                    {f}
+                    {active && <X className="h-3 w-3" />}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </SectionCard>
