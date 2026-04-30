@@ -599,9 +599,9 @@ export default function EmployeeEditPage() {
               title="Organization Structure"
               description="Business unit, location, and reporting hierarchy."
             />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 items-start [&>div>label]:flex [&>div>label]:items-center [&>div>label]:gap-1.5 [&>div>label]:h-5">
               <div>
-                <Label htmlFor="org-bu" className="flex items-center gap-1.5">
+                <Label htmlFor="org-bu">
                   Business Unit <Req />
                   <span title="Business Unit is set to Wholesale by default and cannot be changed" className="inline-flex">
                     <LockIcon className="h-3.5 w-3.5 text-muted-foreground" aria-label="Business Unit is set to Wholesale by default and cannot be changed" />
