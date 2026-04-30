@@ -259,6 +259,72 @@ export default function ExpenseTypeEditPage() {
             <Switch checked={advanceAllowed} onCheckedChange={setAdvanceAllowed} />
           </div>
         </div>
+
+        <div className="flex items-center justify-between border-t pt-5">
+          <div className="space-y-1 pr-4">
+            <Label htmlFor="et-alert-at" className="text-sm font-medium">Alert At</Label>
+            <p className="text-xs text-muted-foreground">
+              Warn employees when a single claim reaches this amount.
+            </p>
+          </div>
+          <Input
+            id="et-alert-at"
+            type="number"
+            value={alertAt}
+            onChange={(e) => setAlertAt(Number(e.target.value))}
+            className="w-40 text-right tabular-nums"
+          />
+        </div>
+
+        <div className="flex items-center justify-between border-t pt-5">
+          <div className="space-y-1 pr-4">
+            <Label htmlFor="et-hard-stop" className="text-sm font-medium">Hard Stop</Label>
+            <p className="text-xs text-muted-foreground">
+              Block claims that exceed this amount.
+            </p>
+          </div>
+          <Input
+            id="et-hard-stop"
+            type="number"
+            value={hardStop}
+            onChange={(e) => setHardStop(Number(e.target.value))}
+            className="w-40 text-right tabular-nums"
+          />
+        </div>
+
+        <div className="flex items-start justify-between border-t pt-5 gap-4">
+          <div className="space-y-1 pr-4 pt-2">
+            <Label className="text-sm font-medium">Flags</Label>
+            <p className="text-xs text-muted-foreground">
+              Tag this expense type for special handling.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5 justify-end max-w-[60%]">
+            {FLAG_OPTIONS.map((f) => {
+              const active = flags.includes(f);
+              return (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() =>
+                    setFlags((prev) =>
+                      active ? prev.filter((x) => x !== f) : [...prev, f],
+                    )
+                  }
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                    active
+                      ? "bg-primary text-primary-foreground border-primary"
+                      : "bg-background text-muted-foreground border-input hover:bg-muted",
+                  )}
+                >
+                  {f}
+                  {active && <X className="h-3 w-3" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </SectionCard>
 
       <SectionCard
