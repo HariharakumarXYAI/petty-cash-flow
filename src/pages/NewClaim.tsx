@@ -29,6 +29,20 @@ export default function NewClaim() {
   const [linkedAdvance, setLinkedAdvance] = useState("");
   const [vendor, setVendor] = useState("");
   const [receiptDate, setReceiptDate] = useState("2026-03-06");
+  const [requesterEdit, setRequesterEdit] = useState(false);
+  const [onBehalf, setOnBehalf] = useState(false);
+  const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
+  const [delegationReason, setDelegationReason] = useState("");
+  const requester = {
+    employeeId: "EMP-10247",
+    fullName: "Somchai Prathumwan",
+    department: "store-ops",
+    position: "Store Manager",
+    storeCode: "BKK-001",
+    costCenter: "CC-5520",
+    email: "somchai.p@cpaxtra.com",
+    phone: "081-234-5678",
+  };
 
   const filteredStores = country === "all" ? stores : stores.filter(s => s.country === country);
   const filteredExpenseTypes = country === "all" ? expenseTypes : expenseTypes.filter(e => e.countries.includes(country as any));
