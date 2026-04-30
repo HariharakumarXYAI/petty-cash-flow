@@ -137,11 +137,8 @@ export default function ExpenseTypeEditPage() {
       if (!orig) return true;
       return (
         s.subcategory !== orig.subcategory ||
-        s.alertThreshold !== orig.alertThreshold ||
-        s.hardStopThreshold !== orig.hardStopThreshold ||
         s.maxAmount !== orig.maxAmount ||
         s.documentRequired !== orig.documentRequired ||
-        s.auditSensitive !== orig.auditSensitive ||
         s.advanceAllowed !== orig.advanceAllowed ||
         s.countries.slice().sort().join(",") !==
           (orig.countries as string[]).slice().sort().join(",")
@@ -153,6 +150,9 @@ export default function ExpenseTypeEditPage() {
     documentRequired !== originalSiblings.some((e) => e.documentRequired) ||
     auditSensitive !== originalSiblings.some((e) => e.auditSensitive) ||
     advanceAllowed !== originalSiblings.some((e) => e.advanceAllowed) ||
+    alertAt !== initialAlertAt ||
+    hardStop !== initialHardStop ||
+    flags.slice().sort().join(",") !== initialFlags.slice().sort().join(",") ||
     subtypesChanged;
 
   const disabled = !isDirty || saving;
