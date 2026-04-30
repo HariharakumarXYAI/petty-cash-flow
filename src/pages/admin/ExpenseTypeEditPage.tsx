@@ -377,31 +377,6 @@ export default function ExpenseTypeEditPage() {
                         <span className="text-muted-foreground text-xs">—</span>
                       )}
                     </TableCell>
-                    <TableCell className="text-right tabular-nums text-sm">
-                      <span className="text-status-validating font-medium">
-                        {s.alertThreshold.toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums text-sm">
-                      <span className="text-status-hold font-semibold">
-                        {s.hardStopThreshold.toLocaleString()}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1.5">
-                        {s.auditSensitive && (
-                          <span className="inline-flex items-center gap-0.5 rounded bg-status-hold/10 px-1.5 py-0.5 text-[10px] font-semibold text-status-hold">
-                            <ShieldAlert className="h-2.5 w-2.5" />
-                            Sensitive
-                          </span>
-                        )}
-                        {s.advanceAllowed && (
-                          <span className="inline-flex items-center rounded bg-status-approved/10 px-1.5 py-0.5 text-[10px] font-medium text-status-approved">
-                            Advance
-                          </span>
-                        )}
-                      </div>
-                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex items-center justify-end gap-1">
                         <Button
