@@ -331,8 +331,8 @@ export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPa
         <PageHeader
           backHref="/admin/expense-types"
           backLabel="Back to Expense Types"
-          title="Edit Expense Type"
-          subtitle={categoryName}
+          title={isCreate ? "Create Expense Type" : "Edit Expense Type"}
+          subtitle={isCreate ? undefined : categoryName}
         />
       }
     >
