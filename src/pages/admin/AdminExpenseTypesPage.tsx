@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Upload, Download, Pencil, Search, ShieldAlert } from "lucide-react";
+import { ImportExpenseTypesDialog } from "@/components/admin/ImportExpenseTypesDialog";
 
 type ExpenseRow = (typeof expenseTypes)[number];
 
@@ -14,6 +15,7 @@ export default function AdminExpenseTypesPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
+  const [importOpen, setImportOpen] = useState(false);
 
   // Group expense types by category
   const grouped = expenseTypes.reduce<Record<string, ExpenseRow[]>>((acc, et) => {
@@ -48,7 +50,7 @@ export default function AdminExpenseTypesPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm"><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
+          <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}><Upload className="h-4 w-4 mr-1" /> Import CSV</Button>
           <Button variant="outline" size="sm"><Download className="h-4 w-4 mr-1" /> Export CSV</Button>
           <Button size="sm" onClick={() => navigate("/admin/expense-types/new")}><Plus className="h-4 w-4 mr-1" /> Add Expense Type</Button>
         </div>
@@ -133,6 +135,8 @@ export default function AdminExpenseTypesPage() {
           </TableBody>
         </Table>
       </div>
+
+      <ImportExpenseTypesDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
