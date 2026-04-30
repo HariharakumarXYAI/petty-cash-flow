@@ -24,8 +24,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { expenseTypes, type ExpenseType } from "@/lib/mock-data";
+import { loadDocuments } from "@/lib/documents-store";
 import {
   PageShell,
   PageHeader,
