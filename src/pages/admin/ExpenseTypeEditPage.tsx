@@ -44,10 +44,7 @@ type SubtypeDraft = {
   subcategory: string;
   countries: Country[];
   documentRequired: boolean;
-  auditSensitive: boolean;
   advanceAllowed: boolean;
-  alertThreshold: number;
-  hardStopThreshold: number;
   maxAmount: number;
 };
 
@@ -56,10 +53,7 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   subcategory: e.subcategory,
   countries: [...e.countries] as Country[],
   documentRequired: e.documentRequired,
-  auditSensitive: e.auditSensitive,
   advanceAllowed: e.advanceAllowed,
-  alertThreshold: e.alertThreshold,
-  hardStopThreshold: e.hardStopThreshold,
   maxAmount: e.maxAmount,
 });
 
@@ -68,12 +62,11 @@ const emptySubtype = (): SubtypeDraft => ({
   subcategory: "",
   countries: ["TH"],
   documentRequired: true,
-  auditSensitive: false,
   advanceAllowed: false,
-  alertThreshold: 0,
-  hardStopThreshold: 0,
   maxAmount: 0,
 });
+
+const FLAG_OPTIONS = ["Sensitive", "Advance", "Tax", "Travel", "Recurring"];
 
 export default function ExpenseTypeEditPage() {
   const { id = "" } = useParams();
