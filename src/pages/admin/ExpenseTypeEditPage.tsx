@@ -150,7 +150,12 @@ function DocMultiSelect({
   );
 }
 
-export default function ExpenseTypeEditPage() {
+interface ExpenseTypeEditPageProps {
+  mode?: "create" | "edit";
+}
+
+export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPageProps) {
+  const isCreate = mode === "create";
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const documentOptions = useMemo(
@@ -158,49 +163,60 @@ export default function ExpenseTypeEditPage() {
     [],
   );
 
-  // Resolve the parent category from the row id used in the URL
-  const original = useMemo(() => expenseTypes.find((e) => e.id === id), [id]);
+  // Resolve the parent category from the row id used in the URL (edit mode only)
+  const original = useMemo(
+    () => (isCreate ? undefined : expenseTypes.find((e) => e.id === id)),
+    [id, isCreate],
+  );
   const categoryName = original?.category ?? "";
   const originalSiblings = useMemo(
-    () => expenseTypes.filter((e) => e.category === categoryName),
-    [categoryName],
+    () => (isCreate ? [] : expenseTypes.filter((e) => e.category === categoryName)),
+    [categoryName, isCreate],
   );
 
   // Category-level details (derived from any sibling — keep original as source)
-  const [name, setName] = useState(categoryName);
+  const [name, setName] = useState(isCreate ? "" : categoryName);
   const [documentRequired, setDocumentRequired] = useState(
-    originalSiblings.some((e) => e.documentRequired),
+    isCreate ? false : originalSiblings.some((e) => e.documentRequired),
   );
   const [auditSensitive, setAuditSensitive] = useState(
-    originalSiblings.some((e) => e.auditSensitive),
+    isCreate ? false : originalSiblings.some((e) => e.auditSensitive),
   );
   const [advanceAllowed, setAdvanceAllowed] = useState(
-    originalSiblings.some((e) => e.advanceAllowed),
+    isCreate ? false : originalSiblings.some((e) => e.advanceAllowed),
   );
 
   // Category-level thresholds & flags (migrated from subtype level)
-  const initialAlertAt = Math.max(0, ...originalSiblings.map((e) => e.alertThreshold));
-  const initialHardStop = Math.max(0, ...originalSiblings.map((e) => e.hardStopThreshold));
-  const initialFlags = Array.from(
-    new Set(
-      originalSiblings.flatMap((e) => [
-        ...(e.auditSensitive ? ["Sensitive"] : []),
-        ...(e.advanceAllowed ? ["Advance"] : []),
-      ]),
-    ),
-  );
+  const initialAlertAt = isCreate
+    ? ("" as number | "")
+    : Math.max(0, ...originalSiblings.map((e) => e.alertThreshold));
+  const initialHardStop = isCreate
+    ? ("" as number | "")
+    : Math.max(0, ...originalSiblings.map((e) => e.hardStopThreshold));
+  const initialFlags = isCreate
+    ? []
+    : Array.from(
+        new Set(
+          originalSiblings.flatMap((e) => [
+            ...(e.auditSensitive ? ["Sensitive"] : []),
+            ...(e.advanceAllowed ? ["Advance"] : []),
+          ]),
+        ),
+      );
   // Category-level countries: union of all subtype country lists
-  const initialCountries = Array.from(
-    new Set(originalSiblings.flatMap((e) => e.countries as Country[])),
-  ) as Country[];
-  const [alertAt, setAlertAt] = useState<number>(initialAlertAt);
-  const [hardStop, setHardStop] = useState<number>(initialHardStop);
+  const initialCountries = isCreate
+    ? ([] as Country[])
+    : (Array.from(
+        new Set(originalSiblings.flatMap((e) => e.countries as Country[])),
+      ) as Country[]);
+  const [alertAt, setAlertAt] = useState<number | "">(initialAlertAt);
+  const [hardStop, setHardStop] = useState<number | "">(initialHardStop);
   const [flags, setFlags] = useState<string[]>(initialFlags);
   const [countries, setCountries] = useState<Country[]>(initialCountries);
 
-  // Subtype list (local draft)
+  // Subtype list (local draft) — create mode starts with one empty card
   const [subtypes, setSubtypes] = useState<SubtypeDraft[]>(
-    originalSiblings.map(fromExpense),
+    isCreate ? [emptySubtype()] : originalSiblings.map(fromExpense),
   );
 
   const [saving, setSaving] = useState(false);
@@ -212,13 +228,13 @@ export default function ExpenseTypeEditPage() {
   >({});
 
   useEffect(() => {
-    if (!original) {
+    if (!isCreate && !original) {
       toast.error("Expense type not found");
       navigate("/admin/expense-types", { replace: true });
     }
-  }, [original, navigate]);
+  }, [original, navigate, isCreate]);
 
-  if (!original) return null;
+  if (!isCreate && !original) return null;
 
   const initialSubtypeIds = originalSiblings.map((s) => s.id).join("|");
   const currentSubtypeIds = subtypes.map((s) => s.id).join("|");
