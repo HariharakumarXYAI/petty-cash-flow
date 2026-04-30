@@ -573,7 +573,7 @@ export default function ExpenseTypeEditPage() {
                 </div>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between border-t pt-4">
+                <div className="flex items-center border-t pt-4">
                   <div className="flex items-center gap-3">
                     <Label className="text-sm">Active</Label>
                     <Switch
@@ -581,16 +581,6 @@ export default function ExpenseTypeEditPage() {
                       onCheckedChange={(v) => updateSubtype(s.id, "active", v)}
                     />
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:text-destructive"
-                    onClick={() => deleteSubtype(s.id)}
-                    disabled={subtypes.length <= 1}
-                    aria-label={`Delete Sub Type #${idx + 1}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
               </div>
             );
