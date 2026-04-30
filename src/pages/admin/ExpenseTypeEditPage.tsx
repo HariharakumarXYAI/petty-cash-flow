@@ -301,18 +301,6 @@ export default function ExpenseTypeEditPage() {
     setSubtypes((prev) => [...prev, emptySubtype()]);
   };
 
-  const deleteSubtype = (sid: string) => {
-    if (subtypes.length <= 1) {
-      toast.error("At least one sub expense type is required");
-      return;
-    }
-    setSubtypes((prev) => prev.filter((s) => s.id !== sid));
-    setSubtypeErrors((prev) => {
-      const next = { ...prev };
-      delete next[sid];
-      return next;
-    });
-  };
 
   return (
     <PageShell
