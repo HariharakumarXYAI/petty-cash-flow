@@ -254,6 +254,7 @@ export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPa
     });
 
   const isDirty =
+    isCreate ||
     name.trim() !== categoryName ||
     documentRequired !== originalSiblings.some((e) => e.documentRequired) ||
     auditSensitive !== originalSiblings.some((e) => e.auditSensitive) ||
@@ -264,7 +265,7 @@ export default function ExpenseTypeEditPage({ mode = "edit" }: ExpenseTypeEditPa
     countries.slice().sort().join(",") !== initialCountries.slice().sort().join(",") ||
     subtypesChanged;
 
-  const disabled = !isDirty || saving;
+  const disabled = (!isCreate && !isDirty) || saving;
 
   const validateSubtypes = () => {
     const errs: Record<string, { subExpenseType?: boolean; accountNameEn?: boolean; accountCode?: boolean }> = {};
