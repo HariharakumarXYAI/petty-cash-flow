@@ -305,7 +305,7 @@ export default function ExpenseTypeEditPage() {
             />
           </div>
 
-          {/* Row 3: Hard Stop | Flags */}
+          {/* Row 4: Flags (full width pairing) */}
           <div className="space-y-1.5">
             <Label htmlFor="et-hard-stop" className="text-sm font-medium flex items-center h-5">Hard Stop</Label>
             <p className="text-xs text-muted-foreground">
