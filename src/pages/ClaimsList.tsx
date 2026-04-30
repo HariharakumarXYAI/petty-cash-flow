@@ -139,21 +139,6 @@ export default function ClaimsList() {
             {uniqueExpenseTypes.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={employeeTypeFilter} onValueChange={handleEmployeeTypeChange}>
-          <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Types" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="HO">🏢 HO (Head Office)</SelectItem>
-            <SelectItem value="Store">🏪 Store</SelectItem>
-          </SelectContent>
-        </Select>
-        <Select value={positionFilter} onValueChange={setPositionFilter}>
-          <SelectTrigger className="w-[220px] h-8 text-xs"><SelectValue placeholder="All Positions" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Positions</SelectItem>
-            {positionOptions.map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}
-          </SelectContent>
-        </Select>
         {employeeTypeFilter === "Store" && (
           <Select value={empStoreFilter} onValueChange={setEmpStoreFilter}>
             <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="All Stores" /></SelectTrigger>
