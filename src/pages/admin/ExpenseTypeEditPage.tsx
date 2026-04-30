@@ -202,7 +202,7 @@ export default function ExpenseTypeEditPage() {
     >
       <SectionCard
         title="Expense Type Details"
-        description="Configure how this expense category behaves in claim submissions."
+        description="Configure how this Expense Type behaves in claim submissions."
       >
         <FormField>
           <Label htmlFor="et-name" className="text-sm">
