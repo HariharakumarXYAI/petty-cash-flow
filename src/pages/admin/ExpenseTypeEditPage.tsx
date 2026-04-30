@@ -252,19 +252,19 @@ export default function ExpenseTypeEditPage() {
       </SectionCard>
 
       <SectionCard
-        title="Subtypes"
-        description="Configure subtypes, country availability, and spending thresholds for this Expense Type."
+        title="Sub Expense Types"
+        description="Configure sub expense types, country availability, and spending thresholds for this Expense Type."
         headerAside={
           <Button variant="outline" size="sm" onClick={openAddSubtype}>
-            <Plus className="h-4 w-4 mr-1" /> Add Subtype
+            <Plus className="h-4 w-4 mr-1" /> Add Sub Expense Type
           </Button>
         }
       >
         {subtypes.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-3 py-10 text-center">
-            <p className="text-sm text-muted-foreground">No subtypes configured yet</p>
+            <p className="text-sm text-muted-foreground">No sub expense types configured yet</p>
             <Button variant="outline" size="sm" onClick={openAddSubtype}>
-              <Plus className="h-4 w-4 mr-1" /> Add Subtype
+              <Plus className="h-4 w-4 mr-1" /> Add Sub Expense Type
             </Button>
           </div>
         ) : (
@@ -272,7 +272,7 @@ export default function ExpenseTypeEditPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Subtype Name</TableHead>
+                  <TableHead>Sub Expense Type Name</TableHead>
                   <TableHead>Countries</TableHead>
                   <TableHead className="text-center">Docs</TableHead>
                   <TableHead className="text-right">Alert At</TableHead>
