@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Upload, Download, Pencil, Search, ShieldAlert, FileText } from "lucide-react";
+import { Plus, Upload, Download, Pencil, Search, ShieldAlert } from "lucide-react";
 
 type ExpenseRow = (typeof expenseTypes)[number];
 
@@ -76,7 +76,7 @@ export default function AdminExpenseTypesPage() {
               <TableHead>Expense Type</TableHead>
               <TableHead>Subtypes</TableHead>
               <TableHead className="hidden md:table-cell">Countries</TableHead>
-              <TableHead className="hidden lg:table-cell text-center">Docs</TableHead>
+              
               <TableHead className="hidden lg:table-cell text-right">Alert At</TableHead>
               <TableHead className="hidden lg:table-cell text-right">Hard Stop</TableHead>
               <TableHead className="hidden xl:table-cell text-center">Flags</TableHead>
@@ -98,13 +98,6 @@ export default function AdminExpenseTypesPage() {
                       </span>
                     ))}
                   </div>
-                </TableCell>
-                <TableCell className="hidden lg:table-cell text-center">
-                  {items.some(i => i.documentRequired) ? (
-                    <FileText className="h-3.5 w-3.5 text-primary mx-auto" />
-                  ) : (
-                    <span className="text-muted-foreground text-xs">—</span>
-                  )}
                 </TableCell>
                 <TableCell className="hidden lg:table-cell" />
                 <TableCell className="hidden lg:table-cell" />
@@ -132,7 +125,7 @@ export default function AdminExpenseTypesPage() {
             ))}
             {categories.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
+                <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                   No expense types found
                 </TableCell>
               </TableRow>
