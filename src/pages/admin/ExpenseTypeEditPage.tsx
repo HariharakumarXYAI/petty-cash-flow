@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Loader2, Pencil, Trash2, Plus, FileText, X } from "lucide-react";
+import { Loader2, Pencil, Trash2, Plus, FileText, X, ChevronDown, Check } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { expenseTypes, type ExpenseType } from "@/lib/mock-data";
+import { loadDocuments } from "@/lib/documents-store";
 import {
   PageShell,
   PageHeader,
@@ -43,6 +45,11 @@ type SubtypeDraft = {
   subcategory: string;
   documentRequired: boolean;
   maxAmount: number;
+  accountNameEn: string;
+  accountCode: string;
+  requiredDocumentIds: string[];
+  supportedDocumentIds: string[];
+  active: boolean;
 };
 
 const fromExpense = (e: ExpenseType): SubtypeDraft => ({
@@ -50,6 +57,11 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   subcategory: e.subcategory,
   documentRequired: e.documentRequired,
   maxAmount: e.maxAmount,
+  accountNameEn: "",
+  accountCode: "",
+  requiredDocumentIds: [],
+  supportedDocumentIds: [],
+  active: true,
 });
 
 const emptySubtype = (): SubtypeDraft => ({
@@ -57,13 +69,118 @@ const emptySubtype = (): SubtypeDraft => ({
   subcategory: "",
   documentRequired: true,
   maxAmount: 0,
+  accountNameEn: "",
+  accountCode: "",
+  requiredDocumentIds: [],
+  supportedDocumentIds: [],
+  active: true,
 });
 
 const FLAG_OPTIONS = ["Sensitive", "Advance", "Tax", "Travel", "Recurring"];
 
+function DocMultiSelect({
+  value,
+  onChange,
+  placeholder,
+  options,
+  closedLabel,
+}: {
+  value: string[];
+  onChange: (v: string[]) => void;
+  placeholder: string;
+  options: { id: string; name: string }[];
+  closedLabel?: (count: number) => string;
+}) {
+  const [open, setOpen] = useState(false);
+  const toggle = (id: string) => {
+    onChange(value.includes(id) ? value.filter((x) => x !== id) : [...value, id]);
+  };
+  const triggerText =
+    value.length === 0
+      ? placeholder
+      : closedLabel
+        ? closedLabel(value.length)
+        : `${value.length} selected`;
+  return (
+    <div className="space-y-2">
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button
+            type="button"
+            className={cn(
+              "flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm",
+              value.length === 0 && "text-muted-foreground",
+            )}
+          >
+            <span className="truncate">{triggerText}</span>
+            <ChevronDown className="h-4 w-4 opacity-50 shrink-0" />
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-1" align="start">
+          <div className="max-h-60 overflow-auto">
+            {options.length === 0 ? (
+              <div className="px-2 py-1.5 text-sm text-muted-foreground">No documents available</div>
+            ) : (
+              options.map((opt) => {
+                const selected = value.includes(opt.id);
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => toggle(opt.id)}
+                    className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent text-left"
+                  >
+                    <div
+                      className={cn(
+                        "flex h-4 w-4 items-center justify-center rounded border border-input",
+                        selected && "bg-primary border-primary text-primary-foreground",
+                      )}
+                    >
+                      {selected && <Check className="h-3 w-3" />}
+                    </div>
+                    <span className="truncate">{opt.name}</span>
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+      {value.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          {value.map((id) => {
+            const opt = options.find((o) => o.id === id);
+            if (!opt) return null;
+            return (
+              <span
+                key={id}
+                className="inline-flex items-center gap-1 rounded-md bg-secondary px-2 py-0.5 text-xs font-medium text-secondary-foreground"
+              >
+                {opt.name}
+                <button
+                  type="button"
+                  onClick={() => toggle(id)}
+                  className="hover:text-foreground"
+                  aria-label={`Remove ${opt.name}`}
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ExpenseTypeEditPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
+  const documentOptions = useMemo(
+    () => loadDocuments().filter((d) => d.active).map((d) => ({ id: d.id, name: d.name })),
+    [],
+  );
 
   // Resolve the parent category from the row id used in the URL
   const original = useMemo(() => expenseTypes.find((e) => e.id === id), [id]);
@@ -473,6 +590,67 @@ export default function ExpenseTypeEditPage() {
                   checked={editingSubtype.documentRequired}
                   onCheckedChange={(v) =>
                     setEditingSubtype({ ...editingSubtype, documentRequired: v })
+                  }
+                />
+              </div>
+
+              <FormField>
+                <Label className="text-sm">
+                  Account Name (EN) <RequiredMark />
+                </Label>
+                <Input
+                  placeholder="e.g., Account TC001"
+                  value={editingSubtype.accountNameEn}
+                  onChange={(e) =>
+                    setEditingSubtype({ ...editingSubtype, accountNameEn: e.target.value })
+                  }
+                />
+              </FormField>
+
+              <FormField>
+                <Label className="text-sm">
+                  Account Code <RequiredMark />
+                </Label>
+                <Input
+                  placeholder="e.g., ACC-TC001"
+                  value={editingSubtype.accountCode}
+                  onChange={(e) =>
+                    setEditingSubtype({ ...editingSubtype, accountCode: e.target.value })
+                  }
+                />
+              </FormField>
+
+              <FormField>
+                <Label className="text-sm">Required Documents</Label>
+                <DocMultiSelect
+                  value={editingSubtype.requiredDocumentIds}
+                  onChange={(v) =>
+                    setEditingSubtype({ ...editingSubtype, requiredDocumentIds: v })
+                  }
+                  placeholder="Select required documents..."
+                  options={documentOptions}
+                />
+              </FormField>
+
+              <FormField>
+                <Label className="text-sm">Supported Documents</Label>
+                <DocMultiSelect
+                  value={editingSubtype.supportedDocumentIds}
+                  onChange={(v) =>
+                    setEditingSubtype({ ...editingSubtype, supportedDocumentIds: v })
+                  }
+                  placeholder="Select supported documents..."
+                  options={documentOptions}
+                  closedLabel={(n) => `${n} selected`}
+                />
+              </FormField>
+
+              <div className="flex items-center justify-between border-t pt-3">
+                <Label className="text-sm">Active</Label>
+                <Switch
+                  checked={editingSubtype.active}
+                  onCheckedChange={(v) =>
+                    setEditingSubtype({ ...editingSubtype, active: v })
                   }
                 />
               </div>
