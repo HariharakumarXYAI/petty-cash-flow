@@ -515,17 +515,6 @@ export default function ExpenseTypeEditPage() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-sm">
-                      Account Name (EN) <RequiredMark />
-                    </Label>
-                    <Input
-                      placeholder="e.g., Account TC001"
-                      value={s.accountNameEn}
-                      onChange={(e) => updateSubtype(s.id, "accountNameEn", e.target.value)}
-                      className={cn(errs.accountNameEn && "border-destructive focus-visible:ring-destructive")}
-                    />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-sm">
                       Account Code <RequiredMark />
                     </Label>
                     <Input
@@ -533,6 +522,17 @@ export default function ExpenseTypeEditPage() {
                       value={s.accountCode}
                       onChange={(e) => updateSubtype(s.id, "accountCode", e.target.value)}
                       className={cn(errs.accountCode && "border-destructive focus-visible:ring-destructive")}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-sm">
+                      Account Name (EN) <RequiredMark />
+                    </Label>
+                    <Input
+                      placeholder="e.g., Account TC001"
+                      value={s.accountNameEn}
+                      onChange={(e) => updateSubtype(s.id, "accountNameEn", e.target.value)}
+                      className={cn(errs.accountNameEn && "border-destructive focus-visible:ring-destructive")}
                     />
                   </div>
                 </div>
