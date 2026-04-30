@@ -132,6 +132,7 @@ function AppRoutes() {
         <Route path="admin/roles/new" element={<AdminLayout><RoleNewPage /></AdminLayout>} />
         <Route path="admin/roles/:roleId" element={<AdminLayout><RoleDetailPage /></AdminLayout>} />
         <Route path="admin/expense-types" element={<AdminLayout><AdminExpenseTypesPage /></AdminLayout>} />
+        <Route path="admin/expense-types/new" element={<AdminLayout><ExpenseTypeEditPage mode="create" /></AdminLayout>} />
         <Route path="admin/expense-types/:id/edit" element={<AdminLayout><ExpenseTypeEditPage /></AdminLayout>} />
         <Route path="admin/documents" element={<AdminLayout><DocumentsPage /></AdminLayout>} />
         <Route path="admin/documents/:id/edit" element={<AdminLayout><DocumentEditPage /></AdminLayout>} />
