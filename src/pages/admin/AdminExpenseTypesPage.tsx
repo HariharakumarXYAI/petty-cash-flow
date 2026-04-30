@@ -135,6 +135,8 @@ export default function AdminExpenseTypesPage() {
           </TableBody>
         </Table>
       </div>
+
+      <ImportExpenseTypesDialog open={importOpen} onOpenChange={setImportOpen} />
     </div>
   );
 }
