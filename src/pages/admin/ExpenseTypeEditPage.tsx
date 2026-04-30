@@ -140,9 +140,7 @@ export default function ExpenseTypeEditPage() {
         s.subcategory !== orig.subcategory ||
         s.maxAmount !== orig.maxAmount ||
         s.documentRequired !== orig.documentRequired ||
-        s.advanceAllowed !== orig.advanceAllowed ||
-        s.countries.slice().sort().join(",") !==
-          (orig.countries as string[]).slice().sort().join(",")
+        s.advanceAllowed !== orig.advanceAllowed
       );
     });
 
@@ -154,6 +152,7 @@ export default function ExpenseTypeEditPage() {
     alertAt !== initialAlertAt ||
     hardStop !== initialHardStop ||
     flags.slice().sort().join(",") !== initialFlags.slice().sort().join(",") ||
+    countries.slice().sort().join(",") !== initialCountries.slice().sort().join(",") ||
     subtypesChanged;
 
   const disabled = !isDirty || saving;
