@@ -45,6 +45,11 @@ type SubtypeDraft = {
   subcategory: string;
   documentRequired: boolean;
   maxAmount: number;
+  accountNameEn: string;
+  accountCode: string;
+  requiredDocumentIds: string[];
+  supportedDocumentIds: string[];
+  active: boolean;
 };
 
 const fromExpense = (e: ExpenseType): SubtypeDraft => ({
@@ -52,6 +57,11 @@ const fromExpense = (e: ExpenseType): SubtypeDraft => ({
   subcategory: e.subcategory,
   documentRequired: e.documentRequired,
   maxAmount: e.maxAmount,
+  accountNameEn: "",
+  accountCode: "",
+  requiredDocumentIds: [],
+  supportedDocumentIds: [],
+  active: true,
 });
 
 const emptySubtype = (): SubtypeDraft => ({
@@ -59,6 +69,11 @@ const emptySubtype = (): SubtypeDraft => ({
   subcategory: "",
   documentRequired: true,
   maxAmount: 0,
+  accountNameEn: "",
+  accountCode: "",
+  requiredDocumentIds: [],
+  supportedDocumentIds: [],
+  active: true,
 });
 
 const FLAG_OPTIONS = ["Sensitive", "Advance", "Tax", "Travel", "Recurring"];
