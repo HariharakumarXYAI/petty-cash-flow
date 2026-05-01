@@ -111,6 +111,10 @@ export default function NewClaim() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!approver) {
+      toast({ title: "Approver required", description: "Please select an approver.", variant: "destructive" });
+      return;
+    }
     toast({ title: "Claim Submitted", description: "Your claim has been submitted for validation." });
     navigate("/claims");
   };
