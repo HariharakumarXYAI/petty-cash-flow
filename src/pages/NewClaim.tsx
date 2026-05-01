@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck, Link2,
-  Pencil, Check as CheckIcon, Copy, Plus, Zap,
+  Pencil, Check as CheckIcon, Copy, Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,13 @@ import { stores, advances, expenseTypes } from "@/lib/mock-data";
 import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { ExpenseLineCard, createEmptyLine, ExpenseLine } from "@/components/claim/ExpenseLineCard";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  ExpenseLinesSection,
+  createEmptyLineV2,
+  evaluateLine,
+  ExpenseLineV2,
+} from "@/components/claim/ExpenseLinesSection";
 
 // FX → THB (mock)
 const FX_TO_THB: Record<string, number> = {
