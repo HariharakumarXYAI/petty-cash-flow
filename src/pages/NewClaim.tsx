@@ -331,6 +331,43 @@ export default function NewClaim() {
               </div>
 
               <div className="p-4 space-y-4">
+                {/* Auto-generated read-only meta row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Number</Label>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        tabIndex={-1}
+                        value={claimNumber}
+                        placeholder="Select store first"
+                        className="h-9 text-sm bg-muted/50 font-mono tabular-nums pr-9 cursor-default focus-visible:ring-0"
+                      />
+                      <button
+                        type="button"
+                        onClick={copyClaimNumber}
+                        disabled={!claimNumber}
+                        tabIndex={-1}
+                        aria-label="Copy claim number"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-40"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Auto-generated. Cannot be edited.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Creation Date</Label>
+                    <Input
+                      readOnly
+                      tabIndex={-1}
+                      value={creationDateDisplay}
+                      className="h-9 text-sm bg-muted/50 tabular-nums cursor-default focus-visible:ring-0"
+                    />
+                    <p className="text-[11px] text-muted-foreground">Auto-set when claim is created.</p>
+                  </div>
+                </div>
+
                 {/* Purpose (mandatory) — full width, top */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
