@@ -930,9 +930,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
         {/* Editor footer */}
         <div className="px-4 py-3 border-t border-border bg-muted/30 flex items-center justify-between gap-2">
           <div className="flex gap-2">
-            <Button type="button" variant="ghost" size="sm" className="h-8 text-xs gap-1" onClick={() => duplicateLine(line.id)} disabled={readOnly}>
-              <CopyIcon className="h-3.5 w-3.5" /> Duplicate
-            </Button>
             <Button type="button" variant="ghost" size="sm" className="h-8 text-xs gap-1 text-destructive hover:text-destructive" onClick={() => deleteLine(line.id)} disabled={readOnly || lines.length <= 1}>
               <Trash2 className="h-3.5 w-3.5" /> Delete
             </Button>
