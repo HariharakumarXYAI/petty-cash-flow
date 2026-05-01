@@ -38,7 +38,11 @@ export interface ExpenseLineV2 {
   subExpenseTypeId: string;     // expenseTypes.id (sub-type)
   vendor: string;
   receiptDate: string;
-  amount: string;
+  amount: string;               // = totalAmount (gross, VAT-inclusive). Kept name for back-compat.
+  vatAmount: string;
+  whtAmount: string;
+  vatEdited?: boolean;          // user manually edited VAT — auto-calc skipped
+  whtEdited?: boolean;          // user manually edited WHT — auto-calc skipped
   currency: string;
   glAccount: string;
   vatCode: string;
@@ -58,6 +62,10 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   vendor: "",
   receiptDate: "",
   amount: "",
+  vatAmount: "",
+  whtAmount: "",
+  vatEdited: false,
+  whtEdited: false,
   currency: "THB",
   glAccount: "",
   vatCode: "",
@@ -68,6 +76,27 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   docs: {},
   structured: {},
 });
+
+// VAT/WHT rates by code
+const VAT_RATE_PCT: Record<string, number> = { V07: 7, V00: 0, VEX: 0, VNA: 0 };
+const WHT_RATE_PCT: Record<string, number> = { WHT00: 0, WHT01: 1, WHT02: 2, WHT03: 3, WHT05: 5, WHT15: 15 };
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+// Compute VAT (VAT-inclusive) and WHT amounts from total + codes
+function deriveVat(totalStr: string, vatCode: string): number {
+  const total = parseFloat(totalStr) || 0;
+  const r = VAT_RATE_PCT[vatCode] ?? 0;
+  if (r <= 0) return 0;
+  return round2(total * r / (100 + r));
+}
+function deriveWht(totalStr: string, vatAmtStr: string, whtCode: string): number {
+  const total = parseFloat(totalStr) || 0;
+  const vat = parseFloat(vatAmtStr) || 0;
+  const w = WHT_RATE_PCT[whtCode] ?? 0;
+  if (w <= 0) return 0;
+  return round2((total - vat) * w / 100);
+}
 
 // GL/VAT defaults derived from sub-type id
 const GL_BY_SUBTYPE: Record<string, string> = {
