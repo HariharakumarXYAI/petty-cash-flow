@@ -970,7 +970,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   // ───────── Layout ─────────
   return (
     <div className="space-y-3">
-      {Dropzone}
+      
       {NeedsSortingTray}
 
       {/* Master-detail */}
