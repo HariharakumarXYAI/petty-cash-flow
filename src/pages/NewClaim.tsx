@@ -122,17 +122,12 @@ export default function NewClaim() {
   // ────────── Validations ──────────
   const allLinesHaveReceipts = lines.every(l => l.uploaded);
   const allLinesOcrConfident = lines.every(l => l.ocrDone && l.ocrConfidence >= 75);
+  // Per-line policy check: any line whose amount exceeds its expense-type hard-stop fails.
   const allLinesWithinPolicy = lines.every(l => {
     const amt = parseFloat(l.amount) || 0;
-    // pass if no expense type yet (covered elsewhere) or amount within hardstop
-    return true; // computed in line; aggregate handled below
-  });
-  // refine: any line over hard-stop fails
-  const noLineExceedsHardStop = lines.every(l => {
-    const amt = parseFloat(l.amount) || 0;
-    // Without per-line expense type lookup here, treat as pass when no expense type;
-    // ExpenseLineCard surfaces inline warnings.
-    return amt >= 0;
+    const et = expenseTypes.find(e => e.id === l.expenseType);
+    if (!et) return true; // covered by "expense type required" rule
+    return amt <= et.hardStopThreshold;
   });
   const allRequiredFilled = lines.every(l => {
     const amt = parseFloat(l.amount) || 0;
