@@ -213,7 +213,113 @@ export const expenseTypes: ExpenseType[] = [
   { id: "e8", category: "Utilities", subcategory: "Minor Utilities", countries: ["TH"], documentRequired: true, maxAmount: 5000, alertThreshold: 3500, hardStopThreshold: 8000, advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
   { id: "e9", category: "Security", subcategory: "Security Services", countries: ["TH", "KH", "MM"], documentRequired: true, maxAmount: 8000, alertThreshold: 5000, hardStopThreshold: 12000, advanceAllowed: true, reimbursementAllowed: true, auditSensitive: true },
   { id: "e10", category: "Entertainment", subcategory: "Business Entertainment", countries: ["TH"], documentRequired: true, maxAmount: 5000, alertThreshold: 3000, hardStopThreshold: 8000, advanceAllowed: false, reimbursementAllowed: true, auditSensitive: true },
+
+  // --- Local Travelling sub-types (drive per-line doc policy) ---
+  { id: "lt-taxi",       category: "Local Travelling", subcategory: "Taxi / Grab",         countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 2000,  alertThreshold: 1500, hardStopThreshold: 3000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-train",      category: "Local Travelling", subcategory: "Train / Inter-city",   countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 5000,  alertThreshold: 3500, hardStopThreshold: 8000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-car",        category: "Local Travelling", subcategory: "Personal Car / EV",    countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 8000,  alertThreshold: 5000, hardStopThreshold: 12000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-toll",       category: "Local Travelling", subcategory: "Toll Fees",            countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 1500,  alertThreshold: 1000, hardStopThreshold: 2500,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-airpark",    category: "Local Travelling", subcategory: "Airport Parking",      countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 2000,  alertThreshold: 1500, hardStopThreshold: 3500,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-otherpark",  category: "Local Travelling", subcategory: "Other Parking",        countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 1500,  alertThreshold: 1000, hardStopThreshold: 2500,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-rental",     category: "Local Travelling", subcategory: "Car Rental",           countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 15000, alertThreshold: 10000,hardStopThreshold: 25000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-air-dom",    category: "Local Travelling", subcategory: "Airline Domestic",     countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 12000, alertThreshold: 8000, hardStopThreshold: 20000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-hotel-dom",  category: "Local Travelling", subcategory: "Hotel Domestic",       countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 20000, alertThreshold: 12000,hardStopThreshold: 35000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-meal",       category: "Local Travelling", subcategory: "Meal Restaurant",      countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 3000,  alertThreshold: 2000, hardStopThreshold: 5000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-perdiem",    category: "Local Travelling", subcategory: "Per Diem Domestic",    countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 2500,  alertThreshold: 2000, hardStopThreshold: 4000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-postage",    category: "Local Travelling", subcategory: "Postage Courier",      countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 1500,  alertThreshold: 1000, hardStopThreshold: 3000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "lt-night",      category: "Local Travelling", subcategory: "Night Shift Meal",     countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 500,   alertThreshold: 400,  hardStopThreshold: 800,   advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
 ];
+
+// --- Sub-Expense-Type Document Policy ---
+// Drives per-line "Required documents" zones in /claims/new editor pane.
+
+export type DocTypeCode =
+  | "RECEIPT" | "E_TICKET" | "TAX_INVOICE" | "TRAVEL_APPROVAL"
+  | "BOARDING_PASS" | "HOTEL_FOLIO" | "FUEL_RECEIPT"
+  | "MILEAGE_TEXT" | "MEMO" | "CLAIM_FORM";
+
+export type DocRequirement = "REQUIRED" | "OPTIONAL" | "ALTERNATIVE";
+export type DocSlotKind = "FILE" | "STRUCTURED_TEXT";
+
+export interface DocPolicyRow {
+  subExpenseTypeId: string;     // expenseTypes.id
+  docTypeCode: DocTypeCode;
+  requirement: DocRequirement;
+  alternativeGroupId?: string;  // same id within same subType = OR group
+  thresholdAmount?: number;     // only render slot when line amount > threshold
+  kind: DocSlotKind;            // FILE = upload, STRUCTURED_TEXT = inline fields
+  ocrTemplateId?: string;
+}
+
+export const DOC_TYPE_LABEL: Record<DocTypeCode, string> = {
+  RECEIPT:          "Receipt",
+  E_TICKET:         "E-Ticket",
+  TAX_INVOICE:      "Tax Invoice",
+  TRAVEL_APPROVAL:  "Travel Approval",
+  BOARDING_PASS:    "Boarding Pass",
+  HOTEL_FOLIO:      "Hotel Folio",
+  FUEL_RECEIPT:     "Fuel Receipt",
+  MILEAGE_TEXT:     "Mileage Log",
+  MEMO:             "Memo / Justification",
+  CLAIM_FORM:       "Claim Form",
+};
+
+export const subExpenseTypeDocPolicy: DocPolicyRow[] = [
+  // Taxi / Grab — Receipt OR Claim Form; Memo above 1,500 THB
+  { subExpenseTypeId: "lt-taxi",      docTypeCode: "RECEIPT",         requirement: "ALTERNATIVE", alternativeGroupId: "taxi-proof", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "lt-taxi",      docTypeCode: "CLAIM_FORM",      requirement: "ALTERNATIVE", alternativeGroupId: "taxi-proof", kind: "FILE" },
+  { subExpenseTypeId: "lt-taxi",      docTypeCode: "MEMO",            requirement: "REQUIRED",    thresholdAmount: 1500, kind: "FILE" },
+
+  // Train / Inter-city — Receipt OR Claim Form
+  { subExpenseTypeId: "lt-train",     docTypeCode: "RECEIPT",         requirement: "ALTERNATIVE", alternativeGroupId: "train-proof", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "lt-train",     docTypeCode: "CLAIM_FORM",      requirement: "ALTERNATIVE", alternativeGroupId: "train-proof", kind: "FILE" },
+
+  // Personal Car / EV — Fuel receipt + structured Mileage
+  { subExpenseTypeId: "lt-car",       docTypeCode: "FUEL_RECEIPT",    requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-fuel" },
+  { subExpenseTypeId: "lt-car",       docTypeCode: "MILEAGE_TEXT",    requirement: "REQUIRED",    kind: "STRUCTURED_TEXT" },
+
+  // Toll Fees
+  { subExpenseTypeId: "lt-toll",      docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Airport Parking
+  { subExpenseTypeId: "lt-airpark",   docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Other Parking
+  { subExpenseTypeId: "lt-otherpark", docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Car Rental — Receipt + Travel Approval
+  { subExpenseTypeId: "lt-rental",    docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "lt-rental",    docTypeCode: "TRAVEL_APPROVAL", requirement: "REQUIRED",    kind: "FILE" },
+
+  // Airline Domestic — E-Ticket + Travel Approval + (Tax Invoice OR Receipt) + Boarding Pass (opt)
+  { subExpenseTypeId: "lt-air-dom",   docTypeCode: "E_TICKET",        requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-eticket" },
+  { subExpenseTypeId: "lt-air-dom",   docTypeCode: "TRAVEL_APPROVAL", requirement: "REQUIRED",    kind: "FILE" },
+  { subExpenseTypeId: "lt-air-dom",   docTypeCode: "TAX_INVOICE",     requirement: "ALTERNATIVE", alternativeGroupId: "air-fiscal", kind: "FILE", ocrTemplateId: "tpl-tax-invoice" },
+  { subExpenseTypeId: "lt-air-dom",   docTypeCode: "RECEIPT",         requirement: "ALTERNATIVE", alternativeGroupId: "air-fiscal", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "lt-air-dom",   docTypeCode: "BOARDING_PASS",   requirement: "OPTIONAL",    kind: "FILE" },
+
+  // Hotel Domestic — Folio + Travel Approval
+  { subExpenseTypeId: "lt-hotel-dom", docTypeCode: "HOTEL_FOLIO",     requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-folio" },
+  { subExpenseTypeId: "lt-hotel-dom", docTypeCode: "TRAVEL_APPROVAL", requirement: "REQUIRED",    kind: "FILE" },
+
+  // Meal Restaurant — Claim Form + Travel Approval; Receipt optional
+  { subExpenseTypeId: "lt-meal",      docTypeCode: "CLAIM_FORM",      requirement: "REQUIRED",    kind: "FILE" },
+  { subExpenseTypeId: "lt-meal",      docTypeCode: "TRAVEL_APPROVAL", requirement: "REQUIRED",    kind: "FILE" },
+  { subExpenseTypeId: "lt-meal",      docTypeCode: "RECEIPT",         requirement: "OPTIONAL",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Per Diem Domestic — Claim Form + Travel Approval
+  { subExpenseTypeId: "lt-perdiem",   docTypeCode: "CLAIM_FORM",      requirement: "REQUIRED",    kind: "FILE" },
+  { subExpenseTypeId: "lt-perdiem",   docTypeCode: "TRAVEL_APPROVAL", requirement: "REQUIRED",    kind: "FILE" },
+
+  // Postage Courier
+  { subExpenseTypeId: "lt-postage",   docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Night Shift Meal
+  { subExpenseTypeId: "lt-night",     docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+];
+
+export const getDocPolicyForSubType = (subExpenseTypeId: string): DocPolicyRow[] =>
+  subExpenseTypeDocPolicy.filter(p => p.subExpenseTypeId === subExpenseTypeId);
 
 // --- Employee Profile Lookup (submitter → employee metadata) ---
 
