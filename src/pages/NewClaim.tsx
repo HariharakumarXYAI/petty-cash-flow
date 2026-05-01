@@ -165,35 +165,8 @@ export default function NewClaim() {
                     <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} />
                   </div>
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Department</Label>
-                    <Select defaultValue={requester.department} disabled={!requesterEdit}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="store-ops">Store Operations</SelectItem>
-                        <SelectItem value="finance">Finance</SelectItem>
-                        <SelectItem value="hr">Human Resources</SelectItem>
-                        <SelectItem value="it">Information Technology</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Position / Role</Label>
                     <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Branch / Store Code</Label>
-                    <Select defaultValue={requester.storeCode} disabled={!requesterEdit}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="BKK-001">BKK-001 — Rama 9</SelectItem>
-                        <SelectItem value="BKK-002">BKK-002 — Sukhumvit</SelectItem>
-                        <SelectItem value="CNX-001">CNX-001 — Chiang Mai</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Cost Center</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.costCenter} readOnly={!requesterEdit} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Email</Label>
