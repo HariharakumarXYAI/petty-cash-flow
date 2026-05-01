@@ -1083,3 +1083,49 @@ function BulkPicker({
     </div>
   );
 }
+
+function AltGroup({
+  line, groupId, rows, renderFileSlot,
+}: {
+  line: ExpenseLineV2;
+  groupId: string;
+  rows: DocPolicyRow[];
+  renderFileSlot: (line: ExpenseLineV2, rows: DocPolicyRow[], required: boolean, label: string, doc: AttachedDoc | undefined, altGroupId: string | undefined) => JSX.Element;
+}) {
+  const filledIdx = rows.findIndex(r => !!line.docs[slotKey(r.docTypeCode, groupId)]);
+  const [activeIdx, setActiveIdx] = useState(filledIdx >= 0 ? filledIdx : 0);
+  const activeRow = rows[activeIdx];
+  const doc = line.docs[slotKey(activeRow.docTypeCode, groupId)];
+  const anyFilled = rows.some(r => !!line.docs[slotKey(r.docTypeCode, groupId)]);
+
+  return (
+    <div className={cn(
+      "rounded-lg p-3 border transition-colors",
+      anyFilled ? "border-status-approved/40 bg-status-approved/5" : "border-dashed border-status-hold/40 bg-status-hold/5",
+    )}>
+      <div className="flex items-center gap-2 mb-2">
+        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+        <span className="text-xs font-semibold text-foreground">
+          {rows.map(r => DOC_TYPE_LABEL[r.docTypeCode]).join(" or ")}
+        </span>
+        <Badge variant="rejected" className="text-[9px] px-1.5 py-0 ml-auto">Required (one of)</Badge>
+      </div>
+      <Tabs value={String(activeIdx)} className="mb-2">
+        <TabsList className="h-7">
+          {rows.map((r, i) => (
+            <TabsTrigger
+              key={r.docTypeCode}
+              value={String(i)}
+              className="h-6 text-[11px] px-2"
+              onClick={() => setActiveIdx(i)}
+            >
+              {DOC_TYPE_LABEL[r.docTypeCode]}
+              {!!line.docs[slotKey(r.docTypeCode, groupId)] && <CheckCircle className="h-3 w-3 ml-1 text-status-approved" />}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+      {renderFileSlot(line, [activeRow], true, DOC_TYPE_LABEL[activeRow.docTypeCode], doc, groupId)}
+    </div>
+  );
+}
