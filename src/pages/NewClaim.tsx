@@ -207,12 +207,9 @@ export default function NewClaim() {
                   {onBehalf && <Badge variant="submitted" className="text-[10px]">Delegated submission</Badge>}
                 </div>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Auto-filled from your profile. Click Edit if submitting on behalf of someone else.
+                  Auto-filled from your profile.
                 </p>
               </div>
-              <Button type="button" variant="outline" size="sm" className="h-8 gap-1.5 text-xs shrink-0" onClick={() => setRequesterEdit(v => !v)}>
-                {requesterEdit ? <><CheckIcon className="h-3.5 w-3.5" /> Done</> : <><Pencil className="h-3.5 w-3.5" /> Edit</>}
-              </Button>
             </div>
 
             <div className="p-4 space-y-4">
