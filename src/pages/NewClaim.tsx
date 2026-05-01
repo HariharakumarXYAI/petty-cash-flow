@@ -354,6 +354,7 @@ export default function NewClaim() {
                   </Select>
                   <p className="text-[11px] text-muted-foreground">One advance covers the whole trip.</p>
                 </div>
+                <div className="hidden sm:block" />
               </div>
 
               {/* Purpose */}
