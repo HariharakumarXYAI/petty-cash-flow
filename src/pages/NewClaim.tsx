@@ -42,7 +42,7 @@ export default function NewClaim() {
   // Header state
   const [purpose, setPurpose] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
-  const [approver, setApprover] = useState("APR-001");
+  
   const [requesterEdit, setRequesterEdit] = useState(false);
   const [onBehalf, setOnBehalf] = useState(false);
   const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
@@ -112,10 +112,8 @@ export default function NewClaim() {
     return { subtotal, vat, wht, payable, byCurrency, multiCurrency };
   }, [lines]);
 
-  // ────────── Approver routing by total ──────────
-  const suggestedApprover = APPROVERS.find(a => totals.payable <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
-  const selectedApprover = APPROVERS.find(a => a.id === approver);
-  const approverInsufficient = !!selectedApprover && totals.payable > selectedApprover.maxAmount;
+  // ────────── Approver auto-routing by total ──────────
+  const selectedApprover = APPROVERS.find(a => totals.payable <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
 
   // ────────── Validations ──────────
   const allLinesHaveReceipts = lines.every(l => l.uploaded);
@@ -145,7 +143,7 @@ export default function NewClaim() {
     { label: "Submission within 7-day window of latest receipt", pass: true, pending: false },
     { label: "No vendor on blocked list", pass: allLinesHaveReceipts, pending: !allLinesHaveReceipts },
     { label: "All required per-line fields filled", pass: allRequiredFilled, pending: !allRequiredFilled },
-    { label: "Approver assigned", pass: !!approver && !approverInsufficient && largeLinesJustified, pending: !approver },
+    { label: "Approver auto-routed", pass: !!selectedApprover && largeLinesJustified, pending: !selectedApprover },
   ];
   const passedCount = validationRules.filter(r => r.pass).length;
   const allPass = passedCount === validationRules.length;
@@ -366,57 +364,6 @@ export default function NewClaim() {
                   className="text-sm resize-none"
                 />
                 <p className="text-[11px] text-muted-foreground">Required · up to 250 words</p>
-              </div>
-
-              {/* Approver */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    Approver <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value={approver} onValueChange={setApprover} required>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select approver">
-                        {selectedApprover && `${selectedApprover.name} · ${selectedApprover.position}`}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {APPROVERS.map(a => {
-                        const initials = a.name.split(" ").map(n => n[0]).slice(0, 2).join("");
-                        return (
-                          <SelectItem key={a.id} value={a.id}>
-                            <span className="flex items-center gap-2">
-                              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center shrink-0">
-                                {initials}
-                              </span>
-                              <span>{a.name} · {a.position}</span>
-                            </span>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  {approverInsufficient ? (
-                    <div className="flex items-start gap-1.5 px-0.5">
-                      <AlertTriangle className="h-3 w-3 text-status-validating mt-0.5 shrink-0" />
-                      <span className="text-[10px] text-status-validating leading-tight">
-                        Selected approver cannot approve this total amount. Suggested: {suggestedApprover.name}.{" "}
-                        <button
-                          type="button"
-                          onClick={() => setApprover(suggestedApprover.id)}
-                          className="underline font-semibold hover:text-status-validating/80"
-                        >
-                          Use suggested
-                        </button>
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-muted-foreground">
-                      Auto-routed based on claim total. Override if needed.
-                    </p>
-                  )}
-                </div>
-                <div className="hidden sm:block" />
               </div>
             </div>
           </div>
