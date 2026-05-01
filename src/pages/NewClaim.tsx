@@ -610,11 +610,6 @@ export default function NewClaim() {
 
 // Helper: shorten expense type label for total breakdown
 function expenseTypeLabel(id: string): string {
-  // Lazy import via require would be wrong here; use a static lookup at module scope.
-  // We re-import directly to avoid changing the shape of the function:
-  const et = expenseTypesLookup.find(e => e.id === id);
+  const et = expenseTypes.find(e => e.id === id);
   return et ? et.category : "Expense";
 }
-
-// Cache expense types in a module-scoped const for label helper
-import { expenseTypes as expenseTypesLookup } from "@/lib/mock-data";
