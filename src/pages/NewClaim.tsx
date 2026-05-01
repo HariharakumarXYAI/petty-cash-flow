@@ -377,14 +377,14 @@ export default function NewClaim() {
           </div>
 
           {/* ═══════════════════════════════════════════ */}
-          {/* EXPENSE LINES                                */}
+          {/* EXPENSE LINES — master-detail with doc policy */}
           {/* ═══════════════════════════════════════════ */}
           <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
             <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-start gap-3">
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground">Expense Lines</h3>
                 <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Add each receipt as a separate line. OCR runs per receipt.
+                  Drop receipts above — auto-routed to the right line and slot. Sub-type drives the doc checklist per line.
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -395,149 +395,123 @@ export default function NewClaim() {
               </div>
             </div>
 
-            <div className="p-4 space-y-4">
-              {lines.map((line, idx) => (
-                <ExpenseLineCard
-                  key={line.id}
-                  line={line}
-                  index={idx}
-                  canDelete={lines.length > 1}
-                  countryFilter={country}
-                  onChange={(patch) => updateLine(line.id, patch)}
-                  onDelete={() => deleteLine(line.id)}
-                />
-              ))}
-
-              <button
-                type="button"
-                onClick={addLine}
-                className="w-full border-2 border-dashed border-border hover:border-primary/40 hover:bg-primary/[0.02] rounded-lg py-4 text-sm font-medium text-muted-foreground hover:text-primary transition-colors flex items-center justify-center gap-2"
-              >
-                <Plus className="h-4 w-4" /> Add Another Expense Line
-              </button>
-
-              {/* Total breakdown */}
-              <div className="border border-border rounded-lg overflow-hidden">
-                <div className="px-4 py-2.5 bg-muted/30 border-b border-border">
-                  <p className="text-xs font-semibold text-foreground">
-                    Total ({lines.length} {lines.length === 1 ? "line" : "lines"})
-                  </p>
-                </div>
-                <div className="p-4 space-y-1.5 text-xs tabular-nums">
-                  {lines.map((l, i) => {
-                    const amt = parseFloat(l.amount) || 0;
-                    return (
-                      <div key={l.id} className="flex justify-between text-muted-foreground">
-                        <span>Line {i + 1}{l.expenseType ? ` — ${expenseTypeLabel(l.expenseType)}` : ""}</span>
-                        <span>{amt > 0 ? `${fmt(amt)} ${l.currency}` : "—"}</span>
-                      </div>
-                    );
-                  })}
-                  <Separator className="my-2" />
-                  <div className="flex justify-between"><span>Subtotal</span><span>{fmt(totals.subtotal)} THB</span></div>
-                  <div className="flex justify-between"><span>VAT (sum of lines)</span><span>{fmt(totals.vat)} THB</span></div>
-                  <div className="flex justify-between"><span>WHT (sum of lines)</span><span>−{fmt(totals.wht)} THB</span></div>
-                  <Separator className="my-2" />
-                  <div className="flex justify-between text-sm font-bold text-foreground">
-                    <span>Total Payable</span><span>{fmt(totals.payable)} THB</span>
-                  </div>
-                  {totals.multiCurrency && (
-                    <p className="text-[10px] text-muted-foreground pt-2">
-                      Total in THB (base) using current FX rate. FX rate as of {creationDate.toISOString().slice(0, 10)}.
-                    </p>
-                  )}
-                </div>
-              </div>
+            <div className="p-4">
+              <ExpenseLinesSection
+                lines={lines}
+                setLines={setLines}
+                countryFilter={country}
+              />
             </div>
           </div>
 
           {/* ═══════════════════════════════════════════ */}
-          {/* VALIDATION & OUTCOME                         */}
+          {/* STICKY SUMMARY FOOTER                        */}
           {/* ═══════════════════════════════════════════ */}
-          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-4 w-4 text-primary" />
-                <h3 className="text-sm font-semibold text-foreground">Validation & Outcome</h3>
-              </div>
-              <span className="text-[11px] font-semibold text-muted-foreground tabular-nums">
-                {passedCount}/{validationRules.length} passed
-              </span>
+          <div className="sticky bottom-0 z-30 -mx-4 sm:mx-0 bg-card border-t sm:border border-border sm:rounded-xl shadow-lg sm:shadow-xl px-4 py-3 flex flex-wrap items-center gap-x-5 gap-y-3">
+            {/* Inline metrics */}
+            <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 text-xs">
+              <Metric label="Lines" value={String(lines.length)} />
+              <Metric label="Subtotal" value={`${fmt(totals.subtotal)} THB`} />
+              <Metric label="VAT" value={`${fmt(totals.vat)} THB`} />
+              <Metric label="WHT" value={`−${fmt(totals.wht)} THB`} />
+              <Metric label="Payable" value={totals.payable > 0 ? `${fmt(totals.payable)} THB` : "—"} bold />
             </div>
 
-            <div className="p-4 space-y-4">
-              <div className="space-y-1.5">
-                {validationRules.map((rule, i) => (
-                  <div key={i} className="flex items-center gap-2.5 py-1">
-                    {rule.pass ? (
-                      <CheckCircle className="h-4 w-4 text-status-approved shrink-0" />
-                    ) : rule.pending ? (
-                      <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
-                    ) : (
-                      <XCircle className="h-4 w-4 text-status-hold shrink-0" />
-                    )}
-                    <span className={`text-xs ${rule.pass ? "text-foreground" : rule.pending ? "text-muted-foreground" : "text-status-hold font-semibold"}`}>
-                      {rule.label}
+            <div className="flex items-center gap-2 ml-auto">
+              {/* Validation chip → popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={`inline-flex items-center gap-1.5 h-9 px-3 rounded-md text-xs font-semibold border transition-colors ${
+                      allLinesComplete && allPass
+                        ? "bg-status-approved/10 text-status-approved border-status-approved/30 hover:bg-status-approved/15"
+                        : "bg-status-alert/10 text-status-alert border-status-alert/30 hover:bg-status-alert/15"
+                    }`}
+                  >
+                    {allLinesComplete && allPass
+                      ? <CheckCircle className="h-3.5 w-3.5" />
+                      : <AlertTriangle className="h-3.5 w-3.5" />}
+                    {completeLines} of {lines.length} lines complete
+                    <span className="opacity-60">· {passedCount}/{validationRules.length}</span>
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent align="end" className="w-[380px]">
+                  <div className="flex items-center gap-2 mb-3">
+                    <ShieldCheck className="h-4 w-4 text-primary" />
+                    <h4 className="text-sm font-semibold">Validation & Outcome</h4>
+                    <span className="ml-auto text-[11px] font-semibold text-muted-foreground tabular-nums">
+                      {passedCount}/{validationRules.length}
                     </span>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-1.5">
+                    {validationRules.map((rule, i) => (
+                      <div key={i} className="flex items-center gap-2.5 py-1">
+                        {rule.pass ? (
+                          <CheckCircle className="h-4 w-4 text-status-approved shrink-0" />
+                        ) : rule.pending ? (
+                          <div className="h-4 w-4 rounded-full border-2 border-muted-foreground/30 shrink-0" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-status-hold shrink-0" />
+                        )}
+                        <span className={`text-xs ${rule.pass ? "text-foreground" : rule.pending ? "text-muted-foreground" : "text-status-hold font-semibold"}`}>
+                          {rule.label}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <Separator className="my-3" />
+                  <div className="space-y-2">
+                    <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Expected Outcome</p>
+                    {expectedOutcome === "auto" && (
+                      <Badge variant="approved" className="gap-1 text-xs">
+                        <CheckCircle className="h-3 w-3" /> Auto Approved
+                      </Badge>
+                    )}
+                    {expectedOutcome === "pending" && (
+                      <Badge variant="validating" className="gap-1 text-xs">
+                        <AlertTriangle className="h-3 w-3" /> Pending — routed to {selectedApprover?.name ?? "—"}
+                      </Badge>
+                    )}
+                    {expectedOutcome === "blocked" && (
+                      <Badge variant="rejected" className="gap-1 text-xs">
+                        <XCircle className="h-3 w-3" /> Blocked — fix issues above
+                      </Badge>
+                    )}
+                    <div className="bg-primary/5 border border-primary/10 rounded-lg px-2.5 py-2 flex items-start gap-2 mt-2">
+                      <Zap className="h-3.5 w-3.5 text-primary shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-primary leading-tight">
+                        Approver sees one task with all lines and approves or rejects the entire claim together.
+                      </p>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
 
-              <Separator />
-
-              <div className="flex items-end justify-between gap-4">
-                <div className="space-y-1">
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Expected Outcome</p>
-                  {expectedOutcome === "auto" && (
-                    <Badge variant="approved" className="gap-1 text-xs">
-                      <CheckCircle className="h-3 w-3" /> Auto Approved
-                    </Badge>
-                  )}
-                  {expectedOutcome === "pending" && (
-                    <Badge variant="validating" className="gap-1 text-xs">
-                      <AlertTriangle className="h-3 w-3" /> Pending Approval — routed to {selectedApprover?.name ?? "—"}
-                    </Badge>
-                  )}
-                  {expectedOutcome === "blocked" && (
-                    <Badge variant="rejected" className="gap-1 text-xs">
-                      <XCircle className="h-3 w-3" /> Blocked — fix issues above
-                    </Badge>
-                  )}
-                </div>
-                <div className="text-right">
-                  <p className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Payable</p>
-                  <p className="text-2xl font-bold tabular-nums text-foreground leading-tight">
-                    {totals.payable > 0 ? fmt(totals.payable) : "—"}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground">THB (base currency)</p>
-                </div>
-              </div>
-
-              <div className="bg-primary/5 border border-primary/10 rounded-lg px-3 py-2.5 flex items-center gap-2">
-                <Zap className="h-4 w-4 text-primary shrink-0" />
-                <p className="text-xs text-primary font-medium leading-tight">
-                  Approver sees one task with all lines. They approve or reject the entire claim together.
-                </p>
-              </div>
+              <Button type="button" variant="outline" onClick={handleSaveDraft} className="h-9 px-4 text-xs">
+                Save draft
+              </Button>
+              <Button
+                type="submit"
+                disabled={!canSubmit}
+                title={!canSubmit ? "Complete every line per its doc checklist to submit." : undefined}
+                className="h-9 px-5 text-xs font-semibold gap-1.5"
+              >
+                <CheckCircle className="h-3.5 w-3.5" /> Submit claim
+              </Button>
             </div>
-          </div>
-
-          {/* Footer actions — bottom right */}
-          <div className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3">
-            <Button type="button" variant="outline" onClick={() => navigate(-1)} className="h-10 px-4 w-full sm:w-auto">
-              Save Draft
-            </Button>
-            <Button
-              type="submit"
-              disabled={!canSubmit}
-              title={!canSubmit ? "Complete all required fields and validations to submit." : undefined}
-              className="h-10 px-6 font-semibold gap-2 w-full sm:w-auto"
-            >
-              <CheckCircle className="h-4 w-4" /> Submit Claim
-            </Button>
           </div>
         </div>
       </form>
+    </div>
+  );
+}
+
+function Metric({ label, value, bold }: { label: string; value: string; bold?: boolean }) {
+  return (
+    <div className="flex flex-col leading-tight">
+      <span className="text-[10px] uppercase tracking-wide text-muted-foreground font-semibold">{label}</span>
+      <span className={`tabular-nums ${bold ? "text-sm font-bold text-foreground" : "text-xs text-foreground"}`}>{value}</span>
     </div>
   );
 }
