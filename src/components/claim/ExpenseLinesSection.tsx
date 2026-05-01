@@ -960,7 +960,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
             disabled={readOnly}
             className="w-full px-3 py-3 text-xs font-medium text-primary hover:bg-primary/5 border-t border-border flex items-center justify-center gap-1.5 disabled:opacity-50"
           >
-            <Plus className="h-3.5 w-3.5" /> Add line manually
+            <Plus className="h-3.5 w-3.5" /> Add Expense Line
           </button>
         </div>
 
