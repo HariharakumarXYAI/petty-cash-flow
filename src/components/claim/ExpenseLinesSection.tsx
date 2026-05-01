@@ -183,12 +183,12 @@ export function evaluateLine(line: ExpenseLineV2): {
   }
 
   const fieldsOk =
-    !!line.subExpenseTypeId && !!line.receiptDate && !!line.glAccount && amt > 0;
+    !!line.subExpenseTypeId && !!line.receiptDate && amt > 0;
 
   let missingCaption = "";
   if (!line.subExpenseTypeId) missingCaption = "Sub-type missing";
   else if (requiredFilled < requiredTotal) missingCaption = `${requiredTotal - requiredFilled} required doc(s) missing`;
-  else if (!line.glAccount) missingCaption = "GL code missing";
+  
   else if (!line.receiptDate) missingCaption = "Date missing";
   else if (amt <= 0) missingCaption = "Amount missing";
   else if (!ocrOk) missingCaption = "OCR confidence below 75%";
@@ -866,20 +866,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
                   </SelectContent>
                 </Select>
               </Field>
-              <Field label="GL Account" required>
-                <Select value={line.glAccount} onValueChange={(v) => updateLine(line.id, { glAccount: v })} disabled={readOnly}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select GL…" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="5102-001">5102-001 – Travel Expense</SelectItem>
-                    <SelectItem value="5103-001">5103-001 – Meals & Entertainment</SelectItem>
-                    <SelectItem value="5106-001">5106-001 – Postage & Courier</SelectItem>
-                    <SelectItem value="5101-001">5101-001 – Office Supplies</SelectItem>
-                  </SelectContent>
-                </Select>
-                {GL_BY_SUBTYPE[line.subExpenseTypeId] === line.glAccount && (
-                  <p className="text-[10px] text-primary mt-1">Auto-suggested from sub-type</p>
-                )}
-              </Field>
               <Field label="VAT Code">
                 <Select value={line.vatCode} onValueChange={(v) => updateLine(line.id, { vatCode: v })} disabled={readOnly}>
                   <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="VAT…" /></SelectTrigger>
@@ -899,15 +885,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
                     <SelectItem value="WHT01">WHT01 – 1% Transport</SelectItem>
                     <SelectItem value="WHT03">WHT03 – 3% Services</SelectItem>
                     <SelectItem value="WHT05">WHT05 – 5% Rental</SelectItem>
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field label="Payment Mode">
-                <Select value={line.paymentMode} onValueChange={(v) => updateLine(line.id, { paymentMode: v })} disabled={readOnly}>
-                  <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cash">Cash from petty cash</SelectItem>
-                    <SelectItem value="transfer">Bank transfer</SelectItem>
                   </SelectContent>
                 </Select>
               </Field>
