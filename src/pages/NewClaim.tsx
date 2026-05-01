@@ -56,7 +56,7 @@ export default function NewClaim() {
   const [selectedStoreId, setSelectedStoreId] = useState("s3");
 
   // Expense lines
-  const [lines, setLines] = useState<ExpenseLine[]>(() => [createEmptyLine()]);
+  const [lines, setLines] = useState<ExpenseLineV2[]>(() => [createEmptyLineV2()]);
 
   const selectedStore = stores.find(s => s.id === selectedStoreId);
   const storeBranchCode = selectedStore ? String(parseInt(selectedStore.id.replace(/\D/g, ""), 10) || 0).padStart(5, "0") : "00000";
@@ -92,7 +92,6 @@ export default function NewClaim() {
   // ────────── Totals ──────────
   const totals = useMemo(() => {
     let subtotal = 0, vat = 0, wht = 0;
-    const byCurrency: Record<string, { subtotal: number; vat: number; wht: number; lines: number }> = {};
     let multiCurrency = false;
     let firstCurrency: string | null = null;
 
@@ -107,47 +106,49 @@ export default function NewClaim() {
       wht += whtTHB;
       if (firstCurrency === null) firstCurrency = l.currency;
       else if (firstCurrency !== l.currency) multiCurrency = true;
-      const bucket = byCurrency[l.currency] ?? { subtotal: 0, vat: 0, wht: 0, lines: 0 };
-      bucket.subtotal += amt;
-      bucket.vat += amt * (VAT_RATE[l.vatCode] ?? 0);
-      bucket.wht += amt * (WHT_RATE[l.whtCode] ?? 0);
-      bucket.lines += 1;
-      byCurrency[l.currency] = bucket;
     }
     const payable = subtotal + vat - wht;
-    return { subtotal, vat, wht, payable, byCurrency, multiCurrency };
+    return { subtotal, vat, wht, payable, multiCurrency };
   }, [lines]);
+
+  // Per-line evaluations (drives footer chip & validation popover)
+  const lineEvals = useMemo(() => lines.map(evaluateLine), [lines]);
+  const completeLines = lineEvals.filter(e => e.complete).length;
+  const allLinesComplete = completeLines === lines.length;
 
   // ────────── Approver auto-routing by total ──────────
   const selectedApprover = APPROVERS.find(a => totals.payable <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
 
-  // ────────── Validations ──────────
-  const allLinesHaveReceipts = lines.every(l => l.uploaded);
-  const allLinesOcrConfident = lines.every(l => l.ocrDone && l.ocrConfidence >= 75);
-  // Per-line policy check: any line whose amount exceeds its expense-type hard-stop fails.
+  // ────────── Validations (all 9 still evaluated; surfaced via popover) ──────────
+  const allLinesHaveReceipts = lines.every(l => Object.keys(l.docs).length > 0);
+  const allLinesOcrConfident = lines.every(l =>
+    Object.values(l.docs).length > 0 &&
+    Object.values(l.docs).every(d => d.ocrConfidence >= 75)
+  );
   const allLinesWithinPolicy = lines.every(l => {
     const amt = parseFloat(l.amount) || 0;
-    const et = expenseTypes.find(e => e.id === l.expenseType);
-    if (!et) return true; // covered by "expense type required" rule
+    const et = expenseTypes.find(e => e.id === l.subExpenseTypeId);
+    if (!et) return true;
     return amt <= et.hardStopThreshold;
   });
   const allRequiredFilled = lines.every(l => {
     const amt = parseFloat(l.amount) || 0;
-    return !!l.expenseType && !!l.receiptDate && !!l.accountCode && amt > 0;
+    return !!l.subExpenseTypeId && !!l.receiptDate && !!l.glAccount && amt > 0;
   });
   const largeLinesJustified = lines.every(l => {
     const amt = parseFloat(l.amount) || 0;
     return amt <= 30000 || !!l.lineJustification.trim();
   });
+  const allDocPolicyMet = lineEvals.every(e => e.requiredFilled === e.requiredTotal);
 
   const validationRules = [
     { label: "All lines have receipts attached", pass: lines.length > 0 && allLinesHaveReceipts, pending: !allLinesHaveReceipts },
     { label: "All lines OCR confidence ≥ 75%", pass: allLinesOcrConfident, pending: !allLinesOcrConfident },
     { label: "Total amount within policy limit", pass: totals.payable > 0 && allLinesWithinPolicy, pending: totals.payable === 0 },
     { label: "No duplicate receipts across lines", pass: allLinesHaveReceipts, pending: !allLinesHaveReceipts },
-    { label: "All expense types allowed for country", pass: lines.every(l => !!l.expenseType), pending: lines.some(l => !l.expenseType) },
+    { label: "All sub-types allowed for country", pass: lines.every(l => !!l.subExpenseTypeId), pending: lines.some(l => !l.subExpenseTypeId) },
     { label: "Submission within 7-day window of latest receipt", pass: true, pending: false },
-    { label: "No vendor on blocked list", pass: allLinesHaveReceipts, pending: !allLinesHaveReceipts },
+    { label: "Per-sub-type document checklist satisfied", pass: allDocPolicyMet, pending: !allDocPolicyMet },
     { label: "All required per-line fields filled", pass: allRequiredFilled, pending: !allRequiredFilled },
     { label: "Approver auto-routed", pass: !!selectedApprover && largeLinesJustified, pending: !selectedApprover },
   ];
@@ -161,16 +162,7 @@ export default function NewClaim() {
       : "pending";
 
   // Submit gating
-  const canSubmit = allPass && lines.length >= 1 && allRequiredFilled && largeLinesJustified;
-
-  // ────────── Mutators ──────────
-  const updateLine = (id: string, patch: Partial<ExpenseLine>) => {
-    setLines(prev => prev.map(l => (l.id === id ? { ...l, ...patch } : l)));
-  };
-  const addLine = () => setLines(prev => [...prev, createEmptyLine()]);
-  const deleteLine = (id: string) => {
-    setLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== id)));
-  };
+  const canSubmit = allPass && lines.length >= 1 && allRequiredFilled && largeLinesJustified && allLinesComplete;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,6 +172,10 @@ export default function NewClaim() {
     }
     toast({ title: "Claim Submitted", description: `${lines.length} line(s) submitted for approval.` });
     navigate("/claims");
+  };
+
+  const handleSaveDraft = () => {
+    toast({ title: "Draft saved", description: `${lines.length} line(s) saved as draft.` });
   };
 
   const fmt = (n: number) => n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
