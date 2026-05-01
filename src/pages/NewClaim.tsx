@@ -296,7 +296,13 @@ export default function NewClaim() {
                   {/* Expense Type */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Expense Type</Label>
-                    <Select value={selectedExpense} onValueChange={setSelectedExpense}>
+                    <Select value={selectedExpense} onValueChange={(v) => {
+                      setSelectedExpense(v);
+                      // Auto-suggest VAT/WHT/Account codes based on expense type (user can override)
+                      setVatCode("V07");
+                      setWhtCode("WHT00");
+                      setAccountCode("5101-001");
+                    }}>
                       <SelectTrigger className="h-9 text-sm" tabIndex={4}><SelectValue placeholder="Select type" /></SelectTrigger>
                       <SelectContent>
                         {filteredExpenseTypes.map(e => <SelectItem key={e.id} value={e.id}>{e.category} – {e.subcategory}</SelectItem>)}
