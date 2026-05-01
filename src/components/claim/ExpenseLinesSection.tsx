@@ -38,7 +38,11 @@ export interface ExpenseLineV2 {
   subExpenseTypeId: string;     // expenseTypes.id (sub-type)
   vendor: string;
   receiptDate: string;
-  amount: string;
+  amount: string;               // = totalAmount (gross, VAT-inclusive). Kept name for back-compat.
+  vatAmount: string;
+  whtAmount: string;
+  vatEdited?: boolean;          // user manually edited VAT — auto-calc skipped
+  whtEdited?: boolean;          // user manually edited WHT — auto-calc skipped
   currency: string;
   glAccount: string;
   vatCode: string;
@@ -58,6 +62,10 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   vendor: "",
   receiptDate: "",
   amount: "",
+  vatAmount: "",
+  whtAmount: "",
+  vatEdited: false,
+  whtEdited: false,
   currency: "THB",
   glAccount: "",
   vatCode: "",
@@ -68,6 +76,27 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   docs: {},
   structured: {},
 });
+
+// VAT/WHT rates by code
+const VAT_RATE_PCT: Record<string, number> = { V07: 7, V00: 0, VEX: 0, VNA: 0 };
+const WHT_RATE_PCT: Record<string, number> = { WHT00: 0, WHT01: 1, WHT02: 2, WHT03: 3, WHT05: 5, WHT15: 15 };
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+// Compute VAT (VAT-inclusive) and WHT amounts from total + codes
+function deriveVat(totalStr: string, vatCode: string): number {
+  const total = parseFloat(totalStr) || 0;
+  const r = VAT_RATE_PCT[vatCode] ?? 0;
+  if (r <= 0) return 0;
+  return round2(total * r / (100 + r));
+}
+function deriveWht(totalStr: string, vatAmtStr: string, whtCode: string): number {
+  const total = parseFloat(totalStr) || 0;
+  const vat = parseFloat(vatAmtStr) || 0;
+  const w = WHT_RATE_PCT[whtCode] ?? 0;
+  if (w <= 0) return 0;
+  return round2((total - vat) * w / 100);
+}
 
 // GL/VAT defaults derived from sub-type id
 const GL_BY_SUBTYPE: Record<string, string> = {
@@ -387,6 +416,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
           }},
           vendor: x.vendor || sm.vendor || "",
           amount: x.amount || sm.amount || "",
+          vatAmount: x.vatEdited ? x.vatAmount : String(deriveVat(x.amount || sm.amount || "", x.vatCode)),
+          whtAmount: x.whtEdited ? x.whtAmount : String(deriveWht(x.amount || sm.amount || "", x.vatEdited ? x.vatAmount : String(deriveVat(x.amount || sm.amount || "", x.vatCode)), x.whtCode)),
           receiptDate: x.receiptDate || sm.date || "",
         } : x);
         routed += 1;
@@ -431,6 +462,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
       }},
       vendor: l.vendor || sm.vendor || "",
       amount: l.amount || sm.amount || "",
+      vatAmount: l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)),
+      whtAmount: l.whtEdited ? l.whtAmount : String(deriveWht(l.amount || sm.amount || "", l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)), l.whtCode)),
       receiptDate: l.receiptDate || sm.date || "",
     })));
   };
@@ -846,10 +879,25 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
               <Field label="Receipt Date" required ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
                 <Input type="date" className="h-9 text-sm" value={line.receiptDate} onChange={(e) => updateLine(line.id, { receiptDate: e.target.value })} disabled={readOnly} />
               </Field>
-              <Field label="Amount" required ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
-                <Input type="number" placeholder="0.00" className="h-9 text-sm tabular-nums font-medium" value={line.amount} onChange={(e) => updateLine(line.id, { amount: e.target.value })} disabled={readOnly} />
+              <Field label="Total Amount" required ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  className="h-9 text-sm tabular-nums font-medium"
+                  value={line.amount}
+                  onChange={(e) => {
+                    const total = e.target.value;
+                    const patch: Partial<ExpenseLineV2> = { amount: total };
+                    if (!line.vatEdited) patch.vatAmount = String(deriveVat(total, line.vatCode));
+                    const newVat = patch.vatAmount ?? line.vatAmount;
+                    if (!line.whtEdited) patch.whtAmount = String(deriveWht(total, newVat, line.whtCode));
+                    updateLine(line.id, patch);
+                  }}
+                  disabled={readOnly}
+                />
+                <p className="text-[10px] text-muted-foreground mt-1">Gross amount on the receipt</p>
                 {selectedSubType && (
-                  <p className="text-[10px] text-muted-foreground mt-1">
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     Policy limit {selectedSubType.maxAmount.toLocaleString()} · Alert above {selectedSubType.alertThreshold.toLocaleString()}
                   </p>
                 )}
@@ -866,8 +914,73 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
                   </SelectContent>
                 </Select>
               </Field>
+              <Field label="VAT Amount">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  className="h-9 text-sm tabular-nums"
+                  value={line.vatAmount}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    const patch: Partial<ExpenseLineV2> = { vatAmount: v, vatEdited: true };
+                    if (!line.whtEdited) patch.whtAmount = String(deriveWht(line.amount, v, line.whtCode));
+                    updateLine(line.id, patch);
+                  }}
+                  disabled={readOnly}
+                />
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[10px] text-muted-foreground">Auto-calculated from VAT Code · editable</p>
+                  {line.vatEdited && !readOnly && (
+                    <button
+                      type="button"
+                      className="text-[10px] text-primary hover:underline"
+                      onClick={() => {
+                        const newVat = String(deriveVat(line.amount, line.vatCode));
+                        const patch: Partial<ExpenseLineV2> = { vatAmount: newVat, vatEdited: false };
+                        if (!line.whtEdited) patch.whtAmount = String(deriveWht(line.amount, newVat, line.whtCode));
+                        updateLine(line.id, patch);
+                      }}
+                    >Recalculate</button>
+                  )}
+                </div>
+              </Field>
+              <Field label="WHT Amount">
+                <Input
+                  type="number"
+                  placeholder="0.00"
+                  className="h-9 text-sm tabular-nums"
+                  value={line.whtAmount}
+                  onChange={(e) => updateLine(line.id, { whtAmount: e.target.value, whtEdited: true })}
+                  disabled={readOnly}
+                />
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-[10px] text-muted-foreground">Auto-calculated from WHT Code · editable</p>
+                  {line.whtEdited && !readOnly && (
+                    <button
+                      type="button"
+                      className="text-[10px] text-primary hover:underline"
+                      onClick={() => {
+                        updateLine(line.id, {
+                          whtAmount: String(deriveWht(line.amount, line.vatAmount, line.whtCode)),
+                          whtEdited: false,
+                        });
+                      }}
+                    >Recalculate</button>
+                  )}
+                </div>
+              </Field>
               <Field label="VAT Code">
-                <Select value={line.vatCode} onValueChange={(v) => updateLine(line.id, { vatCode: v })} disabled={readOnly}>
+                <Select
+                  value={line.vatCode}
+                  onValueChange={(v) => {
+                    const patch: Partial<ExpenseLineV2> = { vatCode: v };
+                    if (!line.vatEdited) patch.vatAmount = String(deriveVat(line.amount, v));
+                    const newVat = patch.vatAmount ?? line.vatAmount;
+                    if (!line.whtEdited) patch.whtAmount = String(deriveWht(line.amount, newVat, line.whtCode));
+                    updateLine(line.id, patch);
+                  }}
+                  disabled={readOnly}
+                >
                   <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="VAT…" /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="V07">V07 – VAT 7%</SelectItem>
@@ -878,7 +991,15 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
                 </Select>
               </Field>
               <Field label="WHT Code">
-                <Select value={line.whtCode} onValueChange={(v) => updateLine(line.id, { whtCode: v })} disabled={readOnly}>
+                <Select
+                  value={line.whtCode}
+                  onValueChange={(v) => {
+                    const patch: Partial<ExpenseLineV2> = { whtCode: v };
+                    if (!line.whtEdited) patch.whtAmount = String(deriveWht(line.amount, line.vatAmount, v));
+                    updateLine(line.id, patch);
+                  }}
+                  disabled={readOnly}
+                >
                   <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="WHT00">WHT00 – No WHT</SelectItem>

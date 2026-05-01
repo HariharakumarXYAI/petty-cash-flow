@@ -96,14 +96,13 @@ export default function NewClaim() {
     let firstCurrency: string | null = null;
 
     for (const l of lines) {
-      const amt = parseFloat(l.amount) || 0;
+      const total = parseFloat(l.amount) || 0;
+      const vatAmt = parseFloat(l.vatAmount) || 0;
+      const whtAmt = parseFloat(l.whtAmount) || 0;
       const fx = FX_TO_THB[l.currency] ?? 1;
-      const amtTHB = amt * fx;
-      const vatTHB = amtTHB * (VAT_RATE[l.vatCode] ?? 0);
-      const whtTHB = amtTHB * (WHT_RATE[l.whtCode] ?? 0);
-      subtotal += amtTHB;
-      vat += vatTHB;
-      wht += whtTHB;
+      subtotal += (total - vatAmt) * fx;
+      vat += vatAmt * fx;
+      wht += whtAmt * fx;
       if (firstCurrency === null) firstCurrency = l.currency;
       else if (firstCurrency !== l.currency) multiCurrency = true;
     }
