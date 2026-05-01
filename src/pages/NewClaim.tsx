@@ -36,6 +36,7 @@ export default function NewClaim() {
   const [onBehalf, setOnBehalf] = useState(false);
   const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
   const [delegationReason, setDelegationReason] = useState("");
+  const [approver, setApprover] = useState("APR-001");
   const requester = {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
