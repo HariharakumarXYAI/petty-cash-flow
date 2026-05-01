@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Upload, Camera, ArrowLeft, Receipt, CheckCircle, AlertTriangle,
   XCircle, Lightbulb, FileCheck, Scan, ShieldCheck, Link2, Zap,
-  CircleDot, Eye, ChevronDown, Pencil, Check as CheckIcon, UserCog,
+  CircleDot, Eye, ChevronDown, Pencil, Check as CheckIcon, UserCog, Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,6 +37,27 @@ export default function NewClaim() {
   const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
   const [delegationReason, setDelegationReason] = useState("");
   const [approver, setApprover] = useState("APR-001");
+  const [selectedStoreId, setSelectedStoreId] = useState("s3"); // default: Makro Rama 4
+  const selectedStore = stores.find(s => s.id === selectedStoreId);
+  const storeBranchCode = selectedStore ? String(parseInt(selectedStore.id.replace(/\D/g, ""), 10) || 0).padStart(5, "0") : "00000";
+  const tzMap: Record<string, string> = { TH: "Asia/Bangkok", KH: "Asia/Phnom_Penh", VN: "Asia/Ho_Chi_Minh", MM: "Asia/Yangon" };
+  const [creationDate] = useState(() => new Date());
+  // Mock: next sequence per store+month — in production query backend
+  const mockSeq = 1;
+  const yyyy = creationDate.getFullYear();
+  const mm = String(creationDate.getMonth() + 1).padStart(2, "0");
+  const claimNumber = selectedStore
+    ? `PC-${selectedStore.country}-${storeBranchCode}-${yyyy}-${mm}-${String(mockSeq).padStart(5, "0")}`
+    : "";
+  const tz = selectedStore ? tzMap[selectedStore.country] ?? "Asia/Bangkok" : "Asia/Bangkok";
+  const creationDateDisplay = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz, day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(creationDate).replace(",", "");
+  const copyClaimNumber = () => {
+    if (!claimNumber) return;
+    navigator.clipboard.writeText(claimNumber);
+    toast({ title: "Claim number copied." });
+  };
   const requester = {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
@@ -186,7 +207,7 @@ export default function NewClaim() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
-                    <Select disabled={!requesterEdit}>
+                    <Select disabled={!requesterEdit} value={selectedStoreId} onValueChange={setSelectedStoreId}>
                       <SelectTrigger className="h-9 text-sm" tabIndex={3}><SelectValue placeholder="Select store" /></SelectTrigger>
                       <SelectContent>
                         {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
@@ -310,6 +331,43 @@ export default function NewClaim() {
               </div>
 
               <div className="p-4 space-y-4">
+                {/* Auto-generated read-only meta row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Number</Label>
+                    <div className="relative">
+                      <Input
+                        readOnly
+                        tabIndex={-1}
+                        value={claimNumber}
+                        placeholder="Select store first"
+                        className="h-9 text-sm bg-muted/50 font-mono tabular-nums pr-9 cursor-default focus-visible:ring-0"
+                      />
+                      <button
+                        type="button"
+                        onClick={copyClaimNumber}
+                        disabled={!claimNumber}
+                        tabIndex={-1}
+                        aria-label="Copy claim number"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-40"
+                      >
+                        <Copy className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">Auto-generated. Cannot be edited.</p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Creation Date</Label>
+                    <Input
+                      readOnly
+                      tabIndex={-1}
+                      value={creationDateDisplay}
+                      className="h-9 text-sm bg-muted/50 tabular-nums cursor-default focus-visible:ring-0"
+                    />
+                    <p className="text-[11px] text-muted-foreground">Auto-set when claim is created.</p>
+                  </div>
+                </div>
+
                 {/* Purpose (mandatory) — full width, top */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
