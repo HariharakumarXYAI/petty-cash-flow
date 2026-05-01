@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
-import { stores, advances } from "@/lib/mock-data";
+import { stores, advances, expenseTypes } from "@/lib/mock-data";
 import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
