@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Upload, Camera, ArrowLeft, Receipt, CheckCircle, AlertTriangle,
   XCircle, Lightbulb, FileCheck, Scan, ShieldCheck, Link2, Zap,
-  CircleDot, Eye, ChevronDown, Pencil, Check as CheckIcon, UserCog,
+  CircleDot, Eye, ChevronDown, Pencil, Check as CheckIcon, UserCog, Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
