@@ -305,7 +305,7 @@ export default function NewClaim() {
             {/* Claim Form */}
             <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
               <div className="px-4 py-3 border-b border-border bg-muted/30">
-                <h3 className="text-sm font-semibold text-foreground">Claim Details</h3>
+                <h3 className="text-sm font-semibold text-foreground">Claim Information</h3>
                 <p className="text-[11px] text-muted-foreground mt-0.5">Fields auto-filled from OCR are highlighted</p>
               </div>
 
