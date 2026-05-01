@@ -25,6 +25,9 @@ export default function NewClaim() {
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [ocrDone, setOcrDone] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState("");
+  const [vatCode, setVatCode] = useState("");
+  const [whtCode, setWhtCode] = useState("");
+  const [accountCode, setAccountCode] = useState("");
   const [amount, setAmount] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
   const [vendor, setVendor] = useState("");
@@ -113,7 +116,6 @@ export default function NewClaim() {
 
       <form onSubmit={handleSubmit}>
         <div className="space-y-4">
-
 
 
           <div className="space-y-4">
@@ -293,7 +295,13 @@ export default function NewClaim() {
                   {/* Expense Type */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Expense Type</Label>
-                    <Select value={selectedExpense} onValueChange={setSelectedExpense}>
+                    <Select value={selectedExpense} onValueChange={(v) => {
+                      setSelectedExpense(v);
+                      // Auto-suggest VAT/WHT/Account codes based on expense type (user can override)
+                      setVatCode("V07");
+                      setWhtCode("WHT00");
+                      setAccountCode("5101-001");
+                    }}>
                       <SelectTrigger className="h-9 text-sm" tabIndex={4}><SelectValue placeholder="Select type" /></SelectTrigger>
                       <SelectContent>
                         {filteredExpenseTypes.map(e => <SelectItem key={e.id} value={e.id}>{e.category} – {e.subcategory}</SelectItem>)}
@@ -354,6 +362,65 @@ export default function NewClaim() {
                     />
                   </div>
 
+                  {/* VAT Code */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">VAT Code</Label>
+                    <Select value={vatCode} onValueChange={setVatCode}>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={8}>
+                        <SelectValue placeholder="Select VAT code" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="V07">V07 – VAT 7% (standard)</SelectItem>
+                        <SelectItem value="V00">V00 – VAT 0% (zero-rated / export)</SelectItem>
+                        <SelectItem value="VEX">VEX – VAT Exempt</SelectItem>
+                        <SelectItem value="VNA">VNA – Non-VAT / Out of scope</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground leading-tight px-0.5">Auto-suggested from Expense Type. Override if needed.</p>
+                  </div>
+
+                  {/* WHT Code */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">WHT Code</Label>
+                    <Select value={whtCode} onValueChange={setWhtCode}>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={9}>
+                        <SelectValue placeholder="Select WHT code" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="WHT00">WHT00 – No withholding</SelectItem>
+                        <SelectItem value="WHT01">WHT01 – 1% Transportation (PND 53)</SelectItem>
+                        <SelectItem value="WHT02">WHT02 – 2% Advertising (PND 53)</SelectItem>
+                        <SelectItem value="WHT03">WHT03 – 3% Services / Professional fees (PND 53)</SelectItem>
+                        <SelectItem value="WHT05">WHT05 – 5% Rental (PND 53)</SelectItem>
+                        <SelectItem value="WHT15">WHT15 – 15% Foreign payment (PND 54)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground leading-tight px-0.5">Used to generate PND withholding form.</p>
+                  </div>
+
+                  {/* Account Code */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      Account Code <span className="text-destructive">*</span>
+                    </Label>
+                    <Select value={accountCode} onValueChange={setAccountCode} required>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={10}>
+                        <SelectValue placeholder="Search GL account..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="5101-001">5101-001 – Office Supplies Expense</SelectItem>
+                        <SelectItem value="5102-001">5102-001 – Travel Expense</SelectItem>
+                        <SelectItem value="5103-001">5103-001 – Meals & Entertainment</SelectItem>
+                        <SelectItem value="5104-001">5104-001 – Utilities Expense</SelectItem>
+                        <SelectItem value="5105-001">5105-001 – Professional Fees</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-[10px] text-muted-foreground leading-tight px-0.5">Required for GL posting. Auto-suggested from Expense Type.</p>
+                  </div>
+
+                  {/* Spacer to keep Amount/Currency on its own row */}
+                  <div className="hidden md:block" aria-hidden="true" />
+
                   {/* Amount — OCR highlight */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
@@ -366,7 +433,7 @@ export default function NewClaim() {
                       placeholder="0.00"
                       value={amount}
                       onChange={(e) => setAmount(e.target.value)}
-                      tabIndex={8}
+                      tabIndex={11}
                     />
                   </div>
 
@@ -374,7 +441,7 @@ export default function NewClaim() {
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Currency</Label>
                     <Select defaultValue="THB">
-                      <SelectTrigger className="h-9 text-sm" tabIndex={9}><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={12}><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="THB">THB – Thai Baht</SelectItem>
                         <SelectItem value="USD">USD – US Dollar</SelectItem>
@@ -411,7 +478,7 @@ export default function NewClaim() {
                 {/* Notes — full width, last */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Notes (optional)</Label>
-                  <Textarea placeholder="Brief description of expense…" rows={2} className="text-sm resize-none" tabIndex={10} />
+                  <Textarea placeholder="Brief description of expense…" rows={2} className="text-sm resize-none" tabIndex={13} />
                 </div>
               </div>
             </div>
