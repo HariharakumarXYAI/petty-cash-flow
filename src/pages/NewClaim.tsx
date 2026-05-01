@@ -262,6 +262,7 @@ export default function NewClaim() {
                     <Checkbox
                       checked={onBehalf}
                       onCheckedChange={(v) => setOnBehalf(v === true)}
+                      tabIndex={8}
                     />
                     <span className="text-xs text-foreground">Submitting on behalf of another person</span>
                   </label>
