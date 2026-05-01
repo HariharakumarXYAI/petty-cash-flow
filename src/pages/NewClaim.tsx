@@ -207,7 +207,7 @@ export default function NewClaim() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
-                    <Select disabled={!requesterEdit}>
+                    <Select disabled={!requesterEdit} value={selectedStoreId} onValueChange={setSelectedStoreId}>
                       <SelectTrigger className="h-9 text-sm" tabIndex={3}><SelectValue placeholder="Select store" /></SelectTrigger>
                       <SelectContent>
                         {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
