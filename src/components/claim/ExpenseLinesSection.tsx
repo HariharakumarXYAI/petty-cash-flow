@@ -833,14 +833,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
             </p>
             <p className="text-[11px] text-muted-foreground">Sub-type sets doc requirements</p>
           </div>
-          <div className="flex gap-1 shrink-0">
-            <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => copyFromPrevious(line.id)} disabled={idx === 0 || readOnly}>
-              <CopyIcon className="h-3 w-3" /> Copy from previous
-            </Button>
-            <Button type="button" variant="ghost" size="sm" className="h-7 text-xs gap-1" onClick={() => setChangingSubType(true)} disabled={readOnly}>
-              <Replace className="h-3 w-3" /> Change sub-type
-            </Button>
-          </div>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
