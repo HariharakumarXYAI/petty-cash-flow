@@ -371,6 +371,21 @@ export default function NewClaim() {
                   </div>
                 )}
 
+                {/* Purpose (mandatory) */}
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                    Purpose <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    required
+                    placeholder="Enter purpose of this claim…"
+                    rows={3}
+                    maxLength={1750}
+                    className="text-sm resize-none"
+                  />
+                  <p className="text-[11px] text-muted-foreground">Required · up to 250 words</p>
+                </div>
+
                 {/* Notes */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Notes (optional)</Label>
