@@ -416,6 +416,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
           }},
           vendor: x.vendor || sm.vendor || "",
           amount: x.amount || sm.amount || "",
+          vatAmount: x.vatEdited ? x.vatAmount : String(deriveVat(x.amount || sm.amount || "", x.vatCode)),
+          whtAmount: x.whtEdited ? x.whtAmount : String(deriveWht(x.amount || sm.amount || "", x.vatEdited ? x.vatAmount : String(deriveVat(x.amount || sm.amount || "", x.vatCode)), x.whtCode)),
           receiptDate: x.receiptDate || sm.date || "",
         } : x);
         routed += 1;
@@ -460,6 +462,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
       }},
       vendor: l.vendor || sm.vendor || "",
       amount: l.amount || sm.amount || "",
+      vatAmount: l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)),
+      whtAmount: l.whtEdited ? l.whtAmount : String(deriveWht(l.amount || sm.amount || "", l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)), l.whtCode)),
       receiptDate: l.receiptDate || sm.date || "",
     })));
   };
