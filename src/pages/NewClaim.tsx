@@ -36,6 +36,7 @@ export default function NewClaim() {
   const [onBehalf, setOnBehalf] = useState(false);
   const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
   const [delegationReason, setDelegationReason] = useState("");
+  const [approver, setApprover] = useState("APR-001");
   const requester = {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
@@ -46,6 +47,13 @@ export default function NewClaim() {
     email: "somchai.p@cpaxtra.com",
     phone: "081-234-5678",
   };
+
+  const APPROVERS = [
+    { id: "APR-001", name: "Somsak Vongchai", position: "Direct Manager", maxAmount: 5000 },
+    { id: "APR-002", name: "Pranee Wongsiri", position: "Store Manager", maxAmount: 50000 },
+    { id: "APR-003", name: "Nattaya Kittisak", position: "Regional Manager", maxAmount: 200000 },
+    { id: "APR-004", name: "Chaiwat Boonmee", position: "Finance Director", maxAmount: Infinity },
+  ];
 
   const filteredStores = country === "all" ? stores : stores.filter(s => s.country === country);
   const filteredExpenseTypes = country === "all" ? expenseTypes : expenseTypes.filter(e => e.countries.includes(country as any));
@@ -61,6 +69,11 @@ export default function NewClaim() {
   const payableAmount = Math.max(0, amountNum - advanceDeduction);
 
   const expectedOutcome = isOverHardStop ? "On Hold" : isOverAlert ? "Auto Approved with Alert" : "Auto Approved";
+
+  // Approver tier suggestion based on amount
+  const suggestedApprover = APPROVERS.find(a => amountNum <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
+  const selectedApprover = APPROVERS.find(a => a.id === approver);
+  const approverInsufficient = !!selectedApprover && amountNum > selectedApprover.maxAmount;
 
   const ocrData = {
     vendor: "OfficeMate",
@@ -79,6 +92,7 @@ export default function NewClaim() {
     { label: "Expense type allowed for country", pass: !!selectedExpenseType, pending: !selectedExpenseType },
     { label: "Submission within 7-day window", pass: true, pending: false },
     { label: "Vendor not on blocked list", pass: ocrDone, pending: !ocrDone },
+    { label: "Approver assigned", pass: !!approver && !approverInsufficient, pending: !approver },
   ];
 
   const passedCount = validationRules.filter(r => r.pass).length;
@@ -97,6 +111,10 @@ export default function NewClaim() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!approver) {
+      toast({ title: "Approver required", description: "Please select an approver.", variant: "destructive" });
+      return;
+    }
     toast({ title: "Claim Submitted", description: "Your claim has been submitted for validation." });
     navigate("/claims");
   };
@@ -160,16 +178,16 @@ export default function NewClaim() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Employee ID</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.employeeId} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.employeeId} readOnly={!requesterEdit} tabIndex={1} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Full Name</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} tabIndex={2} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
                     <Select disabled={!requesterEdit}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={3}><SelectValue placeholder="Select store" /></SelectTrigger>
                       <SelectContent>
                         {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
@@ -177,16 +195,65 @@ export default function NewClaim() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Position / Role</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} tabIndex={4} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Email</Label>
-                    <Input className="h-9 text-sm" type="email" defaultValue={requester.email} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" type="email" defaultValue={requester.email} readOnly={!requesterEdit} tabIndex={5} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Phone</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} tabIndex={6} />
                   </div>
+
+                  {/* Approver — left column, right column intentionally empty */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      Approver <span className="text-destructive">*</span>
+                    </Label>
+                    <Select value={approver} onValueChange={setApprover} required>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={7}>
+                        <SelectValue placeholder="Select approver">
+                          {selectedApprover && `${selectedApprover.name} · ${selectedApprover.position}`}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {APPROVERS.map(a => {
+                          const initials = a.name.split(" ").map(n => n[0]).slice(0, 2).join("");
+                          return (
+                            <SelectItem key={a.id} value={a.id}>
+                              <span className="flex items-center gap-2">
+                                <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center shrink-0">
+                                  {initials}
+                                </span>
+                                <span>{a.name} · {a.position}</span>
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {approverInsufficient ? (
+                      <div className="flex items-start gap-1.5 px-0.5">
+                        <AlertTriangle className="h-3 w-3 text-status-validating mt-0.5 shrink-0" />
+                        <span className="text-[10px] text-status-validating leading-tight">
+                          Selected approver cannot approve this amount. Suggested: {suggestedApprover.name}.{" "}
+                          <button
+                            type="button"
+                            onClick={() => setApprover(suggestedApprover.id)}
+                            className="underline font-semibold hover:text-status-validating/80"
+                          >
+                            Use suggested
+                          </button>
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground">
+                        Auto-suggested based on your reporting line and claim amount. Override if needed.
+                      </p>
+                    )}
+                  </div>
+                  <div className="hidden sm:block" />
                 </div>
 
                 {/* Submit on behalf */}
@@ -195,6 +262,7 @@ export default function NewClaim() {
                     <Checkbox
                       checked={onBehalf}
                       onCheckedChange={(v) => setOnBehalf(v === true)}
+                      tabIndex={8}
                     />
                     <span className="text-xs text-foreground">Submitting on behalf of another person</span>
                   </label>
