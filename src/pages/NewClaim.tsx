@@ -178,16 +178,16 @@ export default function NewClaim() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Employee ID</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.employeeId} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.employeeId} readOnly={!requesterEdit} tabIndex={1} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Full Name</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} tabIndex={2} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
                     <Select disabled={!requesterEdit}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={3}><SelectValue placeholder="Select store" /></SelectTrigger>
                       <SelectContent>
                         {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                       </SelectContent>
@@ -195,16 +195,65 @@ export default function NewClaim() {
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Position / Role</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} tabIndex={4} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Email</Label>
-                    <Input className="h-9 text-sm" type="email" defaultValue={requester.email} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" type="email" defaultValue={requester.email} readOnly={!requesterEdit} tabIndex={5} />
                   </div>
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Phone</Label>
-                    <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} />
+                    <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} tabIndex={6} />
                   </div>
+
+                  {/* Approver — left column, right column intentionally empty */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                      Approver <span className="text-destructive">*</span>
+                    </Label>
+                    <Select value={approver} onValueChange={setApprover} required>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={7}>
+                        <SelectValue placeholder="Select approver">
+                          {selectedApprover && `${selectedApprover.name} · ${selectedApprover.position}`}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {APPROVERS.map(a => {
+                          const initials = a.name.split(" ").map(n => n[0]).slice(0, 2).join("");
+                          return (
+                            <SelectItem key={a.id} value={a.id}>
+                              <span className="flex items-center gap-2">
+                                <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center shrink-0">
+                                  {initials}
+                                </span>
+                                <span>{a.name} · {a.position}</span>
+                              </span>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                    {approverInsufficient ? (
+                      <div className="flex items-start gap-1.5 px-0.5">
+                        <AlertTriangle className="h-3 w-3 text-status-validating mt-0.5 shrink-0" />
+                        <span className="text-[10px] text-status-validating leading-tight">
+                          Selected approver cannot approve this amount. Suggested: {suggestedApprover.name}.{" "}
+                          <button
+                            type="button"
+                            onClick={() => setApprover(suggestedApprover.id)}
+                            className="underline font-semibold hover:text-status-validating/80"
+                          >
+                            Use suggested
+                          </button>
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-muted-foreground">
+                        Auto-suggested based on your reporting line and claim amount. Override if needed.
+                      </p>
+                    )}
+                  </div>
+                  <div className="hidden sm:block" />
                 </div>
 
                 {/* Submit on behalf */}
