@@ -143,7 +143,7 @@ export default function NewClaim() {
     { label: "Submission within 7-day window of latest receipt", pass: true, pending: false },
     { label: "No vendor on blocked list", pass: allLinesHaveReceipts, pending: !allLinesHaveReceipts },
     { label: "All required per-line fields filled", pass: allRequiredFilled, pending: !allRequiredFilled },
-    { label: "Approver assigned", pass: !!approver && !approverInsufficient && largeLinesJustified, pending: !approver },
+    { label: "Approver auto-routed", pass: !!selectedApprover && largeLinesJustified, pending: !selectedApprover },
   ];
   const passedCount = validationRules.filter(r => r.pass).length;
   const allPass = passedCount === validationRules.length;
