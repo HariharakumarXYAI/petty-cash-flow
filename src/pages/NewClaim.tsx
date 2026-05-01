@@ -367,57 +367,6 @@ export default function NewClaim() {
                 />
                 <p className="text-[11px] text-muted-foreground">Required · up to 250 words</p>
               </div>
-
-              {/* Approver */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    Approver <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value={approver} onValueChange={setApprover} required>
-                    <SelectTrigger className="h-9 text-sm">
-                      <SelectValue placeholder="Select approver">
-                        {selectedApprover && `${selectedApprover.name} · ${selectedApprover.position}`}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {APPROVERS.map(a => {
-                        const initials = a.name.split(" ").map(n => n[0]).slice(0, 2).join("");
-                        return (
-                          <SelectItem key={a.id} value={a.id}>
-                            <span className="flex items-center gap-2">
-                              <span className="h-5 w-5 rounded-full bg-primary/10 text-primary text-[10px] font-semibold flex items-center justify-center shrink-0">
-                                {initials}
-                              </span>
-                              <span>{a.name} · {a.position}</span>
-                            </span>
-                          </SelectItem>
-                        );
-                      })}
-                    </SelectContent>
-                  </Select>
-                  {approverInsufficient ? (
-                    <div className="flex items-start gap-1.5 px-0.5">
-                      <AlertTriangle className="h-3 w-3 text-status-validating mt-0.5 shrink-0" />
-                      <span className="text-[10px] text-status-validating leading-tight">
-                        Selected approver cannot approve this total amount. Suggested: {suggestedApprover.name}.{" "}
-                        <button
-                          type="button"
-                          onClick={() => setApprover(suggestedApprover.id)}
-                          className="underline font-semibold hover:text-status-validating/80"
-                        >
-                          Use suggested
-                        </button>
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-[10px] text-muted-foreground">
-                      Auto-routed based on claim total. Override if needed.
-                    </p>
-                  )}
-                </div>
-                <div className="hidden sm:block" />
-              </div>
             </div>
           </div>
 
