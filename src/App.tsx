@@ -12,6 +12,7 @@ import ClaimsList from "./pages/ClaimsList";
 import NewClaim from "./pages/NewClaim";
 import ClaimDetail from "./pages/ClaimDetail";
 import Advances from "./pages/Advances";
+import NewAdvance from "./pages/NewAdvance";
 import Cashbook from "./pages/Cashbook";
 import AlertsPage from "./pages/AlertsPage";
 import Investigations from "./pages/Investigations";
@@ -95,6 +96,7 @@ function AppRoutes() {
         <Route path="claims/new" element={<NewClaim />} />
         <Route path="claims/:id" element={<ClaimDetail />} />
         <Route path="advances" element={<Advances />} />
+        <Route path="advances/new" element={<NewAdvance />} />
         <Route path="cashbook" element={<Cashbook />} />
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="investigations" element={<Investigations />} />

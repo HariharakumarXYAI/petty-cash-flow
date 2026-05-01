@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Wallet, Clock, AlertTriangle, CheckCircle, ArrowRight, Ban,
   ArrowUpRight, ArrowDownRight, DollarSign, User, CalendarClock,
@@ -18,6 +19,7 @@ import type { Advance } from "@/lib/mock-data";
 
 export default function Advances() {
   const { country } = useGlobalFilter();
+  const navigate = useNavigate();
   const [selected, setSelected] = useState<Advance | null>(null);
 
   const filtered = country === "all" ? advances : advances.filter(a => a.country === country);
@@ -36,7 +38,7 @@ export default function Advances() {
           <h1 className="text-xl font-bold text-foreground">Advances</h1>
           <p className="text-xs text-muted-foreground mt-0.5">{filtered.length} advances · {country === "all" ? "All countries" : country}</p>
         </div>
-        <Button size="sm" className="gap-1.5 text-xs">
+        <Button size="sm" className="gap-1.5 text-xs" onClick={() => navigate("/advances/new")}>
           <Banknote className="h-3.5 w-3.5" /> Issue Advance
         </Button>
       </div>
