@@ -350,7 +350,13 @@ export default function NewClaim() {
                   </Select>
                   <p className="text-[11px] text-muted-foreground">One advance covers the whole trip.</p>
                 </div>
-                <div className="hidden sm:block" />
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Status</Label>
+                  <div className="h-9 flex items-center px-3 rounded-md border border-border bg-muted/50">
+                    <Badge variant="draft">Draft</Badge>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground">Draft → Submitted → Approved.</p>
+                </div>
               </div>
 
               {/* Purpose */}
