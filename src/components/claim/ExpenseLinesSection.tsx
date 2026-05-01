@@ -1001,22 +1001,6 @@ function Field({
   );
 }
 
-function BulkPicker({
-  label, value, onValue, onApply, disabled, children,
-}: { label: string; value: string; onValue: (v: string) => void; onApply: () => void; disabled?: boolean; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <Select value={value} onValueChange={(v) => { onValue(v); }}>
-        <SelectTrigger className="h-7 text-[10px] px-2"><SelectValue placeholder={label} /></SelectTrigger>
-        <SelectContent>{children}</SelectContent>
-      </Select>
-      <Button type="button" variant="outline" size="sm" className="h-6 text-[10px]" onClick={onApply} disabled={disabled || !value}>
-        Apply
-      </Button>
-    </div>
-  );
-}
-
 function AltGroup({
   line, groupId, rows, renderFileSlot,
 }: {
