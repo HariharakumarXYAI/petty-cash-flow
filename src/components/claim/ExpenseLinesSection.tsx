@@ -222,7 +222,19 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   const [needsSorting, setNeedsSorting] = useState<UnsortedFile[]>([]);
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
   const [changingSubType, setChangingSubType] = useState(false);
+  const [pendingCategoryByLine, setPendingCategoryByLine] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Distinct parent expense types from the catalog (filtered by country)
+  const expenseCategories = useMemo(() => {
+    const set = new Set<string>();
+    for (const e of expenseTypes) {
+      if (countryFilter === "all" || e.countries.includes(countryFilter as any)) {
+        set.add(e.category);
+      }
+    }
+    return Array.from(set).sort();
+  }, [countryFilter]);
 
   // Keep selection valid
   useEffect(() => {
