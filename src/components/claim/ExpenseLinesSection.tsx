@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -219,11 +219,7 @@ interface UnsortedFile {
 export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly = false }: Props) {
   const isMobile = useIsMobile();
   const [selectedLineId, setSelectedLineId] = useState<string>(lines[0]?.id ?? "");
-  const [checkedIds, setCheckedIds] = useState<Set<string>>(new Set());
   const [needsSorting, setNeedsSorting] = useState<UnsortedFile[]>([]);
-  const [bulkSubType, setBulkSubType] = useState<string>("");
-  const [bulkGL, setBulkGL] = useState<string>("");
-  const [bulkVat, setBulkVat] = useState<string>("");
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
   const [changingSubType, setChangingSubType] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -411,33 +407,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
 
   const onPickFiles = () => fileInputRef.current?.click();
 
-  // ───────── Bulk-apply toolbar ─────────
-  const toggleCheck = (id: string) => {
-    setCheckedIds(prev => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
-  };
-  const toggleAll = () => {
-    setCheckedIds(prev => prev.size === lines.length ? new Set() : new Set(lines.map(l => l.id)));
-  };
-  const applyBulkSubType = () => {
-    if (!bulkSubType || !checkedIds.size) return;
-    checkedIds.forEach(id => setLineSubType(id, bulkSubType));
-    toast({ title: `Sub-type applied to ${checkedIds.size} line(s)` });
-  };
-  const applyBulkGL = () => {
-    if (!bulkGL || !checkedIds.size) return;
-    setLines(prev => prev.map(l => checkedIds.has(l.id) ? { ...l, glAccount: bulkGL } : l));
-    toast({ title: `GL applied to ${checkedIds.size} line(s)` });
-  };
-  const applyBulkVat = () => {
-    if (!bulkVat || !checkedIds.size) return;
-    setLines(prev => prev.map(l => checkedIds.has(l.id) ? { ...l, vatCode: bulkVat } : l));
-    toast({ title: `VAT applied to ${checkedIds.size} line(s)` });
-  };
-
   // ───────── Slot-level helpers ─────────
   const attachToSlot = (lineId: string, code: DocTypeCode, altGroupId: string | undefined, file: File) => {
     const sm = mockSummary(code);
@@ -566,7 +535,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   const renderLineRow = (line: ExpenseLineV2, idx: number) => {
     const ev = evaluateLine(line);
     const isSelected = line.id === selectedLineId;
-    const checked = checkedIds.has(line.id);
     const amt = parseFloat(line.amount) || 0;
     let pillTone: "approved" | "alert" | "rejected" = "rejected";
     if (ev.requiredFilled === ev.requiredTotal && ev.requiredTotal > 0 && ev.fieldsOk && ev.ocrOk) pillTone = "approved";
@@ -590,12 +558,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
         )}
       >
         <div className="flex items-start gap-2">
-          <Checkbox
-            checked={checked}
-            onCheckedChange={() => toggleCheck(line.id)}
-            onClick={(e) => e.stopPropagation()}
-            className="mt-0.5"
-          />
           <span className="text-[10px] font-bold text-muted-foreground tabular-nums w-6 mt-0.5">#{idx + 1}</span>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-foreground truncate">
@@ -986,35 +948,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
           <div className="px-3 py-2.5 border-b border-border bg-muted/30 flex items-center gap-2">
             <span className="text-xs font-semibold text-foreground">Lines</span>
             <Badge variant="outline" className="text-[9px] px-1.5 py-0">{lines.length}</Badge>
-          </div>
-
-          {/* Bulk-apply toolbar */}
-          <div className="px-3 py-2 border-b border-border bg-muted/10 space-y-2">
-            <div className="flex items-center gap-2">
-              <Checkbox
-                checked={checkedIds.size === lines.length && lines.length > 0}
-                onCheckedChange={toggleAll}
-              />
-              <span className="text-[10px] text-muted-foreground">
-                {checkedIds.size > 0 ? `${checkedIds.size} selected` : "Select all"}
-              </span>
-              <span className="ml-auto text-[10px] text-muted-foreground font-semibold">Bulk apply →</span>
-            </div>
-            <div className="grid grid-cols-3 gap-1">
-              <BulkPicker label="Sub-type" value={bulkSubType} onValue={setBulkSubType} onApply={applyBulkSubType} disabled={!checkedIds.size}>
-                {subTypes.map(s => <SelectItem key={s.id} value={s.id}>{s.subcategory}</SelectItem>)}
-              </BulkPicker>
-              <BulkPicker label="GL" value={bulkGL} onValue={setBulkGL} onApply={applyBulkGL} disabled={!checkedIds.size}>
-                <SelectItem value="5102-001">5102-001</SelectItem>
-                <SelectItem value="5103-001">5103-001</SelectItem>
-                <SelectItem value="5106-001">5106-001</SelectItem>
-              </BulkPicker>
-              <BulkPicker label="VAT" value={bulkVat} onValue={setBulkVat} onApply={applyBulkVat} disabled={!checkedIds.size}>
-                <SelectItem value="V07">V07</SelectItem>
-                <SelectItem value="V00">V00</SelectItem>
-                <SelectItem value="VEX">VEX</SelectItem>
-              </BulkPicker>
-            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto max-h-[640px]">
