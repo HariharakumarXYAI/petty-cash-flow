@@ -478,7 +478,7 @@ export default function NewClaim() {
                 {/* Notes — full width, last */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Notes (optional)</Label>
-                  <Textarea placeholder="Brief description of expense…" rows={2} className="text-sm resize-none" tabIndex={10} />
+                  <Textarea placeholder="Brief description of expense…" rows={2} className="text-sm resize-none" tabIndex={13} />
                 </div>
               </div>
             </div>
