@@ -240,12 +240,61 @@ export default function NewClaim() {
               </div>
 
               <div className="p-4 space-y-4">
+                {/* Purpose (mandatory) — full width, top */}
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
+                    Purpose <span className="text-destructive">*</span>
+                  </Label>
+                  <Textarea
+                    required
+                    placeholder="Enter purpose of this claim…"
+                    rows={3}
+                    maxLength={1750}
+                    className="text-sm resize-none"
+                    tabIndex={1}
+                  />
+                  <p className="text-[11px] text-muted-foreground">Required · up to 250 words</p>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
+                  {/* Link to Advance */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                      <Link2 className="h-3 w-3" /> Link to Advance
+                    </Label>
+                    <Select value={linkedAdvance} onValueChange={setLinkedAdvance}>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={2}><SelectValue placeholder="None" /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No linked advance</SelectItem>
+                        {openAdvances.map(a => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.advanceNumber} · {(a.amount - a.settledAmount - a.returnedCash).toLocaleString()} {a.currency} remaining
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Vendor */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+                      Vendor
+                      {ocrDone && <span className="text-[9px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded-full normal-case tracking-normal">OCR filled</span>}
+                    </Label>
+                    <Input
+                      className={`h-9 text-sm ${ocrDone ? "border-primary/30 bg-primary/[0.02]" : ""}`}
+                      placeholder="Vendor name"
+                      value={vendor}
+                      onChange={e => setVendor(e.target.value)}
+                      tabIndex={3}
+                    />
+                  </div>
+
                   {/* Expense Type */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Expense Type</Label>
                     <Select value={selectedExpense} onValueChange={setSelectedExpense}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select type" /></SelectTrigger>
+                      <SelectTrigger className="h-9 text-sm" tabIndex={4}><SelectValue placeholder="Select type" /></SelectTrigger>
                       <SelectContent>
                         {filteredExpenseTypes.map(e => <SelectItem key={e.id} value={e.id}>{e.category} – {e.subcategory}</SelectItem>)}
                       </SelectContent>
@@ -264,7 +313,7 @@ export default function NewClaim() {
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sub Expense Type</Label>
                     <Select disabled={!selectedExpense}>
-                      <SelectTrigger className="h-9 text-sm">
+                      <SelectTrigger className="h-9 text-sm" tabIndex={5}>
                         <SelectValue placeholder={selectedExpense ? "Select sub type" : "Select expense type first"} />
                       </SelectTrigger>
                       <SelectContent>
@@ -278,30 +327,14 @@ export default function NewClaim() {
                     </Select>
                   </div>
 
-                  {/* Amount — OCR highlight */}
+                  {/* Payment Mode */}
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                      Amount
-                      {ocrDone && <span className="text-[9px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded-full normal-case tracking-normal">OCR filled</span>}
-                    </Label>
-                    <Input
-                      className={`h-9 text-sm tabular-nums font-medium ${ocrDone ? "border-primary/30 bg-primary/[0.02]" : ""}`}
-                      type="number"
-                      placeholder="0.00"
-                      value={amount}
-                      onChange={(e) => setAmount(e.target.value)}
-                    />
-                  </div>
-
-                  {/* Currency */}
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Currency</Label>
-                    <Select defaultValue="THB">
-                      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Payment Mode</Label>
+                    <Select defaultValue="cash">
+                      <SelectTrigger className="h-9 text-sm" tabIndex={6}><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="THB">THB – Thai Baht</SelectItem>
-                        <SelectItem value="USD">USD – US Dollar</SelectItem>
-                        <SelectItem value="MMK">MMK – Myanmar Kyat</SelectItem>
+                        <SelectItem value="cash">Cash from petty cash</SelectItem>
+                        <SelectItem value="transfer">Bank transfer</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -317,49 +350,35 @@ export default function NewClaim() {
                       type="date"
                       value={receiptDate}
                       onChange={e => setReceiptDate(e.target.value)}
+                      tabIndex={7}
                     />
                   </div>
 
-                  {/* Vendor */}
+                  {/* Amount — OCR highlight */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                      Vendor
+                      Amount
                       {ocrDone && <span className="text-[9px] font-medium text-primary bg-primary/8 px-1.5 py-0.5 rounded-full normal-case tracking-normal">OCR filled</span>}
                     </Label>
                     <Input
-                      className={`h-9 text-sm ${ocrDone ? "border-primary/30 bg-primary/[0.02]" : ""}`}
-                      placeholder="Vendor name"
-                      value={vendor}
-                      onChange={e => setVendor(e.target.value)}
+                      className={`h-9 text-sm tabular-nums font-medium ${ocrDone ? "border-primary/30 bg-primary/[0.02]" : ""}`}
+                      type="number"
+                      placeholder="0.00"
+                      value={amount}
+                      onChange={(e) => setAmount(e.target.value)}
+                      tabIndex={8}
                     />
                   </div>
 
-                  {/* Payment Mode */}
+                  {/* Currency */}
                   <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Payment Mode</Label>
-                    <Select defaultValue="cash">
-                      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Currency</Label>
+                    <Select defaultValue="THB">
+                      <SelectTrigger className="h-9 text-sm" tabIndex={9}><SelectValue /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="cash">Cash from petty cash</SelectItem>
-                        <SelectItem value="transfer">Bank transfer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Link to Advance */}
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                      <Link2 className="h-3 w-3" /> Link to Advance
-                    </Label>
-                    <Select value={linkedAdvance} onValueChange={setLinkedAdvance}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="None" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">No linked advance</SelectItem>
-                        {openAdvances.map(a => (
-                          <SelectItem key={a.id} value={a.id}>
-                            {a.advanceNumber} · {(a.amount - a.settledAmount - a.returnedCash).toLocaleString()} {a.currency} remaining
-                          </SelectItem>
-                        ))}
+                        <SelectItem value="THB">THB – Thai Baht</SelectItem>
+                        <SelectItem value="USD">USD – US Dollar</SelectItem>
+                        <SelectItem value="MMK">MMK – Myanmar Kyat</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -389,25 +408,10 @@ export default function NewClaim() {
                   </div>
                 )}
 
-                {/* Purpose (mandatory) */}
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    Purpose <span className="text-destructive">*</span>
-                  </Label>
-                  <Textarea
-                    required
-                    placeholder="Enter purpose of this claim…"
-                    rows={3}
-                    maxLength={1750}
-                    className="text-sm resize-none"
-                  />
-                  <p className="text-[11px] text-muted-foreground">Required · up to 250 words</p>
-                </div>
-
-                {/* Notes */}
+                {/* Notes — full width, last */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Notes (optional)</Label>
-                  <Textarea placeholder="Brief description of expense…" rows={2} className="text-sm resize-none" />
+                  <Textarea placeholder="Brief description of expense…" rows={2} className="text-sm resize-none" tabIndex={10} />
                 </div>
               </div>
             </div>
