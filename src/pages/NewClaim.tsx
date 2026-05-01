@@ -37,6 +37,27 @@ export default function NewClaim() {
   const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
   const [delegationReason, setDelegationReason] = useState("");
   const [approver, setApprover] = useState("APR-001");
+  const [selectedStoreId, setSelectedStoreId] = useState("s3"); // default: Makro Rama 4
+  const selectedStore = stores.find(s => s.id === selectedStoreId);
+  const storeBranchCode = selectedStore ? String(parseInt(selectedStore.id.replace(/\D/g, ""), 10) || 0).padStart(5, "0") : "00000";
+  const tzMap: Record<string, string> = { TH: "Asia/Bangkok", KH: "Asia/Phnom_Penh", VN: "Asia/Ho_Chi_Minh", MM: "Asia/Yangon" };
+  const [creationDate] = useState(() => new Date());
+  // Mock: next sequence per store+month — in production query backend
+  const mockSeq = 1;
+  const yyyy = creationDate.getFullYear();
+  const mm = String(creationDate.getMonth() + 1).padStart(2, "0");
+  const claimNumber = selectedStore
+    ? `PC-${selectedStore.country}-${storeBranchCode}-${yyyy}-${mm}-${String(mockSeq).padStart(5, "0")}`
+    : "";
+  const tz = selectedStore ? tzMap[selectedStore.country] ?? "Asia/Bangkok" : "Asia/Bangkok";
+  const creationDateDisplay = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz, day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit", hour12: false,
+  }).format(creationDate).replace(",", "");
+  const copyClaimNumber = () => {
+    if (!claimNumber) return;
+    navigator.clipboard.writeText(claimNumber);
+    toast({ title: "Claim number copied." });
+  };
   const requester = {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
