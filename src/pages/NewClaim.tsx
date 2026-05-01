@@ -41,8 +41,6 @@ export default function NewClaim() {
 
   // Header state
   const [purpose, setPurpose] = useState("");
-  const [tripStart, setTripStart] = useState("");
-  const [tripEnd, setTripEnd] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
   const [approver, setApprover] = useState("APR-001");
   const [requesterEdit, setRequesterEdit] = useState(false);
