@@ -48,6 +48,13 @@ export default function NewClaim() {
     phone: "081-234-5678",
   };
 
+  const APPROVERS = [
+    { id: "APR-001", name: "Somsak Vongchai", position: "Direct Manager", maxAmount: 5000 },
+    { id: "APR-002", name: "Pranee Wongsiri", position: "Store Manager", maxAmount: 50000 },
+    { id: "APR-003", name: "Nattaya Kittisak", position: "Regional Manager", maxAmount: 200000 },
+    { id: "APR-004", name: "Chaiwat Boonmee", position: "Finance Director", maxAmount: Infinity },
+  ];
+
   const filteredStores = country === "all" ? stores : stores.filter(s => s.country === country);
   const filteredExpenseTypes = country === "all" ? expenseTypes : expenseTypes.filter(e => e.countries.includes(country as any));
   const openAdvances = advances.filter(a => a.status === "Open" || a.status === "Partially Settled");
