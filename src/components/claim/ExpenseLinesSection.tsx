@@ -838,7 +838,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
           {/* ZONE A — Identity */}
           <section>
-            <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-2.5">A · Identity & Coding</h4>
+            
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-3">
               <Field label="Vendor" ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
                 <Input className="h-9 text-sm" value={line.vendor} onChange={(e) => updateLine(line.id, { vendor: e.target.value })} disabled={readOnly} />
