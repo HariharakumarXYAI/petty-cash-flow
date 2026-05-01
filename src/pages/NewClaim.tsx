@@ -176,6 +176,15 @@ export default function NewClaim() {
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Phone</Label>
                     <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
+                    <Select disabled={!requesterEdit}>
+                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
+                      <SelectContent>
+                        {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 {/* Submit on behalf */}
@@ -232,18 +241,6 @@ export default function NewClaim() {
 
               <div className="p-4 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                  {/* Store */}
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
-                    <Select>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
-                      <SelectContent>
-                        {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-
                   {/* Expense Type */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Expense Type</Label>
