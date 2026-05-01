@@ -260,6 +260,24 @@ export default function NewClaim() {
                     )}
                   </div>
 
+                  {/* Sub Expense Type */}
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Sub Expense Type</Label>
+                    <Select disabled={!selectedExpense}>
+                      <SelectTrigger className="h-9 text-sm">
+                        <SelectValue placeholder={selectedExpense ? "Select sub type" : "Select expense type first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="domestic">Domestic</SelectItem>
+                        <SelectItem value="international">International</SelectItem>
+                        <SelectItem value="local">Local</SelectItem>
+                        <SelectItem value="client">Client-related</SelectItem>
+                        <SelectItem value="internal">Internal</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   {/* Amount — OCR highlight */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
