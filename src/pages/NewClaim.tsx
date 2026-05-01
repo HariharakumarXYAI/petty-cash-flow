@@ -232,19 +232,6 @@ export default function NewClaim() {
 
               <div className="p-4 space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                  {/* Country */}
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Country</Label>
-                    <Select defaultValue={country !== "all" ? country : "TH"}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="TH">🇹🇭 Thailand</SelectItem>
-                        <SelectItem value="KH">🇰🇭 Cambodia</SelectItem>
-                        <SelectItem value="MM">🇲🇲 Myanmar</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
                   {/* Store */}
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
@@ -256,11 +243,6 @@ export default function NewClaim() {
                     </Select>
                   </div>
 
-                  {/* Claimant */}
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claimant</Label>
-                    <Input className="h-9 text-sm" defaultValue="Somchai Prasert" />
-                  </div>
 
                   {/* Expense Type */}
                   <div className="space-y-1.5">
