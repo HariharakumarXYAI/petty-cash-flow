@@ -70,6 +70,11 @@ export default function NewClaim() {
 
   const expectedOutcome = isOverHardStop ? "On Hold" : isOverAlert ? "Auto Approved with Alert" : "Auto Approved";
 
+  // Approver tier suggestion based on amount
+  const suggestedApprover = APPROVERS.find(a => amountNum <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
+  const selectedApprover = APPROVERS.find(a => a.id === approver);
+  const approverInsufficient = !!selectedApprover && amountNum > selectedApprover.maxAmount;
+
   const ocrData = {
     vendor: "OfficeMate",
     date: "2026-03-06",
