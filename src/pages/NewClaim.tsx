@@ -516,8 +516,3 @@ function Metric({ label, value, bold }: { label: string; value: string; bold?: b
   );
 }
 
-// Helper: shorten expense type label for total breakdown
-function expenseTypeLabel(id: string): string {
-  const et = expenseTypes.find(e => e.id === id);
-  return et ? et.category : "Expense";
-}
