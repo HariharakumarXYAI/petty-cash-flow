@@ -755,24 +755,67 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
 
     // Initial picker if no sub-type
     if (!line.subExpenseTypeId || changingSubType) {
+      const currentSubTypeCategory = expenseTypes.find(e => e.id === line.subExpenseTypeId)?.category;
+      const selectedCategory = pendingCategoryByLine[line.id] ?? currentSubTypeCategory ?? "";
+      const filteredSubTypes = expenseTypes.filter(e =>
+        e.category === selectedCategory &&
+        (countryFilter === "all" || e.countries.includes(countryFilter as any))
+      );
       return (
         <div className="p-4 space-y-3">
           <div>
             <p className="text-sm font-semibold text-foreground">Choose Sub Expense Type</p>
             <p className="text-[11px] text-muted-foreground mt-0.5">Sub-type sets the document checklist for this line.</p>
           </div>
-          <Select
-            value={line.subExpenseTypeId}
-            onValueChange={(v) => { setLineSubType(line.id, v); setChangingSubType(false); }}
-            disabled={readOnly}
-          >
-            <SelectTrigger className="h-10"><SelectValue placeholder="Select sub-type…" /></SelectTrigger>
-            <SelectContent>
-              {subTypes.map(s => (
-                <SelectItem key={s.id} value={s.id}>{s.subcategory}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">Expense Type <span className="text-destructive">*</span></Label>
+            <Select
+              value={selectedCategory}
+              onValueChange={(v) => {
+                setPendingCategoryByLine(prev => ({ ...prev, [line.id]: v }));
+                // If category changed away from current sub-type's category, clear sub-type & docs
+                if (line.subExpenseTypeId && v !== currentSubTypeCategory) {
+                  setLines(prev => prev.map(l => l.id === line.id
+                    ? { ...l, subExpenseTypeId: "", docs: {}, structured: {} }
+                    : l));
+                }
+              }}
+              disabled={readOnly}
+            >
+              <SelectTrigger className="h-10"><SelectValue placeholder="Select expense type..." /></SelectTrigger>
+              <SelectContent>
+                {expenseCategories.map(c => (
+                  <SelectItem key={c} value={c}>{c}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs">Sub Expense Type <span className="text-destructive">*</span></Label>
+            <Select
+              value={line.subExpenseTypeId}
+              onValueChange={(v) => {
+                setLineSubType(line.id, v);
+                setChangingSubType(false);
+                setPendingCategoryByLine(prev => {
+                  const next = { ...prev }; delete next[line.id]; return next;
+                });
+              }}
+              disabled={readOnly || !selectedCategory}
+            >
+              <SelectTrigger className="h-10">
+                <SelectValue placeholder={selectedCategory ? "Select sub-type…" : "Select expense type first"} />
+              </SelectTrigger>
+              <SelectContent>
+                {filteredSubTypes.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.subcategory}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           {line.subExpenseTypeId && (
             <Button type="button" variant="outline" size="sm" onClick={() => setChangingSubType(false)}>Cancel</Button>
           )}
