@@ -112,10 +112,8 @@ export default function NewClaim() {
     return { subtotal, vat, wht, payable, byCurrency, multiCurrency };
   }, [lines]);
 
-  // ────────── Approver routing by total ──────────
-  const suggestedApprover = APPROVERS.find(a => totals.payable <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
-  const selectedApprover = APPROVERS.find(a => a.id === approver);
-  const approverInsufficient = !!selectedApprover && totals.payable > selectedApprover.maxAmount;
+  // ────────── Approver auto-routing by total ──────────
+  const selectedApprover = APPROVERS.find(a => totals.payable <= a.maxAmount) ?? APPROVERS[APPROVERS.length - 1];
 
   // ────────── Validations ──────────
   const allLinesHaveReceipts = lines.every(l => l.uploaded);
