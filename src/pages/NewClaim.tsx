@@ -42,7 +42,7 @@ export default function NewClaim() {
   // Header state
   const [purpose, setPurpose] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
-  const [approver, setApprover] = useState("APR-001");
+  
   const [requesterEdit, setRequesterEdit] = useState(false);
   const [onBehalf, setOnBehalf] = useState(false);
   const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
