@@ -92,6 +92,7 @@ export default function NewClaim() {
     { label: "Expense type allowed for country", pass: !!selectedExpenseType, pending: !selectedExpenseType },
     { label: "Submission within 7-day window", pass: true, pending: false },
     { label: "Vendor not on blocked list", pass: ocrDone, pending: !ocrDone },
+    { label: "Approver assigned", pass: !!approver && !approverInsufficient, pending: !approver },
   ];
 
   const passedCount = validationRules.filter(r => r.pass).length;
