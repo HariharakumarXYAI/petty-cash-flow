@@ -25,6 +25,9 @@ export default function NewClaim() {
   const [ocrProcessing, setOcrProcessing] = useState(false);
   const [ocrDone, setOcrDone] = useState(false);
   const [selectedExpense, setSelectedExpense] = useState("");
+  const [vatCode, setVatCode] = useState("");
+  const [whtCode, setWhtCode] = useState("");
+  const [accountCode, setAccountCode] = useState("");
   const [amount, setAmount] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
   const [vendor, setVendor] = useState("");
