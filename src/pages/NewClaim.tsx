@@ -725,12 +725,12 @@ export default function NewClaim() {
               </div>
 
               {/* Actions */}
-              <div className="flex items-center gap-3">
-                <Button type="submit" className="flex-1 sm:flex-none h-10 px-6 font-semibold gap-2">
-                  <CheckCircle className="h-4 w-4" /> Submit Claim
-                </Button>
-                <Button type="button" variant="outline" onClick={() => navigate(-1)} className="h-10 px-4">
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end items-stretch sm:items-center gap-3">
+                <Button type="button" variant="outline" onClick={() => navigate(-1)} className="h-10 px-4 w-full sm:w-auto" tabIndex={14}>
                   Save Draft
+                </Button>
+                <Button type="submit" className="h-10 px-6 font-semibold gap-2 w-full sm:w-auto" tabIndex={15}>
+                  <CheckCircle className="h-4 w-4" /> Submit Claim
                 </Button>
               </div>
             </div>
