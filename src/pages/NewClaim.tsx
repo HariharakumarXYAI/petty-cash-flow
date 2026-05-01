@@ -165,6 +165,15 @@ export default function NewClaim() {
                     <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} />
                   </div>
                   <div className="space-y-1.5">
+                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
+                    <Select disabled={!requesterEdit}>
+                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
+                      <SelectContent>
+                        {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Position / Role</Label>
                     <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} />
                   </div>
@@ -175,15 +184,6 @@ export default function NewClaim() {
                   <div className="space-y-1.5">
                     <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Phone</Label>
                     <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} />
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
-                    <Select disabled={!requesterEdit}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
-                      <SelectContent>
-                        {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                      </SelectContent>
-                    </Select>
                   </div>
                 </div>
 
