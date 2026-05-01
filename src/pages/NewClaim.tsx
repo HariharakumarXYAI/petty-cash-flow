@@ -41,8 +41,6 @@ export default function NewClaim() {
 
   // Header state
   const [purpose, setPurpose] = useState("");
-  const [tripStart, setTripStart] = useState("");
-  const [tripEnd, setTripEnd] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
   const [approver, setApprover] = useState("APR-001");
   const [requesterEdit, setRequesterEdit] = useState(false);
@@ -335,23 +333,8 @@ export default function NewClaim() {
                 </div>
               </div>
 
-              {/* Trip Date Range + Link to Advance */}
+              {/* Link to Advance */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Trip / Expense Date Range</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      type="date" value={tripStart} onChange={e => setTripStart(e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                    <span className="text-xs text-muted-foreground">–</span>
-                    <Input
-                      type="date" value={tripEnd} onChange={e => setTripEnd(e.target.value)}
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">Optional. Set if expenses span multiple days.</p>
-                </div>
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
                     <Link2 className="h-3 w-3" /> Link to Advance
@@ -369,6 +352,7 @@ export default function NewClaim() {
                   </Select>
                   <p className="text-[11px] text-muted-foreground">One advance covers the whole trip.</p>
                 </div>
+                <div className="hidden sm:block" />
               </div>
 
               {/* Purpose */}
