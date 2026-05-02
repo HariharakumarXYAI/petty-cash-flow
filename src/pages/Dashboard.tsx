@@ -27,6 +27,7 @@ import { StoreManagerDashboard } from "@/components/dashboard/StoreManagerDashbo
 import { StoreUserDashboard } from "@/components/dashboard/StoreUserDashboard";
 import { RegionalManagerDashboard } from "@/components/dashboard/RegionalManagerDashboard";
 import { InternalAuditDashboard } from "@/components/dashboard/InternalAuditDashboard";
+import { SystemAdminDashboard } from "@/components/dashboard/SystemAdminDashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -45,6 +46,9 @@ export default function Dashboard() {
   }
   if (user?.role === "internal_audit") {
     return <InternalAuditDashboard />;
+  }
+  if (user?.role === "system_admin") {
+    return <SystemAdminDashboard />;
   }
 
   const filteredAlerts = (country === "all" ? alerts : alerts.filter(a => a.country === country))

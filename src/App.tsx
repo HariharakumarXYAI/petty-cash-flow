@@ -57,6 +57,9 @@ import BusinessUnitsPage from "./pages/admin/BusinessUnitsPage";
 import PositionLevelsPage from "./pages/admin/PositionLevelsPage";
 import AdminExpenseTypesPage from "./pages/admin/AdminExpenseTypesPage";
 import ExpenseTypeEditPage from "./pages/admin/ExpenseTypeEditPage";
+import SystemSettingsPage from "./pages/admin/SystemSettingsPage";
+import RegionsPage from "./pages/admin/RegionsPage";
+import { SystemAdminDashboard } from "./components/dashboard/SystemAdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -123,7 +126,11 @@ function AppRoutes() {
         <Route path="reports/benchmarking" element={<Reports />} />
         <Route path="reports/advance-aging" element={<Reports />} />
         <Route path="reports/audit-findings" element={<Reports />} />
-        <Route path="admin" element={<Navigate to="entities" replace />} />
+        <Route path="admin" element={<Navigate to="dashboard" replace />} />
+        <Route path="admin/dashboard" element={<SystemAdminDashboard />} />
+        <Route path="admin/users" element={<Navigate to="/admin/employees" replace />} />
+        <Route path="admin/regions" element={<RegionsPage />} />
+        <Route path="admin/system-settings" element={<SystemSettingsPage />} />
         <Route path="admin/access" element={<AdminAccess />} />
         <Route path="admin/entities" element={<AdminLayout><EntitiesPage /></AdminLayout>} />
         <Route path="admin/entities/:id/edit" element={<AdminLayout><EntityEditPage /></AdminLayout>} />
