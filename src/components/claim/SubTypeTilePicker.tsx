@@ -1,11 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Search, X,
-  Car, TrainFront, Zap, TrafficCone, ParkingSquare, CircleParking,
-  CarFront, Plane, Hotel, Utensils, Wallet, Users, Package, Moon,
-  Flower2, Landmark, HeartHandshake, Trash2, AlertTriangle,
-  type LucideIcon,
-} from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,12 +10,8 @@ import {
   type SubExpenseTypeGroup,
 } from "@/lib/sub-expense-types";
 
-// ── Map iconName string → Lucide component (kept local to picker) ──
-const ICONS: Record<string, LucideIcon> = {
-  Car, TrainFront, Zap, TrafficCone, ParkingSquare, CircleParking,
-  CarFront, Plane, Hotel, Utensils, Wallet, Users, Package, Moon,
-  Flower2, Landmark, HeartHandshake, Trash2, AlertTriangle,
-};
+const EMOJI_FONT_STACK =
+  "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
 
 // ── Mock "pinned for you" — top 4 sub-types this user used in last 30 days ──
 // Empty array = cold-start user; the section will be hidden.
