@@ -991,11 +991,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
                   </SelectContent>
                 </Select>
               </Field>
-              <div className="sm:col-span-2">
-                <Field label="Notes">
-                  <Textarea rows={2} className="text-sm resize-none" value={line.notes} onChange={(e) => updateLine(line.id, { notes: e.target.value })} disabled={readOnly} />
-                </Field>
-              </div>
               {isLargeLine && (
                 <div className="sm:col-span-2">
                   <Field label="Large-line Justification" required>
