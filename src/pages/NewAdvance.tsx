@@ -98,7 +98,11 @@ export default function NewAdvance() {
   const allPass = passedCount === checks.length;
 
   const requiredFilled = !!purpose.trim() && accountSelected && !!settlementDate && amountNum > 0 && approverSelected;
-  const canSubmit = requiredFilled && !hasOverdue && allPass;
+  // Delegation: if user opened "Issue to someone else", both fields are required.
+  // (When neither is set, recipient defaults to self and there's nothing to validate.)
+  const delegationStarted = issueToEmployeeId !== null || issueReason !== null;
+  const delegationValid = !delegationStarted || (!!issueToEmployeeId && !!issueReason);
+  const canSubmit = requiredFilled && !hasOverdue && allPass && delegationValid;
 
   const outcome: "blocked" | "auto" | "pending" | null = hasOverdue
     ? "blocked"
@@ -110,13 +114,17 @@ export default function NewAdvance() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (delegationStarted && !delegationValid) {
+      setShowRecipientErrors(true);
+      return;
+    }
     if (!canSubmit) return;
     const seq = String(Math.floor(Math.random() * 9000) + 1000);
     const ctry = country === "all" ? "TH" : country;
     const advId = `ADV-${ctry}-${new Date().getFullYear()}-${seq}`;
     toast({
       title: `Advance ${advId} created`,
-      description: `Status: ${outcome === "auto" ? "Auto Approved" : "Pending Approval"}.`,
+      description: `Issued to ${issueToEmployeeId ?? requester.employeeId} · ${outcome === "auto" ? "Auto Approved" : "Pending Approval"}.`,
     });
     navigate("/advances");
   };
