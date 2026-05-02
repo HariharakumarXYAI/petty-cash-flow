@@ -22,10 +22,18 @@ import {
   Tooltip, BarChart, Bar, Legend, Cell,
 } from "recharts";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { StoreManagerDashboard } from "@/components/dashboard/StoreManagerDashboard";
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { country } = useGlobalFilter();
+  const { user } = useAuth();
   const metrics = getDashboardMetrics(country);
+
+  if (user?.role === "store_manager") {
+    return <StoreManagerDashboard />;
+  }
 
   const filteredAlerts = (country === "all" ? alerts : alerts.filter(a => a.country === country))
     .filter(a => a.status === "Open" || a.status === "In Progress")
