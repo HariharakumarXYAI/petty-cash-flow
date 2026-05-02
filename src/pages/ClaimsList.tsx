@@ -130,7 +130,9 @@ export default function ClaimsList() {
   }, [user]);
 
   // Hide Store column when scope is fixed to a single store.
+  const isStoreUser = user?.role === "store_user";
   const hideStoreColumn = scope?.type === "store" || scope?.type === "self";
+  const hideSubmitterColumn = scope?.type === "self";
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
@@ -182,7 +184,10 @@ export default function ClaimsList() {
   );
   const submitterCount = new Set(claimsThisMonth.map((c) => c.submitted_by)).size;
 
-  const subtitle = isStoreManager
+  const pageTitle = isStoreUser ? "My Claims" : "Claims";
+  const subtitle = isStoreUser
+    ? `Showing only claims you submitted at ${storeName}`
+    : isStoreManager
     ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
     : `${filtered.length} claims found`;
 
@@ -190,7 +195,7 @@ export default function ClaimsList() {
     <div className="space-y-4">
       <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Claims</h1>
+          <h1 className="text-2xl font-bold text-foreground">{pageTitle}</h1>
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
         <div className="flex items-center gap-2">
