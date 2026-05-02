@@ -135,6 +135,7 @@ export default function ClaimsList() {
   // Effective scope for filtering MOCK_CLAIMS.
   const scope: Scope | null = useMemo(() => {
     if (!user) return null;
+    if (isInternalAudit) return { type: "global" };
     if (isHoFinance) {
       if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
       if (scopeMode === "store") return { type: "store", store_id: hoStoreId === "all" ? null : hoStoreId };
@@ -152,7 +153,7 @@ export default function ClaimsList() {
         : { type: "store", store_id: user.store_id };
     }
     return getDefaultScope(user);
-  }, [user, isStoreManager, isRegionalManager, isHoFinance, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
+  }, [user, isStoreManager, isRegionalManager, isHoFinance, isInternalAudit, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
 
   // Scope-filtered base list (everything else filters off this).
   const scopedClaims = useMemo<MockClaim[]>(() => {
