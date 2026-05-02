@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { MOCK_CLAIMS, STATUS_TABS, type ClaimStatus, type OcrStatus, type MockClaim } from "@/data/mockClaims";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyScope, getDefaultScope, type Scope } from "@/lib/scope";
-import { stores } from "@/lib/mock-data";
+import { stores, countries } from "@/lib/mock-data";
 import { regionLabels } from "@/lib/roles";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
