@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck, Pencil,
-  Check as CheckIcon, Lightbulb, Clock, Ban, Calendar as CalendarIcon,
+  ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck,
+  Lightbulb, Clock, Ban, Calendar as CalendarIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecipientDetailsCard, IssueReason } from "@/components/advance/RecipientDetailsCard";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
@@ -43,16 +43,16 @@ export default function NewAdvance() {
   const requester = {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
-    storeCode: "BKK-001",
+    store: "Makro Rama 4",
     position: "Store Manager",
     email: "somchai.p@cpaxtra.com",
     phone: "081-234-5678",
   };
 
-  // Recipient
-  const [recipientEdit, setRecipientEdit] = useState(false);
-  const [onBehalf, setOnBehalf] = useState(false);
-  const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
+  // Recipient delegation (issue-on-behalf-of)
+  const [issueToEmployeeId, setIssueToEmployeeId] = useState<string | null>(null);
+  const [issueReason, setIssueReason] = useState<IssueReason | null>(null);
+  const [showRecipientErrors, setShowRecipientErrors] = useState(false);
 
   // Advance details
   const [purpose, setPurpose] = useState("");
@@ -98,7 +98,11 @@ export default function NewAdvance() {
   const allPass = passedCount === checks.length;
 
   const requiredFilled = !!purpose.trim() && accountSelected && !!settlementDate && amountNum > 0 && approverSelected;
-  const canSubmit = requiredFilled && !hasOverdue && allPass;
+  // Delegation: if user opened "Issue to someone else", both fields are required.
+  // (When neither is set, recipient defaults to self and there's nothing to validate.)
+  const delegationStarted = issueToEmployeeId !== null || issueReason !== null;
+  const delegationValid = !delegationStarted || (!!issueToEmployeeId && !!issueReason);
+  const canSubmit = requiredFilled && !hasOverdue && allPass && delegationValid;
 
   const outcome: "blocked" | "auto" | "pending" | null = hasOverdue
     ? "blocked"
@@ -110,13 +114,17 @@ export default function NewAdvance() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (delegationStarted && !delegationValid) {
+      setShowRecipientErrors(true);
+      return;
+    }
     if (!canSubmit) return;
     const seq = String(Math.floor(Math.random() * 9000) + 1000);
     const ctry = country === "all" ? "TH" : country;
     const advId = `ADV-${ctry}-${new Date().getFullYear()}-${seq}`;
     toast({
       title: `Advance ${advId} created`,
-      description: `Status: ${outcome === "auto" ? "Auto Approved" : "Pending Approval"}.`,
+      description: `Issued to ${issueToEmployeeId ?? requester.employeeId} · ${outcome === "auto" ? "Auto Approved" : "Pending Approval"}.`,
     });
     navigate("/advances");
   };
@@ -148,85 +156,16 @@ export default function NewAdvance() {
           {/* ═══════════════════════════════════════════ */}
           {/* RECIPIENT DETAILS                           */}
           {/* ═══════════════════════════════════════════ */}
-          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-semibold text-foreground">Recipient Details</h3>
-                  {onBehalf && <Badge variant="submitted" className="text-[10px]">On behalf of another</Badge>}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Auto-filled from your profile. Click Edit if issuing to someone else.
-                </p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-8 gap-1.5 text-xs shrink-0"
-                onClick={() => setRecipientEdit(v => !v)}
-              >
-                {recipientEdit ? <><CheckIcon className="h-3.5 w-3.5" /> Done</> : <><Pencil className="h-3.5 w-3.5" /> Edit</>}
-              </Button>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {onBehalf && (
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    Look up employee
-                  </Label>
-                  <Select value={onBehalfEmployee} onValueChange={setOnBehalfEmployee}>
-                    <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Search employee by name or ID…" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="EMP-10311">EMP-10311 — Niran Suksai</SelectItem>
-                      <SelectItem value="EMP-10422">EMP-10422 — Pim Chaiyo</SelectItem>
-                      <SelectItem value="EMP-10588">EMP-10588 — Anan Wong</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Employee ID</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.employeeId} readOnly={!recipientEdit && !onBehalf} tabIndex={1} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Full Name</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!recipientEdit && !onBehalf} tabIndex={2} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
-                  <Select disabled={!recipientEdit && !onBehalf} defaultValue={requester.storeCode}>
-                    <SelectTrigger className="h-9 text-sm" tabIndex={3}><SelectValue placeholder="Select store" /></SelectTrigger>
-                    <SelectContent>
-                      {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Position / Role</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!recipientEdit && !onBehalf} tabIndex={4} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Email</Label>
-                  <Input className="h-9 text-sm" type="email" defaultValue={requester.email} readOnly={!recipientEdit && !onBehalf} tabIndex={5} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Phone</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!recipientEdit && !onBehalf} tabIndex={6} />
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={onBehalf} onCheckedChange={(v) => setOnBehalf(v === true)} />
-                  <span className="text-xs text-foreground">Issuing on behalf of another person</span>
-                </label>
-              </div>
-            </div>
-          </div>
+          <RecipientDetailsCard
+            recipient={requester}
+            issueToEmployeeId={issueToEmployeeId}
+            issueReason={issueReason}
+            onIssueChange={(empId, reason) => {
+              setIssueToEmployeeId(empId);
+              setIssueReason(reason);
+            }}
+            showErrors={showRecipientErrors}
+          />
 
           {/* ═══════════════════════════════════════════ */}
           {/* ADVANCE DETAILS                             */}
