@@ -199,97 +199,15 @@ export default function NewClaim() {
           {/* ═══════════════════════════════════════════ */}
           {/* REQUESTER DETAILS                            */}
           {/* ═══════════════════════════════════════════ */}
-          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/30 flex items-start gap-3">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-sm font-semibold text-foreground">Requester Details</h3>
-                  {onBehalf && <Badge variant="submitted" className="text-[10px]">Delegated submission</Badge>}
-                </div>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Auto-filled from your profile.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {requesterEdit && (
-                <div className="flex items-start gap-2 px-3 py-2 rounded-lg border border-status-alert/20 bg-status-alert/5">
-                  <AlertTriangle className="h-3.5 w-3.5 text-status-alert mt-0.5 shrink-0" />
-                  <p className="text-[11px] text-foreground leading-tight">
-                    You are editing requester details. Changes only apply to this claim and will not update your profile.
-                  </p>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Employee ID</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.employeeId} readOnly={!requesterEdit} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Full Name</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.fullName} readOnly={!requesterEdit} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Store</Label>
-                  <Select disabled={!requesterEdit} value={selectedStoreId} onValueChange={setSelectedStoreId}>
-                    <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select store" /></SelectTrigger>
-                    <SelectContent>
-                      {filteredStores.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Position / Role</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.position} readOnly={!requesterEdit} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Email</Label>
-                  <Input className="h-9 text-sm" type="email" defaultValue={requester.email} readOnly={!requesterEdit} />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Phone</Label>
-                  <Input className="h-9 text-sm" defaultValue={requester.phone} readOnly={!requesterEdit} />
-                </div>
-              </div>
-
-              <div className="pt-1">
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <Checkbox checked={onBehalf} onCheckedChange={(v) => setOnBehalf(v === true)} />
-                  <span className="text-xs text-foreground">Submitting on behalf of another person</span>
-                </label>
-              </div>
-
-              {onBehalf && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5 pt-1">
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">On Behalf Of (Employee ID)</Label>
-                    <Select value={onBehalfEmployee} onValueChange={setOnBehalfEmployee}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Search employee…" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="EMP-10311">EMP-10311 — Niran Suksai</SelectItem>
-                        <SelectItem value="EMP-10422">EMP-10422 — Pim Chaiyo</SelectItem>
-                        <SelectItem value="EMP-10588">EMP-10588 — Anan Wong</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Relationship / Reason</Label>
-                    <Select value={delegationReason} onValueChange={setDelegationReason}>
-                      <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select reason" /></SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="subordinate">Subordinate — staff cannot access system</SelectItem>
-                        <SelectItem value="manager-delegation">Manager delegation</SelectItem>
-                        <SelectItem value="cross-department">Cross-department support</SelectItem>
-                        <SelectItem value="other">Other (specify in notes)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+          <RequesterDetailsCard
+            requester={requester}
+            submittedForEmployeeId={submittedForEmployeeId}
+            delegationReason={delegationReason}
+            onDelegationChange={(empId, reason) => {
+              setSubmittedForEmployeeId(empId);
+              setDelegationReason(reason);
+            }}
+          />
 
           {/* ═══════════════════════════════════════════ */}
           {/* CLAIM INFORMATION (header-level)             */}
