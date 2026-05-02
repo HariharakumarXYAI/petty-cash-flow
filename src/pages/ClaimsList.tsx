@@ -48,14 +48,64 @@ function truncate(s: string, n: number) {
 
 const uniqueExpenseTypes = [...new Set(MOCK_CLAIMS.map(c => c.expense_type))].sort();
 
+type DatePreset = "today" | "week" | "month" | "last30" | "all" | "custom";
+
+function startOfDay(d: Date) { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; }
+function isSameDay(a?: Date, b?: Date) {
+  if (!a || !b) return false;
+  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function computePreset(preset: Exclude<DatePreset, "custom">): { from?: Date; to?: Date } {
+  const today = startOfDay(new Date());
+  if (preset === "all") return { from: undefined, to: undefined };
+  if (preset === "today") return { from: today, to: today };
+  if (preset === "month") {
+    return { from: new Date(today.getFullYear(), today.getMonth(), 1), to: today };
+  }
+  if (preset === "last30") {
+    const from = new Date(today); from.setDate(from.getDate() - 30);
+    return { from, to: today };
+  }
+  // week → Monday of current week
+  const day = today.getDay(); // 0 Sun – 6 Sat
+  const diffToMonday = (day + 6) % 7;
+  const monday = new Date(today); monday.setDate(monday.getDate() - diffToMonday);
+  return { from: monday, to: today };
+}
+function detectPreset(from?: Date, to?: Date): DatePreset {
+  if (!from && !to) return "all";
+  for (const p of ["today", "week", "month", "last30"] as const) {
+    const r = computePreset(p);
+    if (isSameDay(r.from, from) && isSameDay(r.to, to)) return p;
+  }
+  return "custom";
+}
+
+const PRESETS: { id: Exclude<DatePreset, "custom">; label: string }[] = [
+  { id: "today", label: "Today" },
+  { id: "week", label: "This week" },
+  { id: "month", label: "This month" },
+  { id: "last30", label: "Last 30 days" },
+  { id: "all", label: "All time" },
+];
+
 export default function ClaimsList() {
   const navigate = useNavigate();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [expenseFilter, setExpenseFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
-  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
+  const initialMonth = useMemo(() => computePreset("month"), []);
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(initialMonth.from);
+  const [dateTo, setDateTo] = useState<Date | undefined>(initialMonth.to);
+
+  const activePreset = useMemo(() => detectPreset(dateFrom, dateTo), [dateFrom, dateTo]);
+
+  const applyPreset = (id: Exclude<DatePreset, "custom">) => {
+    const r = computePreset(id);
+    setDateFrom(r.from);
+    setDateTo(r.to);
+  };
 
   // Tab counts based on full data set (independent of active tab)
   const tabCounts = useMemo(
@@ -130,14 +180,40 @@ export default function ClaimsList() {
         </Select>
       </div>
 
-      {/* Row 2: Date range */}
+      {/* Row 2: Date range with preset chips */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Transaction Date:</span>
+
+        {/* Preset chips */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {PRESETS.map((p) => {
+            const active = activePreset === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p.id)}
+                className={cn(
+                  "h-7 px-2.5 rounded-full border text-xs font-medium transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                )}
+                aria-pressed={active}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <span className="mx-1 h-5 w-px bg-border hidden sm:inline-block" />
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("h-8 w-[150px] justify-start text-left text-xs font-normal", !dateFrom && "text-muted-foreground")}>
               <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "From date"}
+              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -149,18 +225,13 @@ export default function ClaimsList() {
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("h-8 w-[150px] justify-start text-left text-xs font-normal", !dateTo && "text-muted-foreground")}>
               <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              {dateTo ? format(dateTo, "dd/MM/yyyy") : "To date"}
+              {dateTo ? format(dateTo, "dd/MM/yyyy") : "—"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
-            Clear
-          </Button>
-        )}
       </div>
 
       {/* Row 3: Status pill tabs */}
