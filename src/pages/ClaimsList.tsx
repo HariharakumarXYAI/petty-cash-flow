@@ -110,8 +110,9 @@ export default function ClaimsList() {
   const isStoreManager = user?.role === "store_manager";
   const isRegionalManager = user?.role === "regional_manager";
   const isHoFinance = user?.role === "ho_finance";
+  const isInternalAudit = user?.role === "internal_audit";
   const [scopeMode, setScopeMode] = useState<"self" | "store" | "region" | "all">(
-    isHoFinance ? "all" : isRegionalManager ? "region" : "store",
+    isInternalAudit ? "all" : isHoFinance ? "all" : isRegionalManager ? "region" : "store",
   );
   // For RM, "store" mode requires a chosen store from their region.
   const regionStores = useMemo(
