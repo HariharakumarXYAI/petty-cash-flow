@@ -14,6 +14,9 @@ import { MOCK_CLAIMS, STATUS_TABS, type ClaimStatus, type OcrStatus, type MockCl
 import { useAuth } from "@/contexts/AuthContext";
 import { applyScope, getDefaultScope, type Scope } from "@/lib/scope";
 import { stores } from "@/lib/mock-data";
+import { regionLabels } from "@/lib/roles";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
 
 const STATUS_PILL: Record<ClaimStatus, string> = {
   "Draft": "bg-muted text-muted-foreground",
