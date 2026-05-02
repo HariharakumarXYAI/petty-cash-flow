@@ -584,12 +584,14 @@ export default function ClaimsList() {
                 <TableHead className="section-label text-center hidden lg:table-cell">OCR</TableHead>
                 <TableHead className="section-label hidden xl:table-cell">Date</TableHead>
                 <TableHead className="section-label hidden xl:table-cell">Alert</TableHead>
+                {showAuditColumns && <TableHead className="section-label text-center">Risk score</TableHead>}
+                {showAuditColumns && <TableHead className="section-label">Review status</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9 + (showCountryColumn ? 1 : 0) - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
+                  <TableCell colSpan={9 + (showCountryColumn ? 1 : 0) - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0) + (showAuditColumns ? 2 : 0)} className="text-center text-sm text-muted-foreground py-12">
                     No claims match the current filters.
                   </TableCell>
                 </TableRow>
@@ -640,6 +642,42 @@ export default function ClaimsList() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    {showAuditColumns && (() => {
+                      // Risk score: 0–100, derived from alert presence, OCR status, status.
+                      let score = 5;
+                      if (c.alert) score += 35;
+                      if (c.ocr_status === "low_confidence") score += 25;
+                      if (c.ocr_status === "processing") score += 5;
+                      if (c.status === "On Hold") score += 30;
+                      else if (c.status === "Approved with Alert") score += 20;
+                      else if (c.status === "Rejected") score += 15;
+                      if (c.amount >= 5000) score += 10;
+                      score = Math.min(score, 100);
+                      const tone = score >= 60 ? "bg-status-hold/10 text-status-hold"
+                        : score >= 30 ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+                        : "bg-muted text-muted-foreground";
+                      // Review status: Open by default; Cleared if Approved without alert; Reviewed if Settled.
+                      const review = c.status === "Settled" ? "Reviewed"
+                        : (c.status === "Approved" && !c.alert) ? "Cleared"
+                        : "Open";
+                      const reviewTone = review === "Cleared" ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300"
+                        : review === "Reviewed" ? "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
+                        : "bg-muted text-muted-foreground";
+                      return (
+                        <>
+                          <TableCell className="text-center">
+                            <span className={cn("inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums", tone)}>
+                              {score}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium", reviewTone)}>
+                              {review}
+                            </span>
+                          </TableCell>
+                        </>
+                      );
+                    })()}
                   </TableRow>
                   );
                 })
