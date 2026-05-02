@@ -142,13 +142,13 @@ export default function ClaimsList() {
 
   // Tab counts based on full data set (independent of active tab)
   const tabCounts = useMemo(
-    () => STATUS_TABS.map(tab => (tab.label === "All" ? MOCK_CLAIMS.length : MOCK_CLAIMS.filter(c => c.status === tab.label).length)),
-    []
+    () => STATUS_TABS.map(tab => (tab.label === "All" ? scopedClaims.length : scopedClaims.filter(c => c.status === tab.label).length)),
+    [scopedClaims]
   );
 
   const filtered = useMemo<MockClaim[]>(() => {
     const tab = STATUS_TABS[activeTab];
-    return MOCK_CLAIMS.filter((c) => {
+    return scopedClaims.filter((c) => {
       if (tab.label !== "All" && c.status !== tab.label) return false;
       if (expenseFilter !== "all" && c.expense_type !== expenseFilter) return false;
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
@@ -171,16 +171,63 @@ export default function ClaimsList() {
       }
       return true;
     });
-  }, [activeTab, expenseFilter, statusFilter, dateFrom, dateTo, search]);
+  }, [scopedClaims, activeTab, expenseFilter, statusFilter, dateFrom, dateTo, search]);
+
+  // Subtitle metrics — based on scoped claims (this month).
+  const monthStart = useMemo(() => {
+    const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d;
+  }, []);
+  const claimsThisMonth = scopedClaims.filter(
+    (c) => new Date(c.transaction_date) >= monthStart,
+  );
+  const submitterCount = new Set(claimsThisMonth.map((c) => c.submitted_by)).size;
+
+  const subtitle = isStoreManager
+    ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
+    : `${filtered.length} claims found`;
 
   return (
     <div className="space-y-4">
       <div className="page-header">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Claims</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} claims found</p>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {isStoreManager && (
+            <div
+              className="inline-flex rounded-full border border-border bg-card p-0.5"
+              role="group"
+              aria-label="Scope toggle"
+            >
+              <button
+                type="button"
+                onClick={() => setScopeMode("self")}
+                aria-pressed={scopeMode === "self"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "self"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My claims
+              </button>
+              <button
+                type="button"
+                onClick={() => setScopeMode("store")}
+                aria-pressed={scopeMode === "store"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "store"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My store
+              </button>
+            </div>
+          )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
           <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
         </div>
