@@ -50,7 +50,7 @@ export interface ExpenseLineV2 {
   vatCode: string;
   whtCode: string;
   paymentMode: string;
-  notes: string;
+  
   lineJustification: string;
   // doc slots: key = `${docTypeCode}|${altGroupId ?? ""}`
   docs: Record<string, AttachedDoc>;
@@ -73,7 +73,7 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   vatCode: "",
   whtCode: "WHT00",
   paymentMode: "cash",
-  notes: "",
+  
   lineJustification: "",
   docs: {},
   structured: {},
