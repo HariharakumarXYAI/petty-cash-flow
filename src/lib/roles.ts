@@ -105,16 +105,16 @@ const storeManagerNav: NavGroup[] = [
   {
     label: "Operations",
     items: [
-      { title: "Claims", url: "/claims", icon: FileText },
-      { title: "Approvals", url: "/claims", icon: CheckSquare },
-      { title: "Advances", url: "/advances", icon: Wallet },
-      { title: "Cashbook", url: "/cashbook", icon: BookOpen },
+      { title: "New Claim", url: "/claims/new", icon: FilePlus },
+      { title: "My Claims", url: "/claims", icon: FileText },
+      { title: "My Advances", url: "/advances", icon: Wallet },
+      { title: "Approvals", url: "/approvals", icon: CheckSquare },
     ],
   },
   {
     label: "Control",
     items: [
-      { title: "Audit Requests", url: "/audit", icon: ClipboardCheck },
+      { title: "Store Overview", url: "/store-overview", icon: Store },
     ],
   },
 ];
