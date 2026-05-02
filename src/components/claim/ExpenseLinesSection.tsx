@@ -354,7 +354,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
         whtCode: src.whtCode,
         paymentMode: src.paymentMode,
         currency: src.currency,
-        notes: src.notes,
       });
     });
     toast({ title: "Copied from previous line" });
