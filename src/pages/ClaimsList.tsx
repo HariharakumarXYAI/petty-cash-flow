@@ -265,6 +265,62 @@ export default function ClaimsList() {
               </button>
             </div>
           )}
+          {isRegionalManager && (
+            <div
+              className="inline-flex items-center rounded-full border border-border bg-card p-0.5"
+              role="group"
+              aria-label="Scope toggle"
+            >
+              <button
+                type="button"
+                onClick={() => setScopeMode("self")}
+                aria-pressed={scopeMode === "self"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "self" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My claims
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setScopeMode("store")}
+                    aria-pressed={scopeMode === "store"}
+                    className={cn(
+                      "h-7 pl-3 pr-2 rounded-full text-xs font-medium transition-colors inline-flex items-center gap-1",
+                      scopeMode === "store" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {scopeMode === "store" && selectedRmStoreName ? selectedRmStoreName : "Store"}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-auto">
+                  <DropdownMenuItem onClick={() => { setScopeMode("store"); setRmStoreId(null); }}>
+                    <span className="text-xs">All stores in region</span>
+                  </DropdownMenuItem>
+                  {regionStores.map((s) => (
+                    <DropdownMenuItem key={s.id} onClick={() => { setScopeMode("store"); setRmStoreId(s.id); }}>
+                      <span className="text-xs">{s.name}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <button
+                type="button"
+                onClick={() => setScopeMode("region")}
+                aria-pressed={scopeMode === "region"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "region" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Region
+              </button>
+            </div>
+          )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
           <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
         </div>
