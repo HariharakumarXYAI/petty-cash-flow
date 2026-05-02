@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect, type DragEvent as DragEvent_R, type ChangeEvent as ChangeEvent_R } from "react";
 import {
   Upload, Camera, Plus, Trash2, ArrowLeft, ArrowRight,
   CheckCircle, AlertTriangle, FileText, X, Inbox, Replace, Eye, Sparkles,
