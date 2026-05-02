@@ -191,9 +191,10 @@ export default function ClaimsList() {
 
   // Hide Store column when scope is fixed to a single store.
   const isStoreUser = user?.role === "store_user";
-  const hideStoreColumn = !isHoFinance && (scope?.type === "store" || scope?.type === "self");
-  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance;
-  const showCountryColumn = isHoFinance;
+  const hideStoreColumn = !isHoFinance && !isInternalAudit && (scope?.type === "store" || scope?.type === "self");
+  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance && !isInternalAudit;
+  const showCountryColumn = isHoFinance || isInternalAudit;
+  const showAuditColumns = isInternalAudit;
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
