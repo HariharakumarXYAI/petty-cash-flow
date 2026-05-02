@@ -109,8 +109,9 @@ export default function ClaimsList() {
   // Role-aware scope toggle.
   const isStoreManager = user?.role === "store_manager";
   const isRegionalManager = user?.role === "regional_manager";
-  const [scopeMode, setScopeMode] = useState<"self" | "store" | "region">(
-    isRegionalManager ? "region" : "store",
+  const isHoFinance = user?.role === "ho_finance";
+  const [scopeMode, setScopeMode] = useState<"self" | "store" | "region" | "all">(
+    isHoFinance ? "all" : isRegionalManager ? "region" : "store",
   );
   // For RM, "store" mode requires a chosen store from their region.
   const regionStores = useMemo(
@@ -119,9 +120,26 @@ export default function ClaimsList() {
   );
   const [rmStoreId, setRmStoreId] = useState<string | null>(null);
 
+  // HO Finance filters: country / store / region.
+  const [hoCountry, setHoCountry] = useState<string>("all");
+  const [hoStoreId, setHoStoreId] = useState<string>("all");
+  const [hoRegionId, setHoRegionId] = useState<string | null>(null);
+
+  // Stores filtered by HO country selection.
+  const hoStoreOptions = useMemo(() => {
+    if (hoCountry === "all") return stores;
+    return stores.filter((s) => s.country === hoCountry);
+  }, [hoCountry]);
+
   // Effective scope for filtering MOCK_CLAIMS.
   const scope: Scope | null = useMemo(() => {
     if (!user) return null;
+    if (isHoFinance) {
+      if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
+      if (scopeMode === "store") return { type: "store", store_id: hoStoreId === "all" ? null : hoStoreId };
+      if (scopeMode === "region") return { type: "region", region_id: hoRegionId };
+      return { type: "global" };
+    }
     if (isRegionalManager) {
       if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
       if (scopeMode === "store") return { type: "store", store_id: rmStoreId };
@@ -133,20 +151,31 @@ export default function ClaimsList() {
         : { type: "store", store_id: user.store_id };
     }
     return getDefaultScope(user);
-  }, [user, isStoreManager, isRegionalManager, scopeMode, rmStoreId]);
+  }, [user, isStoreManager, isRegionalManager, isHoFinance, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
 
   // Scope-filtered base list (everything else filters off this).
   const scopedClaims = useMemo<MockClaim[]>(() => {
     if (!user || !scope) return [];
+    let base: MockClaim[];
     // For RM in store mode without a selected store, show all region stores.
     if (isRegionalManager && scopeMode === "store" && !rmStoreId) {
-      return MOCK_CLAIMS.filter((c) => c.region_id === user.region_id);
+      base = MOCK_CLAIMS.filter((c) => c.region_id === user.region_id);
+    } else if (isHoFinance && scopeMode === "store" && hoStoreId === "all") {
+      base = [...MOCK_CLAIMS];
+    } else if (isHoFinance && scopeMode === "region" && !hoRegionId) {
+      base = [...MOCK_CLAIMS];
+    } else if (scope.type === "store" && scope.store_id) {
+      base = MOCK_CLAIMS.filter((c) => c.store_id === scope.store_id);
+    } else {
+      base = applyScope(MOCK_CLAIMS, scope, user);
     }
-    if (scope.type === "store" && scope.store_id) {
-      return MOCK_CLAIMS.filter((c) => c.store_id === scope.store_id);
+    // Apply HO Finance country dropdown on top of scope.
+    if (isHoFinance && hoCountry !== "all") {
+      const allowedStoreIds = new Set(stores.filter((s) => s.country === hoCountry).map((s) => s.id));
+      base = base.filter((c) => allowedStoreIds.has(c.store_id));
     }
-    return applyScope(MOCK_CLAIMS, scope, user);
-  }, [user, scope, isRegionalManager, scopeMode, rmStoreId]);
+    return base;
+  }, [user, scope, isRegionalManager, isHoFinance, scopeMode, rmStoreId, hoStoreId, hoRegionId, hoCountry]);
 
   const storeName = useMemo(() => {
     if (!user?.store_id) return user?.scope?.label ?? "All stores";
@@ -160,8 +189,9 @@ export default function ClaimsList() {
 
   // Hide Store column when scope is fixed to a single store.
   const isStoreUser = user?.role === "store_user";
-  const hideStoreColumn = scope?.type === "store" || scope?.type === "self";
-  const hideSubmitterColumn = scope?.type === "self";
+  const hideStoreColumn = !isHoFinance && (scope?.type === "store" || scope?.type === "self");
+  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance;
+  const showCountryColumn = isHoFinance;
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
@@ -212,13 +242,22 @@ export default function ClaimsList() {
     (c) => new Date(c.transaction_date) >= monthStart,
   );
   const submitterCount = new Set(claimsThisMonth.map((c) => c.submitted_by)).size;
+  const distinctStores = new Set(scopedClaims.map((c) => c.store_id)).size;
+  const distinctCountries = new Set(
+    scopedClaims.map((c) => stores.find((s) => s.id === c.store_id)?.country).filter(Boolean),
+  ).size;
 
   const selectedRmStoreName = rmStoreId ? regionStores.find((s) => s.id === rmStoreId)?.name : null;
-  const pageTitle = isStoreUser ? "My Claims" : isRegionalManager ? "Regional Claims" : "Claims";
+  const pageTitle = isStoreUser ? "My Claims"
+    : isRegionalManager ? "Regional Claims"
+    : isHoFinance ? "All Claims"
+    : "Claims";
   const subtitle = isStoreUser
     ? `Showing only claims you submitted at ${storeName}`
     : isRegionalManager
     ? `Region: ${regionName} · ${regionStores.length} stores · ${claimsThisMonth.length} claims this month`
+    : isHoFinance
+    ? `${distinctStores} store${distinctStores === 1 ? "" : "s"} · ${distinctCountries} countr${distinctCountries === 1 ? "y" : "ies"} · ${claimsThisMonth.length} claims this month`
     : isStoreManager
     ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
     : `${filtered.length} claims found`;
