@@ -155,32 +155,26 @@ const hoFinanceNav: NavGroup[] = [
   {
     label: "Operations",
     items: [
-      { title: "Claims", url: "/claims", icon: FileText },
-      { title: "Alerts", url: "/alerts", icon: AlertTriangle },
-      { title: "Investigations", url: "/investigations", icon: SearchIcon },
-      { title: "Audit", url: "/audit", icon: ClipboardCheck },
+      { title: "All Claims", url: "/claims", icon: FileText },
+      { title: "All Advances", url: "/advances", icon: Wallet },
+      { title: "Approvals", url: "/approvals", icon: CheckSquare },
+      { title: "Pending Validation", url: "/alerts", icon: ClipboardCheck },
     ],
   },
   {
-    label: "Finance",
+    label: "Control",
     items: [
-      { title: "Cashbook Oversight", url: "/cashbook", icon: BookOpen },
-      { title: "Advances", url: "/advances", icon: Wallet },
-    ],
-  },
-  {
-    label: "Reports",
-    items: [
-      { title: "Spend Trends", url: "/reports/spend-trends", icon: TrendingUp },
-      { title: "Store Benchmarking", url: "/reports/benchmarking", icon: Scale },
-      { title: "Advance Aging", url: "/reports/advance-aging", icon: Clock },
-      { title: "Audit Findings", url: "/reports/audit-findings", icon: FileSearch },
+      { title: "Exceptions", url: "/investigations", icon: AlertTriangle },
+      { title: "Reports", url: "/reports/spend-trends", icon: BarChart3 },
+      { title: "Reconciliation", url: "/cashbook", icon: Scale },
     ],
   },
   {
     label: "Admin",
     items: [
-      { title: "Admin Settings", url: "/admin", icon: Settings },
+      { title: "Sub-types", url: "/admin/expense-types", icon: FileSearch },
+      { title: "Doc Requirements", url: "/admin/documents", icon: FileText },
+      { title: "Stores", url: "/admin/stores", icon: Store },
     ],
   },
 ];

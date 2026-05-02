@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { MOCK_CLAIMS, STATUS_TABS, type ClaimStatus, type OcrStatus, type MockClaim } from "@/data/mockClaims";
 import { useAuth } from "@/contexts/AuthContext";
 import { applyScope, getDefaultScope, type Scope } from "@/lib/scope";
-import { stores } from "@/lib/mock-data";
+import { stores, countries } from "@/lib/mock-data";
 import { regionLabels } from "@/lib/roles";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ChevronDown } from "lucide-react";
@@ -109,8 +109,9 @@ export default function ClaimsList() {
   // Role-aware scope toggle.
   const isStoreManager = user?.role === "store_manager";
   const isRegionalManager = user?.role === "regional_manager";
-  const [scopeMode, setScopeMode] = useState<"self" | "store" | "region">(
-    isRegionalManager ? "region" : "store",
+  const isHoFinance = user?.role === "ho_finance";
+  const [scopeMode, setScopeMode] = useState<"self" | "store" | "region" | "all">(
+    isHoFinance ? "all" : isRegionalManager ? "region" : "store",
   );
   // For RM, "store" mode requires a chosen store from their region.
   const regionStores = useMemo(
@@ -119,9 +120,26 @@ export default function ClaimsList() {
   );
   const [rmStoreId, setRmStoreId] = useState<string | null>(null);
 
+  // HO Finance filters: country / store / region.
+  const [hoCountry, setHoCountry] = useState<string>("all");
+  const [hoStoreId, setHoStoreId] = useState<string>("all");
+  const [hoRegionId, setHoRegionId] = useState<string | null>(null);
+
+  // Stores filtered by HO country selection.
+  const hoStoreOptions = useMemo(() => {
+    if (hoCountry === "all") return stores;
+    return stores.filter((s) => s.country === hoCountry);
+  }, [hoCountry]);
+
   // Effective scope for filtering MOCK_CLAIMS.
   const scope: Scope | null = useMemo(() => {
     if (!user) return null;
+    if (isHoFinance) {
+      if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
+      if (scopeMode === "store") return { type: "store", store_id: hoStoreId === "all" ? null : hoStoreId };
+      if (scopeMode === "region") return { type: "region", region_id: hoRegionId };
+      return { type: "global" };
+    }
     if (isRegionalManager) {
       if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
       if (scopeMode === "store") return { type: "store", store_id: rmStoreId };
@@ -133,20 +151,31 @@ export default function ClaimsList() {
         : { type: "store", store_id: user.store_id };
     }
     return getDefaultScope(user);
-  }, [user, isStoreManager, isRegionalManager, scopeMode, rmStoreId]);
+  }, [user, isStoreManager, isRegionalManager, isHoFinance, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
 
   // Scope-filtered base list (everything else filters off this).
   const scopedClaims = useMemo<MockClaim[]>(() => {
     if (!user || !scope) return [];
+    let base: MockClaim[];
     // For RM in store mode without a selected store, show all region stores.
     if (isRegionalManager && scopeMode === "store" && !rmStoreId) {
-      return MOCK_CLAIMS.filter((c) => c.region_id === user.region_id);
+      base = MOCK_CLAIMS.filter((c) => c.region_id === user.region_id);
+    } else if (isHoFinance && scopeMode === "store" && hoStoreId === "all") {
+      base = [...MOCK_CLAIMS];
+    } else if (isHoFinance && scopeMode === "region" && !hoRegionId) {
+      base = [...MOCK_CLAIMS];
+    } else if (scope.type === "store" && scope.store_id) {
+      base = MOCK_CLAIMS.filter((c) => c.store_id === scope.store_id);
+    } else {
+      base = applyScope(MOCK_CLAIMS, scope, user);
     }
-    if (scope.type === "store" && scope.store_id) {
-      return MOCK_CLAIMS.filter((c) => c.store_id === scope.store_id);
+    // Apply HO Finance country dropdown on top of scope.
+    if (isHoFinance && hoCountry !== "all") {
+      const allowedStoreIds = new Set(stores.filter((s) => s.country === hoCountry).map((s) => s.id));
+      base = base.filter((c) => allowedStoreIds.has(c.store_id));
     }
-    return applyScope(MOCK_CLAIMS, scope, user);
-  }, [user, scope, isRegionalManager, scopeMode, rmStoreId]);
+    return base;
+  }, [user, scope, isRegionalManager, isHoFinance, scopeMode, rmStoreId, hoStoreId, hoRegionId, hoCountry]);
 
   const storeName = useMemo(() => {
     if (!user?.store_id) return user?.scope?.label ?? "All stores";
@@ -160,8 +189,9 @@ export default function ClaimsList() {
 
   // Hide Store column when scope is fixed to a single store.
   const isStoreUser = user?.role === "store_user";
-  const hideStoreColumn = scope?.type === "store" || scope?.type === "self";
-  const hideSubmitterColumn = scope?.type === "self";
+  const hideStoreColumn = !isHoFinance && (scope?.type === "store" || scope?.type === "self");
+  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance;
+  const showCountryColumn = isHoFinance;
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
@@ -212,13 +242,22 @@ export default function ClaimsList() {
     (c) => new Date(c.transaction_date) >= monthStart,
   );
   const submitterCount = new Set(claimsThisMonth.map((c) => c.submitted_by)).size;
+  const distinctStores = new Set(scopedClaims.map((c) => c.store_id)).size;
+  const distinctCountries = new Set(
+    scopedClaims.map((c) => stores.find((s) => s.id === c.store_id)?.country).filter(Boolean),
+  ).size;
 
   const selectedRmStoreName = rmStoreId ? regionStores.find((s) => s.id === rmStoreId)?.name : null;
-  const pageTitle = isStoreUser ? "My Claims" : isRegionalManager ? "Regional Claims" : "Claims";
+  const pageTitle = isStoreUser ? "My Claims"
+    : isRegionalManager ? "Regional Claims"
+    : isHoFinance ? "All Claims"
+    : "Claims";
   const subtitle = isStoreUser
     ? `Showing only claims you submitted at ${storeName}`
     : isRegionalManager
     ? `Region: ${regionName} · ${regionStores.length} stores · ${claimsThisMonth.length} claims this month`
+    : isHoFinance
+    ? `${distinctStores} store${distinctStores === 1 ? "" : "s"} · ${distinctCountries} countr${distinctCountries === 1 ? "y" : "ies"} · ${claimsThisMonth.length} claims this month`
     : isStoreManager
     ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
     : `${filtered.length} claims found`;
@@ -321,6 +360,73 @@ export default function ClaimsList() {
               </button>
             </div>
           )}
+          {isHoFinance && (
+            <div
+              className="inline-flex items-center rounded-full border border-border bg-card p-0.5"
+              role="group"
+              aria-label="Scope toggle"
+            >
+              <button
+                type="button"
+                onClick={() => setScopeMode("self")}
+                aria-pressed={scopeMode === "self"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "self" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My claims
+              </button>
+              <button
+                type="button"
+                onClick={() => setScopeMode("store")}
+                aria-pressed={scopeMode === "store"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "store" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Specific store
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setScopeMode("region")}
+                    aria-pressed={scopeMode === "region"}
+                    className={cn(
+                      "h-7 pl-3 pr-2 rounded-full text-xs font-medium transition-colors inline-flex items-center gap-1",
+                      scopeMode === "region" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {scopeMode === "region" && hoRegionId ? (regionLabels[hoRegionId] ?? "Region") : "Region"}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-auto">
+                  <DropdownMenuItem onClick={() => { setScopeMode("region"); setHoRegionId(null); }}>
+                    <span className="text-xs">All regions</span>
+                  </DropdownMenuItem>
+                  {Object.entries(regionLabels).map(([id, label]) => (
+                    <DropdownMenuItem key={id} onClick={() => { setScopeMode("region"); setHoRegionId(id); }}>
+                      <span className="text-xs">{label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <button
+                type="button"
+                onClick={() => setScopeMode("all")}
+                aria-pressed={scopeMode === "all"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "all" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                All
+              </button>
+            </div>
+          )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
           <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
         </div>
@@ -337,6 +443,29 @@ export default function ClaimsList() {
             className="pl-8 h-8 text-xs"
           />
         </div>
+        {isHoFinance && (
+          <>
+            <Select value={hoCountry} onValueChange={(v) => { setHoCountry(v); setHoStoreId("all"); }}>
+              <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue placeholder="All countries" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All countries</SelectItem>
+                {countries.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.flag} {c.name}</SelectItem>
+                ))}
+                <SelectItem value="LA">🇱🇦 Laos</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={hoStoreId} onValueChange={(v) => { setHoStoreId(v); if (v !== "all") setScopeMode("store"); }}>
+              <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue placeholder="All stores" /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="all">All stores</SelectItem>
+                {hoStoreOptions.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
         <Select value={expenseFilter} onValueChange={setExpenseFilter}>
           <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue placeholder="All Expenses" /></SelectTrigger>
           <SelectContent>
@@ -438,6 +567,7 @@ export default function ClaimsList() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="section-label sticky left-0 bg-card z-10 min-w-[200px]">Claim #</TableHead>
+                {showCountryColumn && <TableHead className="section-label">Country</TableHead>}
                 {!hideStoreColumn && <TableHead className="section-label">Store</TableHead>}
                 {!hideSubmitterColumn && <TableHead className="section-label">Submitter</TableHead>}
                 <TableHead className="section-label hidden lg:table-cell">Expense</TableHead>
@@ -451,18 +581,21 @@ export default function ClaimsList() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9 - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
+                  <TableCell colSpan={9 + (showCountryColumn ? 1 : 0) - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
                     No claims match the current filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((c) => (
+                filtered.map((c) => {
+                  const storeCountry = stores.find((s) => s.id === c.store_id)?.country;
+                  return (
                   <TableRow
                     key={c.claim_no}
                     className="cursor-pointer hover:bg-secondary/50"
                     onClick={() => navigate(`/claims/${c.claim_no}`)}
                   >
                     <TableCell className="font-mono text-xs font-medium sticky left-0 bg-card z-10">{c.claim_no}</TableCell>
+                    {showCountryColumn && <TableCell className="text-xs text-muted-foreground">{storeCountry ?? "—"}</TableCell>}
                     {!hideStoreColumn && <TableCell className="text-sm">{c.store_name}</TableCell>}
                     {!hideSubmitterColumn && <TableCell className="text-sm">{c.submitter_name}</TableCell>}
                     <TableCell className="text-sm text-muted-foreground hidden lg:table-cell max-w-[220px] truncate" title={c.expense_type}>
@@ -500,7 +633,8 @@ export default function ClaimsList() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
