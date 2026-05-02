@@ -11,6 +11,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { MOCK_CLAIMS, STATUS_TABS, type ClaimStatus, type OcrStatus, type MockClaim } from "@/data/mockClaims";
+import { useAuth } from "@/contexts/AuthContext";
+import { applyScope, getDefaultScope, type Scope } from "@/lib/scope";
+import { stores } from "@/lib/mock-data";
 
 const STATUS_PILL: Record<ClaimStatus, string> = {
   "Draft": "bg-muted text-muted-foreground",
