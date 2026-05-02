@@ -49,10 +49,10 @@ export default function NewClaim() {
   const [purpose, setPurpose] = useState("");
   const [linkedAdvance, setLinkedAdvance] = useState("");
   
-  const [requesterEdit, setRequesterEdit] = useState(false);
-  const [onBehalf, setOnBehalf] = useState(false);
-  const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
-  const [delegationReason, setDelegationReason] = useState("");
+  const [submittedForEmployeeId, setSubmittedForEmployeeId] = useState<string | null>(null);
+  const [delegationReason, setDelegationReason] = useState<
+    "sick_leave" | "annual_leave" | "traveling" | "no_store_account" | "other" | null
+  >(null);
   const [selectedStoreId, setSelectedStoreId] = useState("s3");
 
   // Expense lines
