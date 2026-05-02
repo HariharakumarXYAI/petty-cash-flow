@@ -2,7 +2,7 @@ import {
   LayoutDashboard, FilePlus, FileText, Wallet, BookOpen,
   AlertTriangle, Search as SearchIcon, ClipboardCheck,
   ShieldCheck, TrendingUp, Scale, Clock, FileSearch,
-  Home, CheckSquare, BarChart3, Users, Eye, Settings,
+  Home, CheckSquare, BarChart3, Users, Eye, Settings, Store,
   type LucideIcon,
 } from "lucide-react";
 
