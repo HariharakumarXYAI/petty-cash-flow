@@ -370,14 +370,8 @@ export function RequesterDetailsCard({
               <dt className="text-muted-foreground">Phone</dt>
               <dd className="text-foreground">{requester.phone}</dd>
             </dl>
-            <p className="mt-3 text-[12px] text-muted-foreground/80">
-              Profile incorrect?{" "}
-              <a href="/profile" className="text-primary hover:underline">
-                Update in your profile settings
-              </a>
-              .
-            </p>
           </div>
+
         </div>
       </div>
     </div>
