@@ -355,20 +355,23 @@ export function RequesterDetailsCard({
             className="mt-3 pt-3"
             style={{ borderTop: "0.5px solid hsl(var(--border))" }}
           >
-            <dl className="grid text-sm" style={{ gridTemplateColumns: "36% 1fr", rowGap: "8px" }}>
-              <dt className="text-muted-foreground">Employee ID</dt>
-              <dd className="text-foreground">{requester.employeeId}</dd>
-              <dt className="text-muted-foreground">Email</dt>
-              <dd>
-                <a
-                  href={`mailto:${requester.email}`}
-                  className="text-primary hover:underline"
-                >
-                  {requester.email}
-                </a>
-              </dd>
-              <dt className="text-muted-foreground">Phone</dt>
-              <dd className="text-foreground">{requester.phone}</dd>
+            <dl className="text-[13px]">
+              <div className="flex items-baseline" style={{ gap: "16px", paddingTop: "5px", paddingBottom: "5px" }}>
+                <dt className="text-muted-foreground font-normal" style={{ width: "120px", flexShrink: 0 }}>Employee ID</dt>
+                <dd className="text-foreground font-normal text-left">{requester.employeeId}</dd>
+              </div>
+              <div className="flex items-baseline" style={{ gap: "16px", paddingTop: "5px", paddingBottom: "5px" }}>
+                <dt className="text-muted-foreground font-normal" style={{ width: "120px", flexShrink: 0 }}>Email</dt>
+                <dd className="font-normal text-left">
+                  <a href={`mailto:${requester.email}`} className="text-primary hover:underline">
+                    {requester.email}
+                  </a>
+                </dd>
+              </div>
+              <div className="flex items-baseline" style={{ gap: "16px", paddingTop: "5px", paddingBottom: "5px" }}>
+                <dt className="text-muted-foreground font-normal" style={{ width: "120px", flexShrink: 0 }}>Phone</dt>
+                <dd className="text-foreground font-normal text-left">{requester.phone}</dd>
+              </div>
             </dl>
           </div>
 
