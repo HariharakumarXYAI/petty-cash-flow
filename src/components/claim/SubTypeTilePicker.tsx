@@ -1,11 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  Search, X,
-  Car, TrainFront, Zap, TrafficCone, ParkingSquare, CircleParking,
-  CarFront, Plane, Hotel, Utensils, Wallet, Users, Package, Moon,
-  Flower2, Landmark, HeartHandshake, Trash2, AlertTriangle,
-  type LucideIcon,
-} from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -16,12 +10,8 @@ import {
   type SubExpenseTypeGroup,
 } from "@/lib/sub-expense-types";
 
-// ── Map iconName string → Lucide component (kept local to picker) ──
-const ICONS: Record<string, LucideIcon> = {
-  Car, TrainFront, Zap, TrafficCone, ParkingSquare, CircleParking,
-  CarFront, Plane, Hotel, Utensils, Wallet, Users, Package, Moon,
-  Flower2, Landmark, HeartHandshake, Trash2, AlertTriangle,
-};
+const EMOJI_FONT_STACK =
+  "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
 
 // ── Mock "pinned for you" — top 4 sub-types this user used in last 30 days ──
 // Empty array = cold-start user; the section will be hidden.
@@ -109,7 +99,6 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
 
   // ── Tile (used in default state) ──
   const Tile = ({ s, pinned }: { s: SubExpenseTypeDef; pinned?: boolean }) => {
-    const Icon = ICONS[s.iconName];
     return (
       <button
         type="button"
@@ -122,7 +111,13 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
           pinned && "border-l-[3px] border-l-primary"
         )}
       >
-        {Icon && <Icon className="h-[22px] w-[22px] text-foreground/80 mb-1.5" />}
+        <span
+          aria-hidden
+          className="mb-1.5"
+          style={{ fontSize: "28px", lineHeight: 1, fontFamily: EMOJI_FONT_STACK }}
+        >
+          {s.emoji}
+        </span>
         <span className="text-[13px] font-medium text-foreground leading-tight">{s.en}</span>
         <span className="text-[11px] text-muted-foreground leading-tight mt-0.5">{s.th}</span>
       </button>
@@ -131,7 +126,6 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
 
   // ── Search-result row (denser) ──
   const ResultRow = ({ s, q }: { s: SubExpenseTypeDef; q: string }) => {
-    const Icon = ICONS[s.iconName];
     return (
       <button
         type="button"
@@ -141,7 +135,13 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
           "hover:bg-secondary/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 transition-colors"
         )}
       >
-        {Icon && <Icon className="h-[22px] w-[22px] text-foreground/80 shrink-0" />}
+        <span
+          aria-hidden
+          className="shrink-0"
+          style={{ fontSize: "22px", lineHeight: 1, fontFamily: EMOJI_FONT_STACK }}
+        >
+          {s.emoji}
+        </span>
         <span className="flex-1 min-w-0">
           <span className="block text-[13px] text-foreground font-medium truncate">{highlight(s.en, q)}</span>
           <span className="block text-[11px] text-muted-foreground truncate">{highlight(s.th, q)}</span>
