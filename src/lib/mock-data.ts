@@ -323,6 +323,13 @@ export const subExpenseTypeDocPolicy: DocPolicyRow[] = [
 
   // Night Shift Meal
   { subExpenseTypeId: "lt-night",     docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Other (Finance master) — single Receipt requirement
+  { subExpenseTypeId: "ot-funeral",   docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-license",   docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-community", docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-wetwaste",  docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-damaged",   docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
 ];
 
 export const getDocPolicyForSubType = (subExpenseTypeId: string): DocPolicyRow[] =>
