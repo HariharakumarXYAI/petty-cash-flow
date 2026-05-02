@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useRef, useState, useEffect } from "react";
 import {
-  Upload, Camera, Plus, Trash2, Copy as CopyIcon, ArrowLeft, ArrowRight,
+  Upload, Camera, Plus, Trash2, ArrowLeft, ArrowRight,
   CheckCircle, AlertTriangle, FileText, X, Inbox, Replace, Eye, Sparkles,
-  ChevronRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,45 +15,60 @@ import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import {
   expenseTypes,
-  getDocPolicyForSubType,
   DOC_TYPE_LABEL,
-  DocPolicyRow,
   DocTypeCode,
 } from "@/lib/mock-data";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { SubTypeTilePicker } from "@/components/claim/SubTypeTilePicker";
 import { getSubExpenseTypeById } from "@/lib/sub-expense-types";
+import {
+  DOC_REQUIREMENTS,
+  DocSlot,
+  getDocRequirementsForSubType,
+} from "@/config/docRequirements";
 
 // ────────── Line model ──────────
-// Each "doc" represents a slot fill keyed by `${docTypeCode}|${altGroupId ?? ""}`
 export interface AttachedDoc {
   fileName: string;
   fileSize: number;
-  ocrConfidence: number;        // 0-100
-  extractedSummary: string;     // e.g. "flight TG203 · BKK→CNX · 4,800 THB"
+  ocrConfidence: number;
+  extractedSummary: string;
   uploadedAt: number;
+  // For required_one_of: which option id was selected at upload time
+  selectedOptionId?: string;
+  // OCR validation flag (e.g. license plate detection failed)
+  ocrValidationFailed?: boolean;
 }
+
+// Slot input value: string for free_text/select/number, string[] for list,
+// Record<string,string> for structured_form
+export type SlotInputValue = string | string[] | Record<string, string>;
 
 export interface ExpenseLineV2 {
   id: string;
-  subExpenseTypeId: string;     // expenseTypes.id (sub-type)
+  subExpenseTypeId: string;
   vendor: string;
   receiptDate: string;
-  amount: string;               // = totalAmount (gross, VAT-inclusive). Kept name for back-compat.
+  amount: string;
   vatAmount: string;
   whtAmount: string;
-  vatEdited?: boolean;          // user manually edited VAT — auto-calc skipped
-  whtEdited?: boolean;          // user manually edited WHT — auto-calc skipped
+  vatEdited?: boolean;
+  whtEdited?: boolean;
   currency: string;
   glAccount: string;
   vatCode: string;
   whtCode: string;
   paymentMode: string;
-  
+
   lineJustification: string;
-  // doc slots: key = `${docTypeCode}|${altGroupId ?? ""}`
+
+  // ── New config-driven slot state (keyed by DocSlot.id) ──
+  slotFiles: Record<string, AttachedDoc>;
+  slotInputs: Record<string, SlotInputValue>;
+  conditionResponses: Record<string, boolean>;
+
+  // Legacy: kept for bulk-dropzone auto-routing back-compat (not used for completeness)
   docs: Record<string, AttachedDoc>;
-  // structured-text slot values: key = `${docTypeCode}` ; value = field map
   structured: Record<string, Record<string, string>>;
 }
 
@@ -73,8 +87,11 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   vatCode: "",
   whtCode: "WHT00",
   paymentMode: "cash",
-  
+
   lineJustification: "",
+  slotFiles: {},
+  slotInputs: {},
+  conditionResponses: {},
   docs: {},
   structured: {},
 });
@@ -85,7 +102,6 @@ const WHT_RATE_PCT: Record<string, number> = { WHT00: 0, WHT01: 1, WHT02: 2, WHT
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
-// Compute VAT (VAT-inclusive) and WHT amounts from total + codes
 function deriveVat(totalStr: string, vatCode: string): number {
   const total = parseFloat(totalStr) || 0;
   const r = VAT_RATE_PCT[vatCode] ?? 0;
@@ -100,7 +116,6 @@ function deriveWht(totalStr: string, vatAmtStr: string, whtCode: string): number
   return round2((total - vat) * w / 100);
 }
 
-// GL/VAT defaults derived from sub-type id
 const GL_BY_SUBTYPE: Record<string, string> = {
   "lt-taxi": "5102-001", "lt-train": "5102-001", "lt-car": "5102-001",
   "lt-toll": "5102-001", "lt-airpark": "5102-001", "lt-otherpark": "5102-001",
@@ -111,7 +126,7 @@ const GL_BY_SUBTYPE: Record<string, string> = {
 
 const LARGE_LINE_THRESHOLD = 30000;
 
-// Doc-type heuristic from filename
+// Doc-type heuristic from filename (used by bulk dropzone)
 function classifyFile(fileName: string): { code: DocTypeCode; confidence: number } {
   const n = fileName.toLowerCase();
   if (/(eticket|e-ticket|itinerary|booking)/.test(n)) return { code: "E_TICKET", confidence: 92 };
@@ -123,10 +138,45 @@ function classifyFile(fileName: string): { code: DocTypeCode; confidence: number
   if (/(claimform|claim-form|claim_form|form)/.test(n)) return { code: "CLAIM_FORM", confidence: 84 };
   if (/(memo|justif|note)/.test(n)) return { code: "MEMO", confidence: 82 };
   if (/(receipt|rcpt|bill)/.test(n)) return { code: "RECEIPT", confidence: 88 };
-  return { code: "RECEIPT", confidence: 60 }; // fallback low confidence → Needs sorting
+  return { code: "RECEIPT", confidence: 60 };
 }
 
-// Mock OCR extraction summary by doc type
+// Heuristic: map a doc-type code to a slot id within a sub-type's config
+function findSlotIdForCode(subTypeId: string, code: DocTypeCode): string | null {
+  const slots = getDocRequirementsForSubType(subTypeId);
+  // Priority: file-style required → required_one_of → optional
+  const isFileSlot = (s: DocSlot) => !s.input_type || s.input_type === "file";
+  const codeHints: Record<DocTypeCode, RegExp> = {
+    E_TICKET: /e_ticket|ticket/i,
+    BOARDING_PASS: /boarding/i,
+    TAX_INVOICE: /tax_invoice|invoice/i,
+    HOTEL_FOLIO: /hotel|folio/i,
+    FUEL_RECEIPT: /fuel|receipt/i,
+    RECEIPT: /receipt/i,
+    CLAIM_FORM: /claim_form|form/i,
+    TRAVEL_APPROVAL: /travel_approval|approval/i,
+    MEMO: /memo/i,
+    MILEAGE_TEXT: /trip_log|mileage/i,
+  };
+  const re = codeHints[code];
+  // 1. Direct id match in required slots
+  for (const s of slots) {
+    if (s.type === "required" && isFileSlot(s) && re && re.test(s.id)) return s.id;
+  }
+  // 2. required_one_of with matching option id
+  for (const s of slots) {
+    if (s.type === "required_one_of" && s.options?.some(o => re && re.test(o.id))) return s.id;
+  }
+  // 3. optional/conditional file slot
+  for (const s of slots) {
+    if ((s.type === "optional" || s.type === "conditional_optional" || s.type === "conditional_required")
+        && isFileSlot(s) && re && re.test(s.id)) return s.id;
+  }
+  // 4. Fallback: first required file slot
+  for (const s of slots) if (s.type === "required" && isFileSlot(s)) return s.id;
+  return null;
+}
+
 function mockSummary(code: DocTypeCode): { summary: string; vendor?: string; amount?: string; date?: string } {
   const today = new Date().toISOString().slice(0, 10);
   switch (code) {
@@ -143,83 +193,78 @@ function mockSummary(code: DocTypeCode): { summary: string; vendor?: string; amo
   }
 }
 
-const slotKey = (code: DocTypeCode, altGroupId?: string) => `${code}|${altGroupId ?? ""}`;
+// ───────── Slot evaluation helpers ─────────
 
-// Compute which policy entries are "active" for a line given amount (threshold gating)
-function activePolicy(rows: DocPolicyRow[], amount: number): DocPolicyRow[] {
-  return rows.filter(r => r.thresholdAmount == null || amount > r.thresholdAmount);
-}
-
-// Group ALTERNATIVE rows by alternativeGroupId for rendering
-function groupSlots(rows: DocPolicyRow[]) {
-  type Slot =
-    | { kind: "single"; row: DocPolicyRow }
-    | { kind: "alt"; groupId: string; rows: DocPolicyRow[]; requirement: "REQUIRED" | "OPTIONAL" };
-  const out: Slot[] = [];
-  const seenAlt = new Set<string>();
-  for (const r of rows) {
-    if (r.requirement === "ALTERNATIVE" && r.alternativeGroupId) {
-      if (seenAlt.has(r.alternativeGroupId)) continue;
-      seenAlt.add(r.alternativeGroupId);
-      const peers = rows.filter(x => x.alternativeGroupId === r.alternativeGroupId);
-      // an ALT group is REQUIRED unless ALL members are OPTIONAL (treat REQUIRED here)
-      out.push({ kind: "alt", groupId: r.alternativeGroupId, rows: peers, requirement: "REQUIRED" });
-    } else {
-      out.push({ kind: "single", row: r });
-    }
+function isSlotInputFilled(slot: DocSlot, value: SlotInputValue | undefined): boolean {
+  if (value == null) return false;
+  if (slot.input_type === "structured_form" && slot.structured_fields) {
+    if (typeof value !== "object" || Array.isArray(value)) return false;
+    return slot.structured_fields.every(f => {
+      const v = (value as Record<string, string>)[f.id];
+      return v != null && String(v).trim().length > 0;
+    });
   }
-  return out;
+  if (slot.input_type === "list") {
+    return Array.isArray(value) && value.some(v => String(v).trim().length > 0);
+  }
+  if (typeof value === "string") return value.trim().length > 0;
+  return false;
 }
 
-// Per-line completeness for required-doc + OCR + fields → drives pill color & footer chip
+function isSlotFilled(line: ExpenseLineV2, slot: DocSlot): boolean {
+  if (slot.input_type && slot.input_type !== "file") {
+    return isSlotInputFilled(slot, line.slotInputs[slot.id]);
+  }
+  // File-based (or required_one_of which is always file-based here)
+  return !!line.slotFiles[slot.id];
+}
+
+function isSlotActive(line: ExpenseLineV2, slot: DocSlot): boolean {
+  if (slot.type === "conditional_required" || slot.type === "conditional_optional") {
+    return line.conditionResponses[slot.id] === true;
+  }
+  return true;
+}
+
+function isSlotRequired(line: ExpenseLineV2, slot: DocSlot): boolean {
+  if (slot.type === "required" || slot.type === "required_one_of") return true;
+  if (slot.type === "conditional_required") return line.conditionResponses[slot.id] === true;
+  return false;
+}
+
+// Per-line completeness — driven entirely by DOC_REQUIREMENTS
 export function evaluateLine(line: ExpenseLineV2): {
   requiredTotal: number; requiredFilled: number;
   totalSlots: number; filledSlots: number;
   ocrOk: boolean; fieldsOk: boolean; complete: boolean; missingCaption: string;
 } {
-  const policy = getDocPolicyForSubType(line.subExpenseTypeId);
+  const slots = getDocRequirementsForSubType(line.subExpenseTypeId);
   const amt = parseFloat(line.amount) || 0;
-  const active = activePolicy(policy, amt);
-  const slots = groupSlots(active);
 
   let requiredTotal = 0, requiredFilled = 0, totalSlots = 0, filledSlots = 0;
   let ocrOk = true;
-  for (const s of slots) {
-    totalSlots += 1;
-    const req =
-      s.kind === "single"
-        ? s.row.requirement === "REQUIRED"
-        : s.requirement === "REQUIRED";
-    if (req) requiredTotal += 1;
 
-    let filled = false;
-    if (s.kind === "single") {
-      if (s.row.kind === "STRUCTURED_TEXT") {
-        const v = line.structured[s.row.docTypeCode] ?? {};
-        filled = !!(v.from && v.to && v.distance);
-      } else {
-        const d = line.docs[slotKey(s.row.docTypeCode, undefined)];
-        filled = !!d;
-        if (d && d.ocrConfidence < 75) ocrOk = false;
-      }
-    } else {
-      filled = s.rows.some(r => {
-        const d = line.docs[slotKey(r.docTypeCode, s.groupId)];
-        if (d && d.ocrConfidence < 75) ocrOk = false;
-        return !!d;
-      });
-    }
+  for (const s of slots) {
+    if (!isSlotActive(line, s)) continue;
+    totalSlots += 1;
+    const required = isSlotRequired(line, s);
+    if (required) requiredTotal += 1;
+    const filled = isSlotFilled(line, s);
     if (filled) filledSlots += 1;
-    if (req && filled) requiredFilled += 1;
+    if (required && filled) requiredFilled += 1;
+
+    // OCR check on file slots
+    if (!s.input_type || s.input_type === "file" || s.type === "required_one_of") {
+      const f = line.slotFiles[s.id];
+      if (f && f.ocrConfidence < 75) ocrOk = false;
+    }
   }
 
-  const fieldsOk =
-    !!line.subExpenseTypeId && !!line.receiptDate && amt > 0;
+  const fieldsOk = !!line.subExpenseTypeId && !!line.receiptDate && amt > 0;
 
   let missingCaption = "";
   if (!line.subExpenseTypeId) missingCaption = "Sub-type missing";
   else if (requiredFilled < requiredTotal) missingCaption = `${requiredTotal - requiredFilled} required doc(s) missing`;
-  
   else if (!line.receiptDate) missingCaption = "Date missing";
   else if (amt <= 0) missingCaption = "Amount missing";
   else if (!ocrOk) missingCaption = "OCR confidence below 75%";
@@ -253,7 +298,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   const [needsSorting, setNeedsSorting] = useState<UnsortedFile[]>([]);
   const [mobileEditorOpen, setMobileEditorOpen] = useState(false);
   const [changingSubType, setChangingSubType] = useState(false);
-  const [pendingCategoryByLine, setPendingCategoryByLine] = useState<Record<string, string>>({});
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   // Distinct parent expense types from the catalog (filtered by country)
@@ -275,13 +319,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   }, [lines, selectedLineId]);
 
   const selectedLine = lines.find(l => l.id === selectedLineId);
-  const subTypes = useMemo(
-    () => expenseTypes.filter(e =>
-      e.category === "Local Travelling" &&
-      (countryFilter === "all" || e.countries.includes(countryFilter as any))
-    ),
-    [countryFilter]
-  );
   const subTypeLabel = (id: string) =>
     expenseTypes.find(e => e.id === id)?.subcategory ?? "Unassigned";
 
@@ -293,27 +330,15 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   const setLineSubType = useCallback((id: string, subTypeId: string) => {
     setLines(prev => prev.map(l => {
       if (l.id !== id) return l;
-      // Preserve docs whose docTypeCode is still in the new policy
-      const newPolicy = getDocPolicyForSubType(subTypeId);
-      const validKeys = new Set(
-        newPolicy.map(r => slotKey(r.docTypeCode, r.alternativeGroupId))
-      );
-      const docs: Record<string, AttachedDoc> = {};
-      for (const [k, v] of Object.entries(l.docs)) {
-        if (validKeys.has(k)) docs[k] = v;
-        // also try matching a same-code doc to a new alt group
-        else {
-          const code = k.split("|")[0] as DocTypeCode;
-          const newRow = newPolicy.find(r => r.docTypeCode === code);
-          if (newRow) docs[slotKey(newRow.docTypeCode, newRow.alternativeGroupId)] = v;
-        }
-      }
+      // Reset slot state when sub-type changes (different config = different slot ids)
       return {
         ...l,
         subExpenseTypeId: subTypeId,
         glAccount: l.glAccount || GL_BY_SUBTYPE[subTypeId] || "",
         vatCode: l.vatCode || "V07",
-        docs,
+        slotFiles: {},
+        slotInputs: {},
+        conditionResponses: {},
       };
     }));
   }, [setLines]);
@@ -329,34 +354,65 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     setLines(prev => (prev.length <= 1 ? prev : prev.filter(l => l.id !== id)));
   };
 
-  const duplicateLine = (id: string) => {
-    setLines(prev => {
-      const src = prev.find(l => l.id === id);
-      if (!src) return prev;
-      const copy: ExpenseLineV2 = { ...src, id: `line-${Date.now()}-${Math.random().toString(36).slice(2,7)}`, docs: { ...src.docs }, structured: { ...src.structured } };
-      const idx = prev.findIndex(l => l.id === id);
-      const next = [...prev];
-      next.splice(idx + 1, 0, copy);
-      return next;
-    });
+  // ───────── Slot-level helpers (new config-driven) ─────────
+  const attachToSlot = (lineId: string, slotId: string, file: File, opts?: {
+    selectedOptionId?: string; classified?: { code: DocTypeCode; confidence: number };
+  }) => {
+    const code = opts?.classified?.code ?? classifyFile(file.name).code;
+    const confidence = opts?.classified?.confidence ?? 92;
+    const sm = mockSummary(code);
+    setLines(prev => prev.map(l => {
+      if (l.id !== lineId) return l;
+      const slot = getDocRequirementsForSubType(l.subExpenseTypeId).find(s => s.id === slotId);
+      // ocr_validation flag — random pass for mock; for license plate require filename hint
+      let ocrValidationFailed = false;
+      if (slot?.ocr_validation === "must_show_license_plate") {
+        ocrValidationFailed = !/plate|[a-z]{2}\s*\d|\bกข|\bขข|\bคค/i.test(file.name);
+      }
+      const doc: AttachedDoc = {
+        fileName: file.name, fileSize: file.size,
+        ocrConfidence: confidence, extractedSummary: sm.summary,
+        uploadedAt: Date.now(),
+        selectedOptionId: opts?.selectedOptionId,
+        ocrValidationFailed,
+      };
+      return {
+        ...l,
+        slotFiles: { ...l.slotFiles, [slotId]: doc },
+        vendor: l.vendor || sm.vendor || "",
+        amount: l.amount || sm.amount || "",
+        vatAmount: l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)),
+        whtAmount: l.whtEdited ? l.whtAmount : String(deriveWht(l.amount || sm.amount || "", l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)), l.whtCode)),
+        receiptDate: l.receiptDate || sm.date || "",
+      };
+    }));
   };
 
-  const copyFromPrevious = (id: string) => {
-    setLines(prev => {
-      const idx = prev.findIndex(l => l.id === id);
-      if (idx <= 0) return prev;
-      const src = prev[idx - 1];
-      return prev.map(l => l.id !== id ? l : {
-        ...l,
-        subExpenseTypeId: src.subExpenseTypeId,
-        glAccount: src.glAccount,
-        vatCode: src.vatCode,
-        whtCode: src.whtCode,
-        paymentMode: src.paymentMode,
-        currency: src.currency,
-      });
-    });
-    toast({ title: "Copied from previous line" });
+  const removeFromSlot = (lineId: string, slotId: string) => {
+    setLines(prev => prev.map(l => {
+      if (l.id !== lineId) return l;
+      const slotFiles = { ...l.slotFiles };
+      delete slotFiles[slotId];
+      return { ...l, slotFiles };
+    }));
+  };
+
+  const setSlotInput = (lineId: string, slotId: string, value: SlotInputValue) => {
+    setLines(prev => prev.map(l => l.id === lineId
+      ? { ...l, slotInputs: { ...l.slotInputs, [slotId]: value } }
+      : l));
+  };
+
+  const setConditionResponse = (lineId: string, slotId: string, yes: boolean) => {
+    setLines(prev => prev.map(l => {
+      if (l.id !== lineId) return l;
+      const conditionResponses = { ...l.conditionResponses, [slotId]: yes };
+      // If user answered No, clear any existing file/input for that slot
+      const slotFiles = { ...l.slotFiles };
+      const slotInputs = { ...l.slotInputs };
+      if (!yes) { delete slotFiles[slotId]; delete slotInputs[slotId]; }
+      return { ...l, conditionResponses, slotFiles, slotInputs };
+    }));
   };
 
   // ───────── Bulk dropzone ─────────
@@ -364,27 +420,23 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     const arr = Array.from(files);
     if (!arr.length) return;
     let routed = 0, unsorted = 0;
-    let createdLineIds: string[] = [];
+    const createdLineIds: string[] = [];
 
     setLines(prev => {
       let next = [...prev];
       const ensureLineForCode = (code: DocTypeCode): ExpenseLineV2 | null => {
-        // Find an existing line whose policy contains this docTypeCode and slot is empty
         for (const ln of next) {
           if (!ln.subExpenseTypeId) continue;
-          const policy = getDocPolicyForSubType(ln.subExpenseTypeId);
-          const row = policy.find(r => r.docTypeCode === code);
-          if (row && !ln.docs[slotKey(row.docTypeCode, row.alternativeGroupId)]) return ln;
+          const slotId = findSlotIdForCode(ln.subExpenseTypeId, code);
+          if (slotId && !ln.slotFiles[slotId]) return ln;
         }
-        // Create a new draft line whose default sub-type plausibly contains this code
         const guessSubType =
           code === "E_TICKET" || code === "BOARDING_PASS" ? "lt-air-dom" :
           code === "HOTEL_FOLIO" ? "lt-hotel-dom" :
           code === "FUEL_RECEIPT" ? "lt-car" :
           code === "TAX_INVOICE" ? "lt-air-dom" :
           code === "TRAVEL_APPROVAL" ? "lt-air-dom" :
-          code === "CLAIM_FORM" ? "lt-meal" :
-          code === "MEMO" ? "lt-taxi" :
+          code === "CLAIM_FORM" ? "lt-taxi" :
           "lt-taxi";
         const fresh = createEmptyLineV2();
         fresh.subExpenseTypeId = guessSubType;
@@ -397,20 +449,15 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
 
       for (const file of arr) {
         const guess = classifyFile(file.name);
-        if (guess.confidence < 80) {
-          unsorted += 1;
-          continue;
-        }
+        if (guess.confidence < 80) { unsorted += 1; continue; }
         const ln = ensureLineForCode(guess.code);
         if (!ln) { unsorted += 1; continue; }
-        const policy = getDocPolicyForSubType(ln.subExpenseTypeId);
-        const row = policy.find(r => r.docTypeCode === guess.code);
-        if (!row) { unsorted += 1; continue; }
+        const slotId = findSlotIdForCode(ln.subExpenseTypeId, guess.code);
+        if (!slotId) { unsorted += 1; continue; }
         const sm = mockSummary(guess.code);
-        const key = slotKey(row.docTypeCode, row.alternativeGroupId);
         next = next.map(x => x.id === ln.id ? {
           ...x,
-          docs: { ...x.docs, [key]: {
+          slotFiles: { ...x.slotFiles, [slotId]: {
             fileName: file.name, fileSize: file.size,
             ocrConfidence: guess.confidence, extractedSummary: sm.summary,
             uploadedAt: Date.now(),
@@ -427,7 +474,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     });
 
     if (unsorted > 0) {
-      // Push unsorted into tray (separate state — done after lines update)
       const tray: UnsortedFile[] = [];
       for (const file of arr) {
         const guess = classifyFile(file.name);
@@ -451,34 +497,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
 
   const onPickFiles = () => fileInputRef.current?.click();
 
-  // ───────── Slot-level helpers ─────────
-  const attachToSlot = (lineId: string, code: DocTypeCode, altGroupId: string | undefined, file: File) => {
-    const sm = mockSummary(code);
-    const key = slotKey(code, altGroupId);
-    setLines(prev => prev.map(l => l.id !== lineId ? l : ({
-      ...l,
-      docs: { ...l.docs, [key]: {
-        fileName: file.name, fileSize: file.size,
-        ocrConfidence: 92, extractedSummary: sm.summary, uploadedAt: Date.now(),
-      }},
-      vendor: l.vendor || sm.vendor || "",
-      amount: l.amount || sm.amount || "",
-      vatAmount: l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)),
-      whtAmount: l.whtEdited ? l.whtAmount : String(deriveWht(l.amount || sm.amount || "", l.vatEdited ? l.vatAmount : String(deriveVat(l.amount || sm.amount || "", l.vatCode)), l.whtCode)),
-      receiptDate: l.receiptDate || sm.date || "",
-    })));
-  };
-
-  const removeFromSlot = (lineId: string, code: DocTypeCode, altGroupId: string | undefined) => {
-    const key = slotKey(code, altGroupId);
-    setLines(prev => prev.map(l => {
-      if (l.id !== lineId) return l;
-      const docs = { ...l.docs };
-      delete docs[key];
-      return { ...l, docs };
-    }));
-  };
-
   const dropUnsortedOnLine = (unsortedId: string, lineId: string) => {
     const item = needsSorting.find(u => u.id === unsortedId);
     if (!item) return;
@@ -487,15 +505,14 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
       toast({ title: "Pick a sub-type for this line first", variant: "destructive" });
       return;
     }
-    const policy = getDocPolicyForSubType(ln.subExpenseTypeId);
-    const row = policy.find(r => r.docTypeCode === item.guess.code);
-    if (!row) {
+    const slotId = findSlotIdForCode(ln.subExpenseTypeId, item.guess.code);
+    if (!slotId) {
       toast({ title: `${DOC_TYPE_LABEL[item.guess.code]} not allowed for this sub-type`, variant: "destructive" });
       return;
     }
     setLines(prev => prev.map(l => l.id !== lineId ? l : ({
       ...l,
-      docs: { ...l.docs, [slotKey(row.docTypeCode, row.alternativeGroupId)]: {
+      slotFiles: { ...l.slotFiles, [slotId]: {
         fileName: item.fileName, fileSize: item.fileSize,
         ocrConfidence: item.guess.confidence, extractedSummary: item.summary,
         uploadedAt: Date.now(),
@@ -507,46 +524,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
 
   // ───────── Render: Bulk dropzone ─────────
   const [dragOver, setDragOver] = useState(false);
-  const Dropzone = (
-    <div
-      onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-      onDragLeave={() => setDragOver(false)}
-      onDrop={(e) => {
-        e.preventDefault(); setDragOver(false);
-        if (e.dataTransfer.files?.length) handleDropFiles(e.dataTransfer.files);
-      }}
-      className={cn(
-        "border-2 border-dashed rounded-xl px-4 py-4 flex flex-col sm:flex-row sm:items-center gap-3 transition-colors",
-        dragOver ? "border-primary bg-primary/5" : "border-border bg-muted/20",
-      )}
-    >
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-          <Sparkles className="h-4 w-4 text-primary" />
-          Drop receipts and supporting docs — auto-classified to the right line and slot
-        </p>
-        <p className="text-[11px] text-muted-foreground mt-0.5">
-          JPG, PNG, PDF · max 10 MB each · OCR runs in parallel
-        </p>
-      </div>
-      <div className="flex gap-2 shrink-0">
-        <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs h-8" disabled={readOnly}>
-          <Camera className="h-3.5 w-3.5" /> Camera
-        </Button>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5 text-xs h-8" onClick={onPickFiles} disabled={readOnly}>
-          <Upload className="h-3.5 w-3.5" /> Upload files
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          accept=".jpg,.jpeg,.png,.pdf"
-          className="hidden"
-          onChange={(e) => { if (e.target.files) handleDropFiles(e.target.files); e.target.value = ""; }}
-        />
-      </div>
-    </div>
-  );
+  // (Bulk dropzone retained for parity; rendered by parent layout if desired.)
 
   // ───────── Render: Needs sorting tray ─────────
   const NeedsSortingTray = needsSorting.length > 0 && (
@@ -584,7 +562,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     const amt = parseFloat(line.amount) || 0;
     let pillTone: "approved" | "alert" | "rejected" = "rejected";
     if (ev.requiredFilled === ev.requiredTotal && ev.requiredTotal > 0 && ev.fieldsOk && ev.ocrOk) pillTone = "approved";
-    else if (ev.requiredFilled > 0 || Object.keys(line.docs).length > 0) pillTone = "alert";
+    else if (ev.requiredFilled > 0 || Object.keys(line.slotFiles).length > 0) pillTone = "alert";
 
     return (
       <div
@@ -639,166 +617,364 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   };
 
   // ───────── Render: Slot ─────────
-  const renderSlot = (
-    line: ExpenseLineV2,
-    slot: ReturnType<typeof groupSlots>[number],
-  ) => {
-    const isOptional =
-      slot.kind === "single" && slot.row.requirement === "OPTIONAL";
-
-    if (slot.kind === "single") {
-      const r = slot.row;
-      // Structured-text slot (MILEAGE_TEXT)
-      if (r.kind === "STRUCTURED_TEXT") {
-        const v = line.structured[r.docTypeCode] ?? {};
-        return (
-          <div key={slotKey(r.docTypeCode)} className={cn(
-            "rounded-lg p-3 border",
-            isOptional ? "border-dashed border-border bg-muted/20" : "border-primary/30 bg-primary/[0.02]",
-          )}>
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-semibold text-foreground">{DOC_TYPE_LABEL[r.docTypeCode]}</span>
-              <Badge variant={isOptional ? "outline" : "rejected"} className="text-[9px] px-1.5 py-0 ml-auto">
-                {isOptional ? "Optional" : "Required"}
-              </Badge>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {[["from","From"],["to","To"],["distance","Distance (km)"]].map(([k,l]) => (
-                <div key={k} className="space-y-1">
-                  <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">{l}</Label>
-                  <Input
-                    className="h-8 text-xs"
-                    value={v[k] ?? ""}
-                    onChange={(e) => {
-                      const nv = { ...v, [k]: e.target.value };
-                      setLines(prev => prev.map(x => x.id === line.id ? { ...x, structured: { ...x.structured, [r.docTypeCode]: nv }} : x));
-                    }}
-                    disabled={readOnly}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      }
-      // FILE single slot
-      const key = slotKey(r.docTypeCode);
-      const doc = line.docs[key];
-      return renderFileSlot(line, [r], r.requirement === "REQUIRED", DOC_TYPE_LABEL[r.docTypeCode], doc, undefined);
-    }
-
-    // ALTERNATIVE group → tabs
-    return renderAltGroup(line, slot.groupId, slot.rows);
+  const capHint = (slot: DocSlot): string | null => {
+    if (!slot.cap) return null;
+    if (slot.cap.max_amount != null) return `Maximum ${slot.cap.max_amount.toLocaleString()} ${slot.cap.currency ?? ""}`.trim();
+    if (slot.cap.max_days != null && slot.cap.max_hours != null) return `Maximum ${slot.cap.max_days} days / ${slot.cap.max_hours} hours`;
+    return null;
   };
 
-  const renderFileSlot = (
-    line: ExpenseLineV2,
-    rows: DocPolicyRow[],   // 1 or more (alt group)
-    required: boolean,
-    label: string,
-    doc: AttachedDoc | undefined,
-    altGroupId: string | undefined,
-  ) => {
-    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0];
-      if (!f) return;
-      const code = rows[0].docTypeCode;
-      attachToSlot(line.id, code, altGroupId, f);
-      e.target.value = "";
-    };
-
+  const SlotShell = ({
+    slot, line, badgeText, tone, children,
+  }: {
+    slot: DocSlot;
+    line: ExpenseLineV2;
+    badgeText: string;
+    tone: "required" | "optional" | "filled";
+    children: React.ReactNode;
+  }) => {
+    const filled = isSlotFilled(line, slot);
+    const isRequired = tone === "required";
     return (
       <div className={cn(
-        "rounded-lg p-3 border transition-colors",
-        doc
-          ? "border-status-approved/40 bg-status-approved/5"
-          : required
-            ? "border-dashed border-status-hold/40 bg-status-hold/5"
-            : "border-dashed border-border bg-muted/20",
+        "rounded-lg p-3 border-l-[3px] border border-l-[3px] transition-colors",
+        filled
+          ? "border-status-approved/40 border-l-status-approved bg-status-approved/5"
+          : isRequired
+            ? "border-destructive/40 border-l-destructive bg-destructive/5"
+            : "border-dashed border-border border-l-border bg-muted/20",
       )}>
-        <div className="flex items-center gap-2 mb-2">
-          <FileText className={cn("h-3.5 w-3.5", doc ? "text-status-approved" : "text-muted-foreground")} />
-          <span className="text-xs font-semibold text-foreground">{label}</span>
-          <Badge variant={required ? "rejected" : "outline"} className="text-[9px] px-1.5 py-0 ml-auto">
-            {required ? "Required" : "Optional"}
-          </Badge>
-        </div>
-
-        {doc ? (
-          <div className="flex items-center gap-2 text-xs">
-            <div className="h-9 w-9 rounded bg-status-approved/15 flex items-center justify-center shrink-0">
-              <CheckCircle className="h-4 w-4 text-status-approved" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-foreground truncate">{doc.fileName}</p>
-              <p className="text-[10px] text-muted-foreground truncate">{doc.extractedSummary}</p>
-            </div>
-            <Badge variant={doc.ocrConfidence >= 75 ? "approved" : "alert"} className="text-[9px] px-1.5 py-0 shrink-0">
-              {doc.ocrConfidence}%
-            </Badge>
-            {!readOnly && (
-              <>
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="View"><Eye className="h-3.5 w-3.5" /></Button>
-                <label className="cursor-pointer">
-                  <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="Replace" asChild>
-                    <span><Replace className="h-3.5 w-3.5" /></span>
-                  </Button>
-                  <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={onPick} />
-                </label>
-                <Button
-                  type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
-                  onClick={() => removeFromSlot(line.id, rows[0].docTypeCode, altGroupId)} title="Remove"
-                ><Trash2 className="h-3.5 w-3.5" /></Button>
-              </>
+        <div className="flex items-start gap-2 mb-2">
+          <FileText className={cn("h-3.5 w-3.5 mt-0.5", filled ? "text-status-approved" : isRequired ? "text-destructive" : "text-muted-foreground")} />
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-semibold text-foreground leading-tight">{slot.label_en}</div>
+            <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{slot.label_th}</div>
+            {slot.hint_en && (
+              <p className="text-[10px] text-muted-foreground mt-1 italic">{slot.hint_en}</p>
             )}
           </div>
-        ) : (
-          <label className={cn("flex items-center justify-between gap-2 cursor-pointer", readOnly && "pointer-events-none opacity-60")}>
-            <span className="text-[11px] text-muted-foreground">
-              <Plus className="h-3.5 w-3.5 inline -mt-0.5 mr-1" />
-              {required ? "Required — drop file or click upload" : "Add if available"}
-            </span>
-            <span className="inline-flex">
-              <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1 pointer-events-none">
-                <Upload className="h-3 w-3" /> Upload
-              </Button>
-            </span>
-            <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={onPick} />
-          </label>
+          <Badge
+            variant={isRequired ? "rejected" : "outline"}
+            className="text-[9px] px-1.5 py-0 shrink-0"
+          >
+            {badgeText}
+          </Badge>
+        </div>
+        {children}
+        {capHint(slot) && (
+          <p className="text-[10px] font-semibold text-destructive mt-1.5">{capHint(slot)}</p>
         )}
       </div>
     );
   };
 
-  const renderAltGroup = (line: ExpenseLineV2, groupId: string, rows: DocPolicyRow[]) => (
-    <AltGroup
-      key={`alt-${groupId}`}
-      line={line}
-      groupId={groupId}
-      rows={rows}
-      renderFileSlot={renderFileSlot}
-    />
+  const FileUploadRow = ({
+    line, slot, doc, onPick, requiredText,
+  }: {
+    line: ExpenseLineV2;
+    slot: DocSlot;
+    doc: AttachedDoc | undefined;
+    onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    requiredText: string;
+  }) => (
+    doc ? (
+      <div className="flex items-center gap-2 text-xs">
+        <div className="h-9 w-9 rounded bg-status-approved/15 flex items-center justify-center shrink-0">
+          <CheckCircle className="h-4 w-4 text-status-approved" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-medium text-foreground truncate">{doc.fileName}</p>
+          <p className="text-[10px] text-muted-foreground truncate">{doc.extractedSummary}</p>
+          {doc.ocrValidationFailed && slot.ocr_validation === "must_show_license_plate" && (
+            <p className="text-[10px] text-status-alert mt-0.5 flex items-center gap-1">
+              <AlertTriangle className="h-3 w-3" /> Could not detect license plate — please ensure it's visible
+            </p>
+          )}
+        </div>
+        <Badge variant={doc.ocrConfidence >= 75 ? "approved" : "alert"} className="text-[9px] px-1.5 py-0 shrink-0">
+          {doc.ocrConfidence}%
+        </Badge>
+        {!readOnly && (
+          <>
+            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="View"><Eye className="h-3.5 w-3.5" /></Button>
+            <label className="cursor-pointer">
+              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="Replace" asChild>
+                <span><Replace className="h-3.5 w-3.5" /></span>
+              </Button>
+              <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={onPick} />
+            </label>
+            <Button
+              type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
+              onClick={() => removeFromSlot(line.id, slot.id)} title="Remove"
+            ><Trash2 className="h-3.5 w-3.5" /></Button>
+          </>
+        )}
+      </div>
+    ) : (
+      <label className={cn("flex items-center justify-between gap-2 cursor-pointer", readOnly && "pointer-events-none opacity-60")}>
+        <span className="text-[11px] text-muted-foreground">
+          <Plus className="h-3.5 w-3.5 inline -mt-0.5 mr-1" />
+          {requiredText}
+        </span>
+        <span className="inline-flex">
+          <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1 pointer-events-none">
+            <Upload className="h-3 w-3" /> Upload
+          </Button>
+        </span>
+        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={onPick} />
+      </label>
+    )
   );
+
+  const renderSlotInput = (line: ExpenseLineV2, slot: DocSlot) => {
+    const value = line.slotInputs[slot.id];
+    if (slot.input_type === "free_text") {
+      return (
+        <Textarea
+          rows={2}
+          className="text-sm resize-none"
+          placeholder="Type your answer…"
+          value={(value as string) ?? ""}
+          onChange={(e) => setSlotInput(line.id, slot.id, e.target.value)}
+          disabled={readOnly}
+        />
+      );
+    }
+    if (slot.input_type === "number") {
+      return (
+        <Input
+          type="number"
+          className="h-9 text-sm tabular-nums"
+          placeholder="0"
+          value={(value as string) ?? ""}
+          onChange={(e) => setSlotInput(line.id, slot.id, e.target.value)}
+          disabled={readOnly}
+        />
+      );
+    }
+    if (slot.input_type === "select") {
+      return (
+        <Select
+          value={(value as string) ?? ""}
+          onValueChange={(v) => setSlotInput(line.id, slot.id, v)}
+          disabled={readOnly}
+        >
+          <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="Select…" /></SelectTrigger>
+          <SelectContent>
+            {(slot.options_select ?? []).map(opt => (
+              <SelectItem key={opt} value={opt}>{opt}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      );
+    }
+    if (slot.input_type === "structured_form") {
+      const v = (value as Record<string, string>) ?? {};
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          {(slot.structured_fields ?? []).map(f => (
+            <div key={f.id} className={cn("space-y-1", f.input_type === "free_text" && "sm:col-span-3", f.input_type === "list" && "sm:col-span-3")}>
+              <Label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                {f.label_en} <span className="text-muted-foreground/70 normal-case">· {f.label_th}</span>
+              </Label>
+              {f.input_type === "list" ? (
+                <Textarea
+                  rows={2}
+                  className="text-sm resize-none"
+                  placeholder="One per line…"
+                  value={v[f.id] ?? ""}
+                  onChange={(e) => setSlotInput(line.id, slot.id, { ...v, [f.id]: e.target.value })}
+                  disabled={readOnly}
+                />
+              ) : f.input_type === "free_text" ? (
+                <Textarea
+                  rows={2}
+                  className="text-sm resize-none"
+                  value={v[f.id] ?? ""}
+                  onChange={(e) => setSlotInput(line.id, slot.id, { ...v, [f.id]: e.target.value })}
+                  disabled={readOnly}
+                />
+              ) : (
+                <Input
+                  type={f.input_type === "number" ? "number" : "text"}
+                  className="h-8 text-xs"
+                  value={v[f.id] ?? ""}
+                  onChange={(e) => setSlotInput(line.id, slot.id, { ...v, [f.id]: e.target.value })}
+                  disabled={readOnly}
+                />
+              )}
+            </div>
+          ))}
+        </div>
+      );
+    }
+    if (slot.input_type === "list") {
+      const arr = Array.isArray(value) ? value : [];
+      return (
+        <Textarea
+          rows={3}
+          className="text-sm resize-none"
+          placeholder="One per line…"
+          value={arr.join("\n")}
+          onChange={(e) => setSlotInput(line.id, slot.id, e.target.value.split("\n"))}
+          disabled={readOnly}
+        />
+      );
+    }
+    return null;
+  };
+
+  const renderRequiredOneOf = (line: ExpenseLineV2, slot: DocSlot) => {
+    const doc = line.slotFiles[slot.id];
+    const initialIdx = (() => {
+      if (!doc?.selectedOptionId) return 0;
+      const i = (slot.options ?? []).findIndex(o => o.id === doc.selectedOptionId);
+      return i >= 0 ? i : 0;
+    })();
+    return (
+      <OneOfBlock
+        key={slot.id}
+        line={line}
+        slot={slot}
+        doc={doc}
+        initialIdx={initialIdx}
+        readOnly={readOnly}
+        attachToSlot={attachToSlot}
+        FileUploadRow={FileUploadRow}
+      />
+    );
+  };
+
+  const renderConditionalSlot = (line: ExpenseLineV2, slot: DocSlot) => {
+    const answered = slot.id in line.conditionResponses;
+    const yes = line.conditionResponses[slot.id] === true;
+
+    if (!answered) {
+      return (
+        <div key={slot.id} className="rounded-lg p-3 border border-border bg-muted/20">
+          <div className="flex items-start gap-2">
+            <FileText className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+            <div className="flex-1 min-w-0">
+              <div className="text-xs font-semibold text-foreground leading-tight">{slot.label_en}</div>
+              <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{slot.label_th}</div>
+              <p className="text-[11px] text-muted-foreground mt-1.5">
+                {slot.hint_en ?? "Does this apply to your claim?"}
+              </p>
+              <div className="flex gap-2 mt-2">
+                <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+                  onClick={() => setConditionResponse(line.id, slot.id, true)} disabled={readOnly}>
+                  Yes
+                </Button>
+                <Button type="button" variant="ghost" size="sm" className="h-7 text-xs"
+                  onClick={() => setConditionResponse(line.id, slot.id, false)} disabled={readOnly}>
+                  No
+                </Button>
+              </div>
+            </div>
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 shrink-0">
+              {slot.type === "conditional_required" ? "Conditional · required if Yes" : "Conditional · optional if Yes"}
+            </Badge>
+          </div>
+        </div>
+      );
+    }
+
+    if (!yes) {
+      return (
+        <div key={slot.id} className="rounded-lg px-3 py-2 border border-dashed border-border bg-muted/10 flex items-center gap-2">
+          <CheckCircle className="h-3.5 w-3.5 text-muted-foreground" />
+          <span className="text-[11px] text-muted-foreground flex-1 truncate">
+            {slot.label_en} — not applicable
+          </span>
+          <button
+            type="button"
+            className="text-[10px] text-primary hover:underline"
+            onClick={() => setConditionResponse(line.id, slot.id, true)}
+            disabled={readOnly}
+          >
+            Change to Yes
+          </button>
+        </div>
+      );
+    }
+
+    // Answered Yes → render as required (or optional if conditional_optional)
+    const tone: "required" | "optional" = slot.type === "conditional_required" ? "required" : "optional";
+    const badge = tone === "required" ? "Required" : "Optional";
+    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const f = e.target.files?.[0]; if (!f) return;
+      attachToSlot(line.id, slot.id, f);
+      e.target.value = "";
+    };
+    return (
+      <div key={slot.id} className="space-y-1.5">
+        <SlotShell slot={slot} line={line} badgeText={badge} tone={tone}>
+          {slot.input_type && slot.input_type !== "file"
+            ? renderSlotInput(line, slot)
+            : <FileUploadRow
+                line={line}
+                slot={slot}
+                doc={line.slotFiles[slot.id]}
+                onPick={onPick}
+                requiredText={tone === "required" ? "Required — drop file or click upload" : "Optional — drop file or click upload"}
+              />}
+        </SlotShell>
+        <button
+          type="button"
+          className="text-[10px] text-muted-foreground hover:text-foreground hover:underline ml-1"
+          onClick={() => setConditionResponse(line.id, slot.id, false)}
+          disabled={readOnly}
+        >
+          Mark as not applicable
+        </button>
+      </div>
+    );
+  };
+
+  const renderSlot = (line: ExpenseLineV2, slot: DocSlot) => {
+    if (slot.type === "conditional_required" || slot.type === "conditional_optional") {
+      return renderConditionalSlot(line, slot);
+    }
+    if (slot.type === "required_one_of") {
+      return renderRequiredOneOf(line, slot);
+    }
+    const tone: "required" | "optional" = slot.type === "required" ? "required" : "optional";
+    const badge = tone === "required" ? "Required" : "Optional";
+    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const f = e.target.files?.[0]; if (!f) return;
+      attachToSlot(line.id, slot.id, f);
+      e.target.value = "";
+    };
+    return (
+      <SlotShell key={slot.id} slot={slot} line={line} badgeText={badge} tone={tone}>
+        {slot.input_type && slot.input_type !== "file"
+          ? renderSlotInput(line, slot)
+          : <FileUploadRow
+              line={line}
+              slot={slot}
+              doc={line.slotFiles[slot.id]}
+              onPick={onPick}
+              requiredText={tone === "required" ? "Required — drop file or click upload" : "Optional — drop file or click upload"}
+            />}
+      </SlotShell>
+    );
+  };
 
   // ───────── Render: Editor pane for selected line ─────────
   const renderEditor = (line: ExpenseLineV2) => {
-    const policy = getDocPolicyForSubType(line.subExpenseTypeId);
-    const amt = parseFloat(line.amount) || 0;
-    const active = activePolicy(policy, amt);
-    const slots = groupSlots(active);
+    const slots = getDocRequirementsForSubType(line.subExpenseTypeId);
     const requiredSlots = slots.filter(s =>
-      s.kind === "single" ? s.row.requirement === "REQUIRED" : true
+      s.type === "required" || s.type === "required_one_of" || s.type === "conditional_required"
     );
     const optionalSlots = slots.filter(s =>
-      s.kind === "single" && s.row.requirement === "OPTIONAL"
+      s.type === "optional" || s.type === "conditional_optional"
     );
     const idx = lines.findIndex(l => l.id === line.id);
     const selectedSubType = expenseTypes.find(e => e.id === line.subExpenseTypeId);
+    const amt = parseFloat(line.amount) || 0;
     const isLargeLine = amt > LARGE_LINE_THRESHOLD;
     const isOverHardStop = selectedSubType && amt > selectedSubType.hardStopThreshold;
 
-    // Initial picker if no sub-type — tile-based picker
     if (!line.subExpenseTypeId || changingSubType) {
       return (
         <SubTypeTilePicker
@@ -808,9 +984,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
           onPick={(subTypeId) => {
             setLineSubType(line.id, subTypeId);
             setChangingSubType(false);
-            setPendingCategoryByLine(prev => {
-              const next = { ...prev }; delete next[line.id]; return next;
-            });
           }}
         />
       );
@@ -826,10 +999,14 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
             </p>
             <p className="text-[11px] text-muted-foreground">Sub-type sets doc requirements</p>
           </div>
+          <Button type="button" variant="outline" size="sm" className="h-7 text-xs"
+            onClick={() => setChangingSubType(true)} disabled={readOnly}>
+            Change sub-type
+          </Button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
-          {/* ZONE A — Required documents (moved to top: upload first, fields auto-fill) */}
+          {/* ZONE A — Required documents */}
           {requiredSlots.length > 0 && (
             <section>
               <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-2">
@@ -854,13 +1031,13 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
               We'll fill these from your receipt. Check and correct anything that looks off.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-3">
-              <Field label="Vendor" ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
+              <Field label="Vendor" ocr badgeIfDoc={Object.keys(line.slotFiles).length > 0}>
                 <Input className="h-9 text-sm" value={line.vendor} onChange={(e) => updateLine(line.id, { vendor: e.target.value })} disabled={readOnly} />
               </Field>
-              <Field label="Receipt Date" required ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
+              <Field label="Receipt Date" required ocr badgeIfDoc={Object.keys(line.slotFiles).length > 0}>
                 <Input type="date" className="h-9 text-sm" value={line.receiptDate} onChange={(e) => updateLine(line.id, { receiptDate: e.target.value })} disabled={readOnly} />
               </Field>
-              <Field label="Total Amount" required ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
+              <Field label="Total Amount" required ocr badgeIfDoc={Object.keys(line.slotFiles).length > 0}>
                 <Input
                   type="number"
                   placeholder="0.00"
@@ -1000,9 +1177,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
             </div>
           </section>
 
-          {/* Required documents already rendered above as Zone A */}
-
-
           {/* ZONE C — Optional documents */}
           {optionalSlots.length > 0 && (
             <section>
@@ -1040,7 +1214,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
   // ───────── Layout ─────────
   return (
     <div className="space-y-3">
-      
       {NeedsSortingTray}
 
       {/* Master-detail */}
@@ -1109,48 +1282,76 @@ function Field({
   );
 }
 
-function AltGroup({
-  line, groupId, rows, renderFileSlot,
+function OneOfBlock({
+  line, slot, doc, initialIdx, readOnly, attachToSlot, FileUploadRow,
 }: {
   line: ExpenseLineV2;
-  groupId: string;
-  rows: DocPolicyRow[];
-  renderFileSlot: (line: ExpenseLineV2, rows: DocPolicyRow[], required: boolean, label: string, doc: AttachedDoc | undefined, altGroupId: string | undefined) => JSX.Element;
+  slot: DocSlot;
+  doc: AttachedDoc | undefined;
+  initialIdx: number;
+  readOnly: boolean;
+  attachToSlot: (lineId: string, slotId: string, file: File, opts?: { selectedOptionId?: string }) => void;
+  FileUploadRow: React.FC<{
+    line: ExpenseLineV2; slot: DocSlot; doc: AttachedDoc | undefined;
+    onPick: (e: React.ChangeEvent<HTMLInputElement>) => void; requiredText: string;
+  }>;
 }) {
-  const filledIdx = rows.findIndex(r => !!line.docs[slotKey(r.docTypeCode, groupId)]);
-  const [activeIdx, setActiveIdx] = useState(filledIdx >= 0 ? filledIdx : 0);
-  const activeRow = rows[activeIdx];
-  const doc = line.docs[slotKey(activeRow.docTypeCode, groupId)];
-  const anyFilled = rows.some(r => !!line.docs[slotKey(r.docTypeCode, groupId)]);
+  const [activeIdx, setActiveIdx] = useState(initialIdx);
+  const opts = slot.options ?? [];
+  const activeOpt = opts[activeIdx];
+  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0]; if (!f) return;
+    attachToSlot(line.id, slot.id, f, { selectedOptionId: activeOpt?.id });
+    e.target.value = "";
+  };
+  const filled = !!doc;
 
   return (
     <div className={cn(
-      "rounded-lg p-3 border transition-colors",
-      anyFilled ? "border-status-approved/40 bg-status-approved/5" : "border-dashed border-status-hold/40 bg-status-hold/5",
+      "rounded-lg p-3 border-l-[3px] border transition-colors",
+      filled
+        ? "border-status-approved/40 border-l-status-approved bg-status-approved/5"
+        : "border-destructive/40 border-l-destructive bg-destructive/5",
     )}>
-      <div className="flex items-center gap-2 mb-2">
-        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-xs font-semibold text-foreground">
-          {rows.map(r => DOC_TYPE_LABEL[r.docTypeCode]).join(" or ")}
-        </span>
-        <Badge variant="rejected" className="text-[9px] px-1.5 py-0 ml-auto">Required (one of)</Badge>
+      <div className="flex items-start gap-2 mb-2">
+        <FileText className={cn("h-3.5 w-3.5 mt-0.5", filled ? "text-status-approved" : "text-destructive")} />
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-semibold text-foreground leading-tight">{slot.label_en}</div>
+          <div className="text-[10px] text-muted-foreground leading-tight mt-0.5">{slot.label_th}</div>
+        </div>
+        <Badge variant="rejected" className="text-[9px] px-1.5 py-0 shrink-0">Required (one of)</Badge>
       </div>
+
       <Tabs value={String(activeIdx)} className="mb-2">
         <TabsList className="h-7">
-          {rows.map((r, i) => (
+          {opts.map((o, i) => (
             <TabsTrigger
-              key={r.docTypeCode}
+              key={o.id}
               value={String(i)}
               className="h-6 text-[11px] px-2"
               onClick={() => setActiveIdx(i)}
             >
-              {DOC_TYPE_LABEL[r.docTypeCode]}
-              {!!line.docs[slotKey(r.docTypeCode, groupId)] && <CheckCircle className="h-3 w-3 ml-1 text-status-approved" />}
+              {o.label_en}
+              {doc?.selectedOptionId === o.id && <CheckCircle className="h-3 w-3 ml-1 text-status-approved" />}
             </TabsTrigger>
           ))}
         </TabsList>
       </Tabs>
-      {renderFileSlot(line, [activeRow], true, DOC_TYPE_LABEL[activeRow.docTypeCode], doc, groupId)}
+
+      {activeOpt && (
+        <div className="text-[10px] text-muted-foreground mb-2">
+          Uploading as: <span className="font-medium text-foreground">{activeOpt.label_th}</span>
+          {activeOpt.hint_en && <span className="ml-2 italic">· {activeOpt.hint_en}</span>}
+        </div>
+      )}
+
+      <FileUploadRow
+        line={line}
+        slot={slot}
+        doc={doc}
+        onPick={onPick}
+        requiredText="Required — drop file or click upload"
+      />
     </div>
   );
 }
