@@ -125,13 +125,27 @@ const regionalManagerNav: NavGroup[] = [
     label: "Operations",
     items: [
       { title: "Regional Claims", url: "/claims", icon: FileText },
-      { title: "Approvals", url: "/claims", icon: CheckSquare },
+      { title: "Approvals", url: "/approvals", icon: CheckSquare },
+    ],
+  },
+  {
+    label: "Control",
+    items: [
       { title: "Exceptions", url: "/alerts", icon: AlertTriangle },
       { title: "Store Trends", url: "/reports/benchmarking", icon: TrendingUp },
-      { title: "Advances", url: "/advances", icon: Wallet },
+      { title: "Advances Overview", url: "/advances", icon: Wallet },
     ],
   },
 ];
+
+/** Human-readable label for a region_id. */
+export const regionLabels: Record<string, string> = {
+  "r-bkk": "Bangkok Metro",
+  "r-east": "Eastern Thailand",
+  "r-north": "Northern Thailand",
+  "r-kh": "Cambodia",
+  "r-mm": "Myanmar",
+};
 
 const hoFinanceNav: NavGroup[] = [
   {
