@@ -11,6 +11,9 @@ import { Calendar } from "@/components/ui/calendar";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { MOCK_CLAIMS, STATUS_TABS, type ClaimStatus, type OcrStatus, type MockClaim } from "@/data/mockClaims";
+import { useAuth } from "@/contexts/AuthContext";
+import { applyScope, getDefaultScope, type Scope } from "@/lib/scope";
+import { stores } from "@/lib/mock-data";
 
 const STATUS_PILL: Record<ClaimStatus, string> = {
   "Draft": "bg-muted text-muted-foreground",
@@ -91,6 +94,7 @@ const PRESETS: { id: Exclude<DatePreset, "custom">; label: string }[] = [
 
 export default function ClaimsList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [expenseFilter, setExpenseFilter] = useState<string>("all");
@@ -99,7 +103,34 @@ export default function ClaimsList() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(initialMonth.from);
   const [dateTo, setDateTo] = useState<Date | undefined>(initialMonth.to);
 
-  const activePreset = useMemo(() => detectPreset(dateFrom, dateTo), [dateFrom, dateTo]);
+  // Role-aware scope toggle (currently only Store Manager has a toggle).
+  const isStoreManager = user?.role === "store_manager";
+  const [scopeMode, setScopeMode] = useState<"self" | "store">("store");
+
+  // Effective scope for filtering MOCK_CLAIMS.
+  const scope: Scope | null = useMemo(() => {
+    if (!user) return null;
+    if (isStoreManager) {
+      return scopeMode === "self"
+        ? { type: "self", user_id: user.user_id, store_id: user.store_id }
+        : { type: "store", store_id: user.store_id };
+    }
+    return getDefaultScope(user);
+  }, [user, isStoreManager, scopeMode]);
+
+  // Scope-filtered base list (everything else filters off this).
+  const scopedClaims = useMemo<MockClaim[]>(() => {
+    if (!user || !scope) return [];
+    return applyScope(MOCK_CLAIMS, scope, user);
+  }, [user, scope]);
+
+  const storeName = useMemo(() => {
+    if (!user?.store_id) return user?.scope?.label ?? "All stores";
+    return stores.find((s) => s.id === user.store_id)?.name ?? user.scope?.label ?? "Your store";
+  }, [user]);
+
+  // Hide Store column when scope is fixed to a single store.
+  const hideStoreColumn = scope?.type === "store" || scope?.type === "self";
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
@@ -107,15 +138,17 @@ export default function ClaimsList() {
     setDateTo(r.to);
   };
 
+  const activePreset = useMemo(() => detectPreset(dateFrom, dateTo), [dateFrom, dateTo]);
+
   // Tab counts based on full data set (independent of active tab)
   const tabCounts = useMemo(
-    () => STATUS_TABS.map(tab => (tab.label === "All" ? MOCK_CLAIMS.length : MOCK_CLAIMS.filter(c => c.status === tab.label).length)),
-    []
+    () => STATUS_TABS.map(tab => (tab.label === "All" ? scopedClaims.length : scopedClaims.filter(c => c.status === tab.label).length)),
+    [scopedClaims]
   );
 
   const filtered = useMemo<MockClaim[]>(() => {
     const tab = STATUS_TABS[activeTab];
-    return MOCK_CLAIMS.filter((c) => {
+    return scopedClaims.filter((c) => {
       if (tab.label !== "All" && c.status !== tab.label) return false;
       if (expenseFilter !== "all" && c.expense_type !== expenseFilter) return false;
       if (statusFilter !== "all" && c.status !== statusFilter) return false;
@@ -138,16 +171,63 @@ export default function ClaimsList() {
       }
       return true;
     });
-  }, [activeTab, expenseFilter, statusFilter, dateFrom, dateTo, search]);
+  }, [scopedClaims, activeTab, expenseFilter, statusFilter, dateFrom, dateTo, search]);
+
+  // Subtitle metrics — based on scoped claims (this month).
+  const monthStart = useMemo(() => {
+    const d = new Date(); d.setDate(1); d.setHours(0, 0, 0, 0); return d;
+  }, []);
+  const claimsThisMonth = scopedClaims.filter(
+    (c) => new Date(c.transaction_date) >= monthStart,
+  );
+  const submitterCount = new Set(claimsThisMonth.map((c) => c.submitted_by)).size;
+
+  const subtitle = isStoreManager
+    ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
+    : `${filtered.length} claims found`;
 
   return (
     <div className="space-y-4">
       <div className="page-header">
         <div>
           <h1 className="text-2xl font-bold text-foreground">Claims</h1>
-          <p className="text-sm text-muted-foreground">{filtered.length} claims found</p>
+          <p className="text-sm text-muted-foreground">{subtitle}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
+          {isStoreManager && (
+            <div
+              className="inline-flex rounded-full border border-border bg-card p-0.5"
+              role="group"
+              aria-label="Scope toggle"
+            >
+              <button
+                type="button"
+                onClick={() => setScopeMode("self")}
+                aria-pressed={scopeMode === "self"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "self"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My claims
+              </button>
+              <button
+                type="button"
+                onClick={() => setScopeMode("store")}
+                aria-pressed={scopeMode === "store"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "store"
+                    ? "bg-foreground text-background"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My store
+              </button>
+            </div>
+          )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
           <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
         </div>
@@ -265,8 +345,8 @@ export default function ClaimsList() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="section-label sticky left-0 bg-card z-10 min-w-[200px]">Claim #</TableHead>
-                <TableHead className="section-label">Store</TableHead>
-                <TableHead className="section-label hidden md:table-cell">Submitter</TableHead>
+                {!hideStoreColumn && <TableHead className="section-label">Store</TableHead>}
+                <TableHead className="section-label">Submitter</TableHead>
                 <TableHead className="section-label hidden lg:table-cell">Expense</TableHead>
                 <TableHead className="section-label text-right">Amount</TableHead>
                 <TableHead className="section-label">Status</TableHead>
@@ -278,7 +358,7 @@ export default function ClaimsList() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center text-sm text-muted-foreground py-12">
+                  <TableCell colSpan={hideStoreColumn ? 8 : 9} className="text-center text-sm text-muted-foreground py-12">
                     No claims match the current filters.
                   </TableCell>
                 </TableRow>
@@ -290,8 +370,8 @@ export default function ClaimsList() {
                     onClick={() => navigate(`/claims/${c.claim_no}`)}
                   >
                     <TableCell className="font-mono text-xs font-medium sticky left-0 bg-card z-10">{c.claim_no}</TableCell>
-                    <TableCell className="text-sm">{c.store_name}</TableCell>
-                    <TableCell className="text-sm hidden md:table-cell">{c.submitter_name}</TableCell>
+                    {!hideStoreColumn && <TableCell className="text-sm">{c.store_name}</TableCell>}
+                    <TableCell className="text-sm">{c.submitter_name}</TableCell>
                     <TableCell className="text-sm text-muted-foreground hidden lg:table-cell max-w-[220px] truncate" title={c.expense_type}>
                       {c.expense_type}
                     </TableCell>
