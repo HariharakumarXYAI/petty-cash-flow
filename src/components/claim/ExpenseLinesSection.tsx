@@ -1039,10 +1039,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     // Answered Yes → render as required (or optional if conditional_optional)
     const tone: "required" | "optional" = slot.type === "conditional_required" ? "required" : "optional";
     const badge = tone === "required" ? "Required" : "Optional";
-    const onPick = (e: ChangeEvent_R<HTMLInputElement>) => {
-      const f = e.target.files?.[0]; if (!f) return;
-      attachToSlot(line.id, slot.id, f);
-      e.target.value = "";
+    const onPick = (file: File) => {
+      attachToSlot(line.id, slot.id, file);
     };
     return (
       <div key={slot.id} className="space-y-1.5">
@@ -1078,10 +1076,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     }
     const tone: "required" | "optional" = slot.type === "required" ? "required" : "optional";
     const badge = tone === "required" ? "Required" : "Optional";
-    const onPick = (e: ChangeEvent_R<HTMLInputElement>) => {
-      const f = e.target.files?.[0]; if (!f) return;
-      attachToSlot(line.id, slot.id, f);
-      e.target.value = "";
+    const onPick = (file: File) => {
+      attachToSlot(line.id, slot.id, file);
     };
     return (
       <SlotShell key={slot.id} slot={slot} line={line} badgeText={badge} tone={tone}>
