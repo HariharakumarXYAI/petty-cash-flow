@@ -1,16 +1,16 @@
 import { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
-  ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck, Pencil,
-  Check as CheckIcon, Lightbulb, Clock, Ban, Calendar as CalendarIcon,
+  ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck,
+  Lightbulb, Clock, Ban, Calendar as CalendarIcon,
 } from "lucide-react";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RecipientDetailsCard, IssueReason } from "@/components/advance/RecipientDetailsCard";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Calendar } from "@/components/ui/calendar";
@@ -43,16 +43,16 @@ export default function NewAdvance() {
   const requester = {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
-    storeCode: "BKK-001",
+    store: "Makro Rama 4",
     position: "Store Manager",
     email: "somchai.p@cpaxtra.com",
     phone: "081-234-5678",
   };
 
-  // Recipient
-  const [recipientEdit, setRecipientEdit] = useState(false);
-  const [onBehalf, setOnBehalf] = useState(false);
-  const [onBehalfEmployee, setOnBehalfEmployee] = useState("");
+  // Recipient delegation (issue-on-behalf-of)
+  const [issueToEmployeeId, setIssueToEmployeeId] = useState<string | null>(null);
+  const [issueReason, setIssueReason] = useState<IssueReason | null>(null);
+  const [showRecipientErrors, setShowRecipientErrors] = useState(false);
 
   // Advance details
   const [purpose, setPurpose] = useState("");
