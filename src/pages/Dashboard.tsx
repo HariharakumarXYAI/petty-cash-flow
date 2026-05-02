@@ -25,6 +25,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { StoreManagerDashboard } from "@/components/dashboard/StoreManagerDashboard";
 import { StoreUserDashboard } from "@/components/dashboard/StoreUserDashboard";
+import { RegionalManagerDashboard } from "@/components/dashboard/RegionalManagerDashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -37,6 +38,9 @@ export default function Dashboard() {
   }
   if (user?.role === "store_manager") {
     return <StoreManagerDashboard />;
+  }
+  if (user?.role === "regional_manager") {
+    return <RegionalManagerDashboard />;
   }
 
   const filteredAlerts = (country === "all" ? alerts : alerts.filter(a => a.country === country))
