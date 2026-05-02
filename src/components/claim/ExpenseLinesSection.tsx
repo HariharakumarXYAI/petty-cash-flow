@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState, useEffect } from "react";
+import { useCallback, useMemo, useRef, useState, useEffect, type DragEvent as DragEvent_R, type ChangeEvent as ChangeEvent_R } from "react";
 import {
   Upload, Camera, Plus, Trash2, ArrowLeft, ArrowRight,
   CheckCircle, AlertTriangle, FileText, X, Inbox, Replace, Eye, Sparkles,
@@ -674,57 +674,195 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     line: ExpenseLineV2;
     slot: DocSlot;
     doc: AttachedDoc | undefined;
-    onPick: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onPick: (file: File) => void;
     requiredText: string;
-  }) => (
-    doc ? (
-      <div className="flex items-center gap-2 text-xs">
-        <div className="h-9 w-9 rounded bg-status-approved/15 flex items-center justify-center shrink-0">
-          <CheckCircle className="h-4 w-4 text-status-approved" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="font-medium text-foreground truncate">{doc.fileName}</p>
-          <p className="text-[10px] text-muted-foreground truncate">{doc.extractedSummary}</p>
-          {doc.ocrValidationFailed && slot.ocr_validation === "must_show_license_plate" && (
-            <p className="text-[10px] text-status-alert mt-0.5 flex items-center gap-1">
-              <AlertTriangle className="h-3 w-3" /> Could not detect license plate — please ensure it's visible
-            </p>
+  }) => {
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const errorTimer = useRef<number | null>(null);
+
+    const ACCEPTED_MIME = ["application/pdf", "image/jpeg", "image/png"];
+    const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+    // Disallow control chars and a small set of filesystem-unsafe chars
+    const SAFE_NAME = /^[^\x00-\x1F<>:"/\\|?*]+$/;
+
+    const showError = (msg: string) => {
+      setError(msg);
+      if (errorTimer.current) window.clearTimeout(errorTimer.current);
+      errorTimer.current = window.setTimeout(() => setError(null), 5000);
+    };
+
+    useEffect(() => () => {
+      if (errorTimer.current) window.clearTimeout(errorTimer.current);
+    }, []);
+
+    const validateAndAccept = (file: File | null | undefined) => {
+      if (!file) return;
+      if (!ACCEPTED_MIME.includes(file.type)) {
+        showError("Only PDF, JPG, and PNG files are accepted.");
+        return;
+      }
+      if (file.size === 0) {
+        showError("This file appears to be empty.");
+        return;
+      }
+      if (file.size > MAX_BYTES) {
+        showError("File is too large. Maximum size is 10 MB.");
+        return;
+      }
+      if (!SAFE_NAME.test(file.name)) {
+        showError("File name contains unsupported characters. Please rename and try again.");
+        return;
+      }
+      setError(null);
+      onPick(file);
+    };
+
+    const onInputChange = (e: ChangeEvent_R<HTMLInputElement>) => {
+      validateAndAccept(e.target.files?.[0]);
+      e.target.value = "";
+    };
+
+    const openPicker = () => {
+      if (readOnly) return;
+      inputRef.current?.click();
+    };
+
+    const onDragOver = (e: DragEvent_R) => {
+      if (readOnly) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
+      if (!isDragOver) setIsDragOver(true);
+    };
+    const onDragLeave = (e: DragEvent_R) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+    };
+    const onDrop = (e: DragEvent_R) => {
+      if (readOnly) return;
+      e.preventDefault();
+      e.stopPropagation();
+      setIsDragOver(false);
+      const file = e.dataTransfer?.files?.[0];
+      validateAndAccept(file);
+    };
+
+    const ariaDescId = `${slot.id}-${line.id}-help`;
+
+    if (doc) {
+      return (
+        <>
+          <div
+            className={cn(
+              "flex items-center gap-2 text-xs rounded-md p-2 transition-colors",
+              isDragOver
+                ? "border-2 border-primary bg-primary/5"
+                : "border border-status-approved/30 bg-card",
+              readOnly && "opacity-80",
+            )}
+            onDragOver={onDragOver}
+            onDragLeave={onDragLeave}
+            onDrop={onDrop}
+            aria-busy={isDragOver || undefined}
+          >
+            <div className="h-9 w-9 rounded bg-status-approved/15 flex items-center justify-center shrink-0">
+              <CheckCircle className="h-4 w-4 text-status-approved" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-foreground truncate">
+                {doc.fileName}
+                {typeof doc.fileSize === "number" && (
+                  <span className="text-muted-foreground font-normal"> · {(doc.fileSize / (1024 * 1024)).toFixed(1)} MB</span>
+                )}
+              </p>
+              <p className="text-[10px] text-muted-foreground truncate">{doc.extractedSummary}</p>
+              {doc.ocrValidationFailed && slot.ocr_validation === "must_show_license_plate" && (
+                <p className="text-[10px] text-status-alert mt-0.5 flex items-center gap-1">
+                  <AlertTriangle className="h-3 w-3" /> Could not detect license plate — please ensure it's visible
+                </p>
+              )}
+            </div>
+            <Badge variant={doc.ocrConfidence >= 75 ? "approved" : "alert"} className="text-[9px] px-1.5 py-0 shrink-0">
+              {doc.ocrConfidence}%
+            </Badge>
+            {!readOnly && (
+              <>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="View"><Eye className="h-3.5 w-3.5" /></Button>
+                <Button
+                  type="button" variant="outline" size="sm" className="h-7 text-xs gap-1"
+                  onClick={openPicker} title="Replace"
+                >
+                  <Replace className="h-3.5 w-3.5" /> Replace
+                </Button>
+                <Button
+                  type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                  onClick={() => removeFromSlot(line.id, slot.id)} title="Remove"
+                ><Trash2 className="h-3.5 w-3.5" /></Button>
+                <input
+                  ref={inputRef}
+                  type="file"
+                  className="hidden"
+                  accept="application/pdf,image/jpeg,image/png"
+                  onChange={onInputChange}
+                  aria-label={`Replace ${slot.label_en}`}
+                />
+              </>
+            )}
+          </div>
+          {error && (
+            <p className="text-[10px] text-destructive mt-1" aria-live="polite">{error}</p>
           )}
-        </div>
-        <Badge variant={doc.ocrConfidence >= 75 ? "approved" : "alert"} className="text-[9px] px-1.5 py-0 shrink-0">
-          {doc.ocrConfidence}%
-        </Badge>
-        {!readOnly && (
-          <>
-            <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="View"><Eye className="h-3.5 w-3.5" /></Button>
-            <label className="cursor-pointer">
-              <Button type="button" variant="ghost" size="icon" className="h-7 w-7" title="Replace" asChild>
-                <span><Replace className="h-3.5 w-3.5" /></span>
-              </Button>
-              <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={onPick} />
-            </label>
-            <Button
-              type="button" variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive"
-              onClick={() => removeFromSlot(line.id, slot.id)} title="Remove"
-            ><Trash2 className="h-3.5 w-3.5" /></Button>
-          </>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <label
+          className={cn(
+            "flex items-center justify-between gap-2 rounded-md border border-dashed p-2 transition-colors",
+            readOnly ? "pointer-events-none opacity-60 border-border" :
+              isDragOver
+                ? "border-solid border-primary bg-primary/5 cursor-copy"
+                : "border-border hover:border-foreground/40 cursor-pointer",
+          )}
+          onDragOver={onDragOver}
+          onDragLeave={onDragLeave}
+          onDrop={onDrop}
+          aria-label={`Upload ${slot.label_en}`}
+          aria-describedby={ariaDescId}
+          aria-busy={isDragOver || undefined}
+        >
+          <span className="text-[11px] text-muted-foreground flex-1 min-w-0">
+            <Plus className="h-3.5 w-3.5 inline -mt-0.5 mr-1" />
+            {isDragOver ? "Drop file here" : requiredText}
+            <span id={ariaDescId} className="block text-[10px] text-muted-foreground/80 mt-0.5">
+              PDF, JPG, PNG · max 10 MB
+            </span>
+          </span>
+          <span className="inline-flex">
+            <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1 pointer-events-none">
+              <Upload className="h-3 w-3" /> Upload
+            </Button>
+          </span>
+          <input
+            ref={inputRef}
+            type="file"
+            className="sr-only"
+            accept="application/pdf,image/jpeg,image/png"
+            onChange={onInputChange}
+            tabIndex={0}
+          />
+        </label>
+        {error && (
+          <p className="text-[10px] text-destructive mt-1" aria-live="polite">{error}</p>
         )}
-      </div>
-    ) : (
-      <label className={cn("flex items-center justify-between gap-2 cursor-pointer", readOnly && "pointer-events-none opacity-60")}>
-        <span className="text-[11px] text-muted-foreground">
-          <Plus className="h-3.5 w-3.5 inline -mt-0.5 mr-1" />
-          {requiredText}
-        </span>
-        <span className="inline-flex">
-          <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1 pointer-events-none">
-            <Upload className="h-3 w-3" /> Upload
-          </Button>
-        </span>
-        <input type="file" className="hidden" accept=".jpg,.jpeg,.png,.pdf" onChange={onPick} />
-      </label>
-    )
-  );
+      </>
+    );
+  };
 
   const renderSlotInput = (line: ExpenseLineV2, slot: DocSlot) => {
     const value = line.slotInputs[slot.id];
@@ -901,10 +1039,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     // Answered Yes → render as required (or optional if conditional_optional)
     const tone: "required" | "optional" = slot.type === "conditional_required" ? "required" : "optional";
     const badge = tone === "required" ? "Required" : "Optional";
-    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0]; if (!f) return;
-      attachToSlot(line.id, slot.id, f);
-      e.target.value = "";
+    const onPick = (file: File) => {
+      attachToSlot(line.id, slot.id, file);
     };
     return (
       <div key={slot.id} className="space-y-1.5">
@@ -940,10 +1076,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     }
     const tone: "required" | "optional" = slot.type === "required" ? "required" : "optional";
     const badge = tone === "required" ? "Required" : "Optional";
-    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const f = e.target.files?.[0]; if (!f) return;
-      attachToSlot(line.id, slot.id, f);
-      e.target.value = "";
+    const onPick = (file: File) => {
+      attachToSlot(line.id, slot.id, file);
     };
     return (
       <SlotShell key={slot.id} slot={slot} line={line} badgeText={badge} tone={tone}>
@@ -1293,16 +1427,14 @@ function OneOfBlock({
   attachToSlot: (lineId: string, slotId: string, file: File, opts?: { selectedOptionId?: string }) => void;
   FileUploadRow: React.FC<{
     line: ExpenseLineV2; slot: DocSlot; doc: AttachedDoc | undefined;
-    onPick: (e: React.ChangeEvent<HTMLInputElement>) => void; requiredText: string;
+    onPick: (file: File) => void; requiredText: string;
   }>;
 }) {
   const [activeIdx, setActiveIdx] = useState(initialIdx);
   const opts = slot.options ?? [];
   const activeOpt = opts[activeIdx];
-  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    attachToSlot(line.id, slot.id, f, { selectedOptionId: activeOpt?.id });
-    e.target.value = "";
+  const onPick = (file: File) => {
+    attachToSlot(line.id, slot.id, file, { selectedOptionId: activeOpt?.id });
   };
   const filled = !!doc;
 
