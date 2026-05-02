@@ -22,6 +22,7 @@ import {
   DocTypeCode,
 } from "@/lib/mock-data";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { SubTypeTilePicker } from "@/components/claim/SubTypeTilePicker";
 
 // ────────── Line model ──────────
 // Each "doc" represents a slot fill keyed by `${docTypeCode}|${altGroupId ?? ""}`
