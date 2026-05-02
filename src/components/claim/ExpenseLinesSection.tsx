@@ -50,7 +50,7 @@ export interface ExpenseLineV2 {
   vatCode: string;
   whtCode: string;
   paymentMode: string;
-  notes: string;
+  
   lineJustification: string;
   // doc slots: key = `${docTypeCode}|${altGroupId ?? ""}`
   docs: Record<string, AttachedDoc>;
@@ -73,7 +73,7 @@ export const createEmptyLineV2 = (): ExpenseLineV2 => ({
   vatCode: "",
   whtCode: "WHT00",
   paymentMode: "cash",
-  notes: "",
+  
   lineJustification: "",
   docs: {},
   structured: {},
@@ -354,7 +354,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
         whtCode: src.whtCode,
         paymentMode: src.paymentMode,
         currency: src.currency,
-        notes: src.notes,
       });
     });
     toast({ title: "Copied from previous line" });
@@ -991,11 +990,6 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
                   </SelectContent>
                 </Select>
               </Field>
-              <div className="sm:col-span-2">
-                <Field label="Notes">
-                  <Textarea rows={2} className="text-sm resize-none" value={line.notes} onChange={(e) => updateLine(line.id, { notes: e.target.value })} disabled={readOnly} />
-                </Field>
-              </div>
               {isLargeLine && (
                 <div className="sm:col-span-2">
                   <Field label="Large-line Justification" required>
