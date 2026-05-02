@@ -830,9 +830,30 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-5">
-          {/* ZONE A — Identity */}
+          {/* ZONE A — Required documents (moved to top: upload first, fields auto-fill) */}
+          {requiredSlots.length > 0 && (
+            <section>
+              <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-1 flex items-center gap-2">
+                A · Required Documents
+                <Badge variant="outline" className="text-[9px] px-1.5 py-0">{requiredSlots.length} slot(s)</Badge>
+              </h4>
+              <p className="text-xs text-muted-foreground mb-2.5">
+                Upload first — we'll fill the fields below from the receipt.
+              </p>
+              <div className="space-y-2.5">
+                {requiredSlots.map(s => renderSlot(line, s))}
+              </div>
+            </section>
+          )}
+
+          {/* ZONE B — Receipt details (auto-filled from OCR) */}
           <section>
-            
+            <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-1">
+              B · Receipt details
+            </h4>
+            <p className="text-xs text-muted-foreground mb-3">
+              We'll fill these from your receipt. Check and correct anything that looks off.
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-3">
               <Field label="Vendor" ocr badgeIfDoc={Object.keys(line.docs).length > 0}>
                 <Input className="h-9 text-sm" value={line.vendor} onChange={(e) => updateLine(line.id, { vendor: e.target.value })} disabled={readOnly} />
