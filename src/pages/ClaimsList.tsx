@@ -567,6 +567,7 @@ export default function ClaimsList() {
             <TableHeader>
               <TableRow className="hover:bg-transparent">
                 <TableHead className="section-label sticky left-0 bg-card z-10 min-w-[200px]">Claim #</TableHead>
+                {showCountryColumn && <TableHead className="section-label">Country</TableHead>}
                 {!hideStoreColumn && <TableHead className="section-label">Store</TableHead>}
                 {!hideSubmitterColumn && <TableHead className="section-label">Submitter</TableHead>}
                 <TableHead className="section-label hidden lg:table-cell">Expense</TableHead>
@@ -580,18 +581,21 @@ export default function ClaimsList() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9 - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
+                  <TableCell colSpan={9 + (showCountryColumn ? 1 : 0) - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
                     No claims match the current filters.
                   </TableCell>
                 </TableRow>
               ) : (
-                filtered.map((c) => (
+                filtered.map((c) => {
+                  const storeCountry = stores.find((s) => s.id === c.store_id)?.country;
+                  return (
                   <TableRow
                     key={c.claim_no}
                     className="cursor-pointer hover:bg-secondary/50"
                     onClick={() => navigate(`/claims/${c.claim_no}`)}
                   >
                     <TableCell className="font-mono text-xs font-medium sticky left-0 bg-card z-10">{c.claim_no}</TableCell>
+                    {showCountryColumn && <TableCell className="text-xs text-muted-foreground">{storeCountry ?? "—"}</TableCell>}
                     {!hideStoreColumn && <TableCell className="text-sm">{c.store_name}</TableCell>}
                     {!hideSubmitterColumn && <TableCell className="text-sm">{c.submitter_name}</TableCell>}
                     <TableCell className="text-sm text-muted-foreground hidden lg:table-cell max-w-[220px] truncate" title={c.expense_type}>
