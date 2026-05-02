@@ -1427,16 +1427,14 @@ function OneOfBlock({
   attachToSlot: (lineId: string, slotId: string, file: File, opts?: { selectedOptionId?: string }) => void;
   FileUploadRow: React.FC<{
     line: ExpenseLineV2; slot: DocSlot; doc: AttachedDoc | undefined;
-    onPick: (e: ChangeEvent_R<HTMLInputElement>) => void; requiredText: string;
+    onPick: (file: File) => void; requiredText: string;
   }>;
 }) {
   const [activeIdx, setActiveIdx] = useState(initialIdx);
   const opts = slot.options ?? [];
   const activeOpt = opts[activeIdx];
-  const onPick = (e: ChangeEvent_R<HTMLInputElement>) => {
-    const f = e.target.files?.[0]; if (!f) return;
-    attachToSlot(line.id, slot.id, f, { selectedOptionId: activeOpt?.id });
-    e.target.value = "";
+  const onPick = (file: File) => {
+    attachToSlot(line.id, slot.id, file, { selectedOptionId: activeOpt?.id });
   };
   const filled = !!doc;
 
