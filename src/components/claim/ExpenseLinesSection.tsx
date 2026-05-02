@@ -608,7 +608,18 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
           <span className="text-[10px] font-bold text-muted-foreground tabular-nums w-6 mt-0.5">#{idx + 1}</span>
           <div className="flex-1 min-w-0">
             <p className="text-xs font-semibold text-foreground truncate">
-              {line.subExpenseTypeId ? subTypeLabel(line.subExpenseTypeId) : <span className="text-muted-foreground italic font-normal">Pick sub-type</span>}
+              {line.subExpenseTypeId ? (
+                <>
+                  {subTypeLabel(line.subExpenseTypeId)}
+                  {getSubExpenseTypeById(line.subExpenseTypeId)?.th && (
+                    <span className="ml-1 text-[10px] font-normal text-muted-foreground">
+                      · {getSubExpenseTypeById(line.subExpenseTypeId)!.th}
+                    </span>
+                  )}
+                </>
+              ) : (
+                <span className="text-muted-foreground italic font-normal">Pick sub-type</span>
+              )}
             </p>
             <p className="text-[11px] text-muted-foreground truncate">
               {line.vendor || "—"} · {amt > 0 ? `${amt.toLocaleString()} ${line.currency}` : "—"}
