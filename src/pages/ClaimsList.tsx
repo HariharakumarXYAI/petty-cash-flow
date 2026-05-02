@@ -180,14 +180,40 @@ export default function ClaimsList() {
         </Select>
       </div>
 
-      {/* Row 2: Date range */}
+      {/* Row 2: Date range with preset chips */}
       <div className="flex items-center gap-2 flex-wrap">
         <span className="text-xs font-medium text-muted-foreground whitespace-nowrap">Transaction Date:</span>
+
+        {/* Preset chips */}
+        <div className="flex items-center gap-1 flex-wrap">
+          {PRESETS.map((p) => {
+            const active = activePreset === p.id;
+            return (
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => applyPreset(p.id)}
+                className={cn(
+                  "h-7 px-2.5 rounded-full border text-xs font-medium transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-card text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+                )}
+                aria-pressed={active}
+              >
+                {p.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <span className="mx-1 h-5 w-px bg-border hidden sm:inline-block" />
+
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("h-8 w-[150px] justify-start text-left text-xs font-normal", !dateFrom && "text-muted-foreground")}>
               <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "From date"}
+              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "—"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -199,18 +225,13 @@ export default function ClaimsList() {
           <PopoverTrigger asChild>
             <Button variant="outline" size="sm" className={cn("h-8 w-[150px] justify-start text-left text-xs font-normal", !dateTo && "text-muted-foreground")}>
               <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground" />
-              {dateTo ? format(dateTo, "dd/MM/yyyy") : "To date"}
+              {dateTo ? format(dateTo, "dd/MM/yyyy") : "—"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
-        {(dateFrom || dateTo) && (
-          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
-            Clear
-          </Button>
-        )}
       </div>
 
       {/* Row 3: Status pill tabs */}
