@@ -217,7 +217,8 @@ export const expenseTypes: ExpenseType[] = [
   // --- Local Travelling sub-types (drive per-line doc policy) ---
   { id: "lt-taxi",       category: "Local Travelling", subcategory: "Taxi / Grab",         countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 2000,  alertThreshold: 1500, hardStopThreshold: 3000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: false },
   { id: "lt-train",      category: "Local Travelling", subcategory: "Train / Inter-city",   countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 5000,  alertThreshold: 3500, hardStopThreshold: 8000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: false },
-  { id: "lt-car",        category: "Local Travelling", subcategory: "Personal Car / EV",    countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 8000,  alertThreshold: 5000, hardStopThreshold: 12000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-car",        category: "Local Travelling", subcategory: "Personal Car — Mileage", countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 8000,  alertThreshold: 5000, hardStopThreshold: 12000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
+  { id: "lt-ev",         category: "Local Travelling", subcategory: "EV Car — Mileage",     countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 8000,  alertThreshold: 5000, hardStopThreshold: 12000, advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: true  },
   { id: "lt-toll",       category: "Local Travelling", subcategory: "Toll Fees",            countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 1500,  alertThreshold: 1000, hardStopThreshold: 2500,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
   { id: "lt-airpark",    category: "Local Travelling", subcategory: "Airport Parking",      countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 2000,  alertThreshold: 1500, hardStopThreshold: 3500,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
   { id: "lt-otherpark",  category: "Local Travelling", subcategory: "Other Parking",        countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 1500,  alertThreshold: 1000, hardStopThreshold: 2500,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
@@ -228,6 +229,13 @@ export const expenseTypes: ExpenseType[] = [
   { id: "lt-perdiem",    category: "Local Travelling", subcategory: "Per Diem Domestic",    countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 2500,  alertThreshold: 2000, hardStopThreshold: 4000,  advanceAllowed: true,  reimbursementAllowed: true, auditSensitive: false },
   { id: "lt-postage",    category: "Local Travelling", subcategory: "Postage Courier",      countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 1500,  alertThreshold: 1000, hardStopThreshold: 3000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
   { id: "lt-night",      category: "Local Travelling", subcategory: "Night Shift Meal",     countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 500,   alertThreshold: 400,  hardStopThreshold: 800,   advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+
+  // --- Other sub-types (master list per Finance) ---
+  { id: "ot-funeral",   category: "Other", subcategory: "Funeral — Wreath",            countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 3000, alertThreshold: 2000, hardStopThreshold: 5000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "ot-license",   category: "Other", subcategory: "Government License / Permit", countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 5000, alertThreshold: 3000, hardStopThreshold: 8000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: true  },
+  { id: "ot-community", category: "Other", subcategory: "Community / Cultural",        countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 4000, alertThreshold: 3000, hardStopThreshold: 6000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "ot-wetwaste",  category: "Other", subcategory: "Wet Waste Disposal",          countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 3000, alertThreshold: 2000, hardStopThreshold: 5000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: false },
+  { id: "ot-damaged",   category: "Other", subcategory: "Damaged Claims — Customer",   countries: ["TH","KH","MM"], documentRequired: true, maxAmount: 5000, alertThreshold: 3000, hardStopThreshold: 8000,  advanceAllowed: false, reimbursementAllowed: true, auditSensitive: true  },
 ];
 
 // --- Sub-Expense-Type Document Policy ---
@@ -278,6 +286,10 @@ export const subExpenseTypeDocPolicy: DocPolicyRow[] = [
   { subExpenseTypeId: "lt-car",       docTypeCode: "FUEL_RECEIPT",    requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-fuel" },
   { subExpenseTypeId: "lt-car",       docTypeCode: "MILEAGE_TEXT",    requirement: "REQUIRED",    kind: "STRUCTURED_TEXT" },
 
+  // EV Car — Mileage
+  { subExpenseTypeId: "lt-ev",        docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "lt-ev",        docTypeCode: "MILEAGE_TEXT",    requirement: "REQUIRED",    kind: "STRUCTURED_TEXT" },
+
   // Toll Fees
   { subExpenseTypeId: "lt-toll",      docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
 
@@ -316,6 +328,13 @@ export const subExpenseTypeDocPolicy: DocPolicyRow[] = [
 
   // Night Shift Meal
   { subExpenseTypeId: "lt-night",     docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+
+  // Other (Finance master) — single Receipt requirement
+  { subExpenseTypeId: "ot-funeral",   docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-license",   docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-community", docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-wetwaste",  docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "ot-damaged",   docTypeCode: "RECEIPT", requirement: "REQUIRED", kind: "FILE", ocrTemplateId: "tpl-receipt" },
 ];
 
 export const getDocPolicyForSubType = (subExpenseTypeId: string): DocPolicyRow[] =>
