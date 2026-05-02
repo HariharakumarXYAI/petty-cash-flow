@@ -10,6 +10,7 @@ export const PAGE_ACCESS: Record<string, AppRole[]> = {
   "/advances":               ["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit"],
   "/advances/new":           ["store_user", "store_manager", "regional_manager", "ho_finance"],
   "/approvals":              ["store_manager", "regional_manager", "ho_finance"],
+  "/store-overview":         ["store_manager", "regional_manager", "ho_finance"],
   "/exceptions":             ["regional_manager", "ho_finance", "internal_audit"],
   "/store-trends":           ["regional_manager", "ho_finance", "internal_audit"],
   "/audit-trail":            ["internal_audit", "system_admin"],
