@@ -22,13 +22,23 @@ export interface UserScope {
   label: string;
 }
 
+export type CountryCode = "TH" | "KH" | "MM" | "LA";
+
 export interface AppUser {
   id: string;
+  /** Stable scope-service identifier (mirrors `id` for the prototype). */
+  user_id: string;
   email: string;
   displayName: string;
+  /** Full name used by scope service & route guards. */
+  full_name: string;
   initials: string;
   role: AppRole;
   scope: UserScope;
+  /** Scope-service fields — used by src/lib/scope.ts. */
+  store_id: string | null;
+  region_id: string | null;
+  country_code: CountryCode | null;
   approvalLimit: number | null; // null = no approval authority
   lastLogin: string;
   status: "active" | "suspended" | "pending";
