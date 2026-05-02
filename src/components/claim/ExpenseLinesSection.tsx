@@ -677,10 +677,10 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     onPick: (file: File) => void;
     requiredText: string;
   }) => {
-    const inputRef = React.useRef<HTMLInputElement>(null);
-    const [isDragOver, setIsDragOver] = React.useState(false);
-    const [error, setError] = React.useState<string | null>(null);
-    const errorTimer = React.useRef<number | null>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const [isDragOver, setIsDragOver] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const errorTimer = useRef<number | null>(null);
 
     const ACCEPTED_MIME = ["application/pdf", "image/jpeg", "image/png"];
     const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -693,7 +693,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
       errorTimer.current = window.setTimeout(() => setError(null), 5000);
     };
 
-    React.useEffect(() => () => {
+    useEffect(() => () => {
       if (errorTimer.current) window.clearTimeout(errorTimer.current);
     }, []);
 
@@ -719,7 +719,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
       onPick(file);
     };
 
-    const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onInputChange = (e: ChangeEvent_R<HTMLInputElement>) => {
       validateAndAccept(e.target.files?.[0]);
       e.target.value = "";
     };
@@ -729,19 +729,19 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
       inputRef.current?.click();
     };
 
-    const onDragOver = (e: React.DragEvent) => {
+    const onDragOver = (e: DragEvent_R) => {
       if (readOnly) return;
       e.preventDefault();
       e.stopPropagation();
       if (e.dataTransfer) e.dataTransfer.dropEffect = "copy";
       if (!isDragOver) setIsDragOver(true);
     };
-    const onDragLeave = (e: React.DragEvent) => {
+    const onDragLeave = (e: DragEvent_R) => {
       e.preventDefault();
       e.stopPropagation();
       setIsDragOver(false);
     };
-    const onDrop = (e: React.DragEvent) => {
+    const onDrop = (e: DragEvent_R) => {
       if (readOnly) return;
       e.preventDefault();
       e.stopPropagation();
@@ -1039,7 +1039,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     // Answered Yes → render as required (or optional if conditional_optional)
     const tone: "required" | "optional" = slot.type === "conditional_required" ? "required" : "optional";
     const badge = tone === "required" ? "Required" : "Optional";
-    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onPick = (e: ChangeEvent_R<HTMLInputElement>) => {
       const f = e.target.files?.[0]; if (!f) return;
       attachToSlot(line.id, slot.id, f);
       e.target.value = "";
@@ -1078,7 +1078,7 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
     }
     const tone: "required" | "optional" = slot.type === "required" ? "required" : "optional";
     const badge = tone === "required" ? "Required" : "Optional";
-    const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const onPick = (e: ChangeEvent_R<HTMLInputElement>) => {
       const f = e.target.files?.[0]; if (!f) return;
       attachToSlot(line.id, slot.id, f);
       e.target.value = "";
@@ -1431,13 +1431,13 @@ function OneOfBlock({
   attachToSlot: (lineId: string, slotId: string, file: File, opts?: { selectedOptionId?: string }) => void;
   FileUploadRow: React.FC<{
     line: ExpenseLineV2; slot: DocSlot; doc: AttachedDoc | undefined;
-    onPick: (e: React.ChangeEvent<HTMLInputElement>) => void; requiredText: string;
+    onPick: (e: ChangeEvent_R<HTMLInputElement>) => void; requiredText: string;
   }>;
 }) {
   const [activeIdx, setActiveIdx] = useState(initialIdx);
   const opts = slot.options ?? [];
   const activeOpt = opts[activeIdx];
-  const onPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onPick = (e: ChangeEvent_R<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
     attachToSlot(line.id, slot.id, f, { selectedOptionId: activeOpt?.id });
     e.target.value = "";
