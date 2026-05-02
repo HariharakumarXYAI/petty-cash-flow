@@ -360,6 +360,73 @@ export default function ClaimsList() {
               </button>
             </div>
           )}
+          {isHoFinance && (
+            <div
+              className="inline-flex items-center rounded-full border border-border bg-card p-0.5"
+              role="group"
+              aria-label="Scope toggle"
+            >
+              <button
+                type="button"
+                onClick={() => setScopeMode("self")}
+                aria-pressed={scopeMode === "self"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "self" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                My claims
+              </button>
+              <button
+                type="button"
+                onClick={() => setScopeMode("store")}
+                aria-pressed={scopeMode === "store"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "store" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                Specific store
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setScopeMode("region")}
+                    aria-pressed={scopeMode === "region"}
+                    className={cn(
+                      "h-7 pl-3 pr-2 rounded-full text-xs font-medium transition-colors inline-flex items-center gap-1",
+                      scopeMode === "region" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                    )}
+                  >
+                    {scopeMode === "region" && hoRegionId ? (regionLabels[hoRegionId] ?? "Region") : "Region"}
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 max-h-72 overflow-auto">
+                  <DropdownMenuItem onClick={() => { setScopeMode("region"); setHoRegionId(null); }}>
+                    <span className="text-xs">All regions</span>
+                  </DropdownMenuItem>
+                  {Object.entries(regionLabels).map(([id, label]) => (
+                    <DropdownMenuItem key={id} onClick={() => { setScopeMode("region"); setHoRegionId(id); }}>
+                      <span className="text-xs">{label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <button
+                type="button"
+                onClick={() => setScopeMode("all")}
+                aria-pressed={scopeMode === "all"}
+                className={cn(
+                  "h-7 px-3 rounded-full text-xs font-medium transition-colors",
+                  scopeMode === "all" ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                All
+              </button>
+            </div>
+          )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
           <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
         </div>
@@ -376,6 +443,29 @@ export default function ClaimsList() {
             className="pl-8 h-8 text-xs"
           />
         </div>
+        {isHoFinance && (
+          <>
+            <Select value={hoCountry} onValueChange={(v) => { setHoCountry(v); setHoStoreId("all"); }}>
+              <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue placeholder="All countries" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All countries</SelectItem>
+                {countries.map((c) => (
+                  <SelectItem key={c.code} value={c.code}>{c.flag} {c.name}</SelectItem>
+                ))}
+                <SelectItem value="LA">🇱🇦 Laos</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={hoStoreId} onValueChange={(v) => { setHoStoreId(v); if (v !== "all") setScopeMode("store"); }}>
+              <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue placeholder="All stores" /></SelectTrigger>
+              <SelectContent className="max-h-72">
+                <SelectItem value="all">All stores</SelectItem>
+                {hoStoreOptions.map((s) => (
+                  <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </>
+        )}
         <Select value={expenseFilter} onValueChange={setExpenseFilter}>
           <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue placeholder="All Expenses" /></SelectTrigger>
           <SelectContent>
