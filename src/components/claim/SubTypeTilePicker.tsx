@@ -13,9 +13,6 @@ import {
 const EMOJI_FONT_STACK =
   "'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif";
 
-// ── Mock "pinned for you" — top 4 sub-types this user used in last 30 days ──
-// Empty array = cold-start user; the section will be hidden.
-const PINNED_FOR_YOU_IDS: string[] = ["lt-taxi", "lt-meal", "lt-air-dom", "lt-hotel-dom"];
 
 // Highlight matched substring (case-insensitive) using <mark>
 function highlight(text: string, q: string) {
@@ -53,16 +50,6 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
 
   const isSearching = debounced.length > 0;
 
-  // Pinned tiles (filtered to ones that exist in the master list)
-  const pinned: SubExpenseTypeDef[] = useMemo(() => {
-    const out: SubExpenseTypeDef[] = [];
-    for (const id of PINNED_FOR_YOU_IDS) {
-      const def = SUB_EXPENSE_TYPES.find(s => s.id === id);
-      if (def) out.push(def);
-      if (out.length >= 4) break;
-    }
-    return out;
-  }, []);
 
   // Group master list by group (in spec order)
   const grouped = useMemo(() => {
@@ -98,7 +85,7 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
   }, [debounced, isSearching]);
 
   // ── Tile (used in default state) ──
-  const Tile = ({ s, pinned }: { s: SubExpenseTypeDef; pinned?: boolean }) => {
+  const Tile = ({ s }: { s: SubExpenseTypeDef }) => {
     return (
       <button
         type="button"
@@ -107,8 +94,7 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
           "group flex flex-col items-start text-left rounded-lg border border-border bg-card",
           "px-3.5 py-3 min-h-[92px] transition-colors",
           "hover:border-primary hover:bg-secondary/40",
-          "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/30",
-          pinned && "border-l-[3px] border-l-primary"
+          "focus:outline-none focus-visible:ring-[3px] focus-visible:ring-primary/30"
         )}
       >
         <span
@@ -211,36 +197,23 @@ export function SubTypeTilePicker({ onPick, onCancel, showCancel }: Props) {
         </div>
       )}
 
-      {/* DEFAULT STATE: Pinned + All expenses (groups always expanded) */}
+      {/* DEFAULT STATE: All expenses (groups always expanded) */}
       {!isSearching && (
-        <>
-          {pinned.length > 0 && (
-            <div className="space-y-2">
-              <p className="text-[11px] uppercase tracking-[0.04em] text-muted-foreground/80 font-semibold">
-                Pinned for you
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                {pinned.map(s => <Tile key={`pin-${s.id}`} s={s} pinned />)}
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-3">
-            <p className="text-[11px] uppercase tracking-[0.04em] text-muted-foreground/80 font-semibold">
-              All expenses · {totalCount} items
-            </p>
-            <div className="space-y-4">
-              {grouped.map(([group, items]) => (
-                <div key={group} className="space-y-2">
-                  <p className="text-[13px] font-medium text-muted-foreground">{group}</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                    {items.map(s => <Tile key={s.id} s={s} />)}
-                  </div>
+        <div className="space-y-3">
+          <p className="text-[11px] uppercase tracking-[0.04em] text-muted-foreground/80 font-semibold">
+            All expenses · {totalCount} items
+          </p>
+          <div className="space-y-4">
+            {grouped.map(([group, items]) => (
+              <div key={group} className="space-y-2">
+                <p className="text-[13px] font-medium text-muted-foreground">{group}</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {items.map(s => <Tile key={s.id} s={s} />)}
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </>
+        </div>
       )}
 
       {showCancel && onCancel && (
