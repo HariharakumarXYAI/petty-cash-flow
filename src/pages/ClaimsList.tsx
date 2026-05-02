@@ -91,8 +91,6 @@ const PRESETS: { id: Exclude<DatePreset, "custom">; label: string }[] = [
   { id: "today", label: "Today" },
   { id: "week", label: "This week" },
   { id: "month", label: "This month" },
-  { id: "last30", label: "Last 30 days" },
-  { id: "all", label: "All time" },
 ];
 
 export default function ClaimsList() {
