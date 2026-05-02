@@ -267,6 +267,8 @@ export default function ClaimsList() {
     ? `${distinctStores} store${distinctStores === 1 ? "" : "s"} · ${distinctCountries} countr${distinctCountries === 1 ? "y" : "ies"} · ${claimsThisMonth.length} claims this month`
     : isInternalAudit
     ? `Read-only · audit trail enabled · ${distinctStores} stores · ${distinctCountries} countries`
+    : isSystemAdmin
+    ? `Read-only oversight · ${distinctStores} stores · ${distinctCountries} countries · ${claimsThisMonth.length} this month`
     : isStoreManager
     ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
     : `${filtered.length} claims found`;
@@ -437,7 +439,7 @@ export default function ClaimsList() {
             </div>
           )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
-          {!isInternalAudit && (
+          {!isReadOnlyOversight && (
             <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
           )}
         </div>
