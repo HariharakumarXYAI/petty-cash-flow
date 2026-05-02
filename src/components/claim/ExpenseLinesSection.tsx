@@ -1006,18 +1006,8 @@ export function ExpenseLinesSection({ lines, setLines, countryFilter, readOnly =
             </div>
           </section>
 
-          {/* ZONE B — Required documents */}
-          {requiredSlots.length > 0 && (
-            <section>
-              <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wide mb-2.5 flex items-center gap-2">
-                B · Required Documents
-                <Badge variant="outline" className="text-[9px] px-1.5 py-0">{requiredSlots.length} slot(s)</Badge>
-              </h4>
-              <div className="space-y-2.5">
-                {requiredSlots.map(s => renderSlot(line, s))}
-              </div>
-            </section>
-          )}
+          {/* Required documents already rendered above as Zone A */}
+
 
           {/* ZONE C — Optional documents */}
           {optionalSlots.length > 0 && (
