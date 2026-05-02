@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Navigate, Outlet, Route, Routes } from "react-router-dom";
 import { AppLayout } from "@/components/AppLayout";
+import { RouteGuard } from "@/components/RouteGuard";
 import { AdminLayout } from "@/components/AdminLayout";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import Dashboard from "./pages/Dashboard";
@@ -69,6 +70,7 @@ function ProtectedLayout() {
 
   return (
     <AppLayout>
+      <RouteGuard />
       <Outlet />
     </AppLayout>
   );
