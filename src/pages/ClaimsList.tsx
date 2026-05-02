@@ -1,117 +1,94 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Plus, Download, CalendarIcon } from "lucide-react";
-import { format, startOfMonth } from "date-fns";
+import { Search, Plus, Download, CalendarIcon, CheckCircle2, AlertTriangle, Loader2, Minus } from "lucide-react";
+import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/StatusBadge";
-import { claims, stores, type ClaimStatus, type Claim, employeeProfiles, getEmployeeProfile } from "@/lib/mock-data";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { MOCK_CLAIMS, STATUS_TABS, type ClaimStatus, type OcrStatus, type MockClaim } from "@/data/mockClaims";
 
-const hoPositions = ["Staff", "Senior Staff", "Manager", "Senior Manager", "Associate Director", "Director", "Senior Director"];
-const storePositions = ["Staff", "Senior Staff", "Store Manager – Hypermarket", "Store Manager – Supermarket", "Store Manager – Mini", "Area Manager", "Director – Region Operations"];
-const allPositionsList = [...new Set([...hoPositions, ...storePositions])];
+const STATUS_PILL: Record<ClaimStatus, string> = {
+  "Draft": "bg-muted text-muted-foreground",
+  "Pending": "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300",
+  "Approved": "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300",
+  "Approved with Alert": "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300",
+  "On Hold": "bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300",
+  "Rejected": "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300",
+  "Settled": "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300",
+};
 
-// Status tab definitions with mapping to ClaimStatus values
-const statusTabs: { label: string; statuses: ClaimStatus[] | null }[] = [
-  { label: "All", statuses: null },
-  { label: "Draft", statuses: ["Draft"] },
-  { label: "Pending", statuses: ["Submitted", "OCR Validating", "Awaiting Audit Document"] },
-  { label: "Approved", statuses: ["Auto Approved"] },
-  { label: "Approved with Alert", statuses: ["Auto Approved with Alert"] },
-  { label: "On Hold", statuses: ["On Hold", "Under Investigation"] },
-  { label: "Rejected", statuses: ["Rejected"] },
-  { label: "Settled", statuses: ["Settled"] },
-];
+function StatusPill({ status }: { status: ClaimStatus }) {
+  return (
+    <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium whitespace-nowrap", STATUS_PILL[status])}>
+      {status}
+    </span>
+  );
+}
+
+function OcrIcon({ status }: { status: OcrStatus }) {
+  if (status === "confirmed") return <CheckCircle2 className="h-4 w-4 text-status-approved mx-auto" aria-label="OCR confirmed" />;
+  if (status === "low_confidence") return <AlertTriangle className="h-4 w-4 text-amber-500 mx-auto" aria-label="OCR low confidence" />;
+  if (status === "processing") return <Loader2 className="h-4 w-4 text-muted-foreground mx-auto animate-spin" aria-label="OCR processing" />;
+  return <Minus className="h-4 w-4 text-muted-foreground mx-auto" aria-label="OCR not applicable" />;
+}
+
+function formatDateDMY(iso: string): string {
+  const [y, m, d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+}
+
+function truncate(s: string, n: number) {
+  return s.length > n ? s.slice(0, n) + "…" : s;
+}
+
+const uniqueExpenseTypes = [...new Set(MOCK_CLAIMS.map(c => c.expense_type))].sort();
 
 export default function ClaimsList() {
   const navigate = useNavigate();
-  const { country, storeId } = useGlobalFilter();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [expenseFilter, setExpenseFilter] = useState<string>("all");
-  const [alertFilter, setAlertFilter] = useState<string>("all");
-  const [employeeTypeFilter, setEmployeeTypeFilter] = useState<string>("all");
-  const [positionFilter, setPositionFilter] = useState<string>("all");
-  const [empStoreFilter, setEmpStoreFilter] = useState<string>("all");
-  const [selectedClaim, setSelectedClaim] = useState<Claim | null>(null);
-  const [dateFrom, setDateFrom] = useState<Date | undefined>(startOfMonth(new Date()));
-  const [dateTo, setDateTo] = useState<Date | undefined>(new Date());
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState<Date | undefined>(undefined);
+  const [dateTo, setDateTo] = useState<Date | undefined>(undefined);
 
-  const handleEmployeeTypeChange = (value: string) => {
-    setEmployeeTypeFilter(value);
-    setPositionFilter("all");
-    setEmpStoreFilter("all");
-  };
+  // Tab counts based on full data set (independent of active tab)
+  const tabCounts = useMemo(
+    () => STATUS_TABS.map(tab => (tab.label === "All" ? MOCK_CLAIMS.length : MOCK_CLAIMS.filter(c => c.status === tab.label).length)),
+    []
+  );
 
-  const positionOptions = useMemo(() => {
-    if (employeeTypeFilter === "HO") return hoPositions;
-    if (employeeTypeFilter === "Store") return storePositions;
-    return allPositionsList;
-  }, [employeeTypeFilter]);
+  const filtered = useMemo<MockClaim[]>(() => {
+    const tab = STATUS_TABS[activeTab];
+    return MOCK_CLAIMS.filter((c) => {
+      if (tab.label !== "All" && c.status !== tab.label) return false;
+      if (expenseFilter !== "all" && c.expense_type !== expenseFilter) return false;
+      if (statusFilter !== "all" && c.status !== statusFilter) return false;
 
-  const storeOptions = useMemo(() => {
-    const storeEmployees = employeeProfiles.filter(e => e.employeeType === "Store" && e.storeName);
-    return [...new Set(storeEmployees.map(e => e.storeName!))].sort();
-  }, []);
-
-  // Base filter (everything except status tab)
-  const baseFiltered = useMemo(() => claims.filter((c) => {
-    if (country !== "all" && c.country !== country) return false;
-    if (storeId !== "all" && c.storeId !== storeId) return false;
-    if (expenseFilter !== "all" && c.expenseType !== expenseFilter) return false;
-    if (alertFilter === "flagged" && !c.hasAlert) return false;
-    if (alertFilter === "clean" && c.hasAlert) return false;
-
-    // Date range filter
-    if (dateFrom || dateTo) {
-      const claimDate = new Date(c.submittedAt);
-      if (dateFrom && claimDate < new Date(dateFrom.setHours(0, 0, 0, 0))) return false;
-      if (dateTo) {
-        const end = new Date(dateTo);
-        end.setHours(23, 59, 59, 999);
-        if (claimDate > end) return false;
+      if (dateFrom || dateTo) {
+        const t = new Date(c.transaction_date + "T00:00:00").getTime();
+        if (dateFrom) {
+          const from = new Date(dateFrom); from.setHours(0, 0, 0, 0);
+          if (t < from.getTime()) return false;
+        }
+        if (dateTo) {
+          const to = new Date(dateTo); to.setHours(23, 59, 59, 999);
+          if (t > to.getTime()) return false;
+        }
       }
-    }
 
-    // Employee type / position / store filters
-    if (employeeTypeFilter !== "all" || positionFilter !== "all" || empStoreFilter !== "all") {
-      const profile = getEmployeeProfile(c.submitter);
-      if (!profile) return false;
-      if (employeeTypeFilter !== "all" && profile.employeeType !== employeeTypeFilter) return false;
-      if (positionFilter !== "all" && profile.positionLevel !== positionFilter) return false;
-      if (empStoreFilter !== "all" && profile.storeName !== empStoreFilter) return false;
-    }
-
-    if (search) {
-      const q = search.toLowerCase();
-      return c.claimNumber.toLowerCase().includes(q) || c.store.toLowerCase().includes(q) || c.submitter.toLowerCase().includes(q) || c.vendor.toLowerCase().includes(q);
-    }
-    return true;
-  }), [country, storeId, expenseFilter, alertFilter, employeeTypeFilter, positionFilter, empStoreFilter, search, dateFrom, dateTo]);
-
-  // Tab counts based on baseFiltered
-  const tabCounts = useMemo(() => statusTabs.map(tab => {
-    if (!tab.statuses) return baseFiltered.length;
-    return baseFiltered.filter(c => tab.statuses!.includes(c.status)).length;
-  }), [baseFiltered]);
-
-  // Final filtered = baseFiltered + active status tab
-  const filtered = useMemo(() => {
-    const tab = statusTabs[activeTab];
-    if (!tab.statuses) return baseFiltered;
-    return baseFiltered.filter(c => tab.statuses!.includes(c.status));
-  }, [baseFiltered, activeTab]);
-
-  const uniqueExpenseTypes = [...new Set(claims.map(c => c.expenseType))];
+      if (search.trim()) {
+        const q = search.trim().toLowerCase();
+        if (!c.claim_no.toLowerCase().includes(q) && !c.submitter_name.toLowerCase().includes(q)) return false;
+      }
+      return true;
+    });
+  }, [activeTab, expenseFilter, statusFilter, dateFrom, dateTo, search]);
 
   return (
     <div className="space-y-4">
@@ -126,34 +103,29 @@ export default function ClaimsList() {
         </div>
       </div>
 
-      {/* Row 1: Search + dropdown filters */}
+      {/* Row 1: Search + filters */}
       <div className="filter-bar flex-wrap">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input placeholder="Search claims..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-8 h-8 text-xs" />
+          <Input
+            placeholder="Search by claim # or submitter..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-8 h-8 text-xs"
+          />
         </div>
         <Select value={expenseFilter} onValueChange={setExpenseFilter}>
-          <SelectTrigger className="w-[150px] h-8 text-xs"><SelectValue placeholder="All Expenses" /></SelectTrigger>
+          <SelectTrigger className="w-[200px] h-8 text-xs"><SelectValue placeholder="All Expenses" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Expenses</SelectItem>
             {uniqueExpenseTypes.map(e => <SelectItem key={e} value={e}>{e}</SelectItem>)}
           </SelectContent>
         </Select>
-        {employeeTypeFilter === "Store" && (
-          <Select value={empStoreFilter} onValueChange={setEmpStoreFilter}>
-            <SelectTrigger className="w-[180px] h-8 text-xs"><SelectValue placeholder="All Stores" /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stores</SelectItem>
-              {storeOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        )}
-        <Select value={alertFilter} onValueChange={setAlertFilter}>
-          <SelectTrigger className="w-[120px] h-8 text-xs"><SelectValue placeholder="Alert Flag" /></SelectTrigger>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue placeholder="All Statuses" /></SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All</SelectItem>
-            <SelectItem value="flagged">Flagged</SelectItem>
-            <SelectItem value="clean">Clean</SelectItem>
+            <SelectItem value="all">All Statuses</SelectItem>
+            {STATUS_TABS.filter(t => t.label !== "All").map(t => <SelectItem key={t.label} value={t.label}>{t.label}</SelectItem>)}
           </SelectContent>
         </Select>
       </div>
@@ -184,11 +156,16 @@ export default function ClaimsList() {
             <Calendar mode="single" selected={dateTo} onSelect={setDateTo} initialFocus className="p-3 pointer-events-auto" />
           </PopoverContent>
         </Popover>
+        {(dateFrom || dateTo) && (
+          <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => { setDateFrom(undefined); setDateTo(undefined); }}>
+            Clear
+          </Button>
+        )}
       </div>
 
       {/* Row 3: Status pill tabs */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        {statusTabs.map((tab, i) => (
+        {STATUS_TABS.map((tab, i) => (
           <button
             key={tab.label}
             onClick={() => setActiveTab(i)}
@@ -202,9 +179,7 @@ export default function ClaimsList() {
             {tab.label}
             <span className={cn(
               "inline-flex items-center justify-center rounded-full px-1.5 min-w-[18px] h-[18px] text-[10px] font-semibold",
-              activeTab === i
-                ? "bg-background/20 text-background"
-                : "bg-muted text-muted-foreground"
+              activeTab === i ? "bg-background/20 text-background" : "bg-muted text-muted-foreground"
             )}>
               {tabCounts[i]}
             </span>
@@ -214,126 +189,79 @@ export default function ClaimsList() {
 
       {/* Table */}
       <div className="bg-card rounded-lg border shadow-sm overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="section-label sticky left-0 bg-card z-10 min-w-[160px]">Claim #</TableHead>
-              <TableHead className="section-label">Store</TableHead>
-              <TableHead className="section-label hidden md:table-cell">Submitter</TableHead>
-              <TableHead className="section-label hidden lg:table-cell">Expense</TableHead>
-              <TableHead className="section-label text-right">Amount</TableHead>
-              <TableHead className="section-label">Status</TableHead>
-              <TableHead className="section-label hidden lg:table-cell">OCR</TableHead>
-              <TableHead className="section-label hidden xl:table-cell">Date</TableHead>
-              <TableHead className="section-label hidden xl:table-cell">Alert</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filtered.map((claim) => (
-              <TableRow key={claim.id} className="data-table-row cursor-pointer" onClick={() => setSelectedClaim(claim)}>
-                <TableCell className="font-mono text-xs font-medium sticky left-0 bg-card z-10">{claim.claimNumber}</TableCell>
-                <TableCell>
-                  <div className="text-sm">{claim.store}</div>
-                  <div className="text-[10px] text-muted-foreground">{claim.storeType}</div>
-                </TableCell>
-                <TableCell className="text-sm hidden md:table-cell">{claim.submitter}</TableCell>
-                <TableCell className="text-sm text-muted-foreground hidden lg:table-cell">{claim.expenseType}</TableCell>
-                <TableCell className="text-sm font-medium text-right tabular-nums">
-                  {claim.amount.toLocaleString()} <span className="text-[10px] text-muted-foreground">{claim.currency}</span>
-                </TableCell>
-                <TableCell><StatusBadge status={claim.status} /></TableCell>
-                <TableCell className="hidden lg:table-cell">
-                  {claim.ocrConfidence > 0 ? (
-                    <span className={`text-xs font-medium ${claim.ocrConfidence >= 90 ? "text-status-approved" : claim.ocrConfidence >= 75 ? "text-status-validating" : "text-status-hold"}`}>
-                      {claim.ocrConfidence}%
-                    </span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
-                  )}
-                </TableCell>
-                <TableCell className="text-xs text-muted-foreground hidden xl:table-cell">
-                  {new Date(claim.submittedAt).toLocaleDateString()}
-                </TableCell>
-                <TableCell className="hidden xl:table-cell">
-                  {claim.hasAlert && <Badge variant="alert" className="text-[10px]">⚠</Badge>}
-                </TableCell>
+        <TooltipProvider delayDuration={150}>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="section-label sticky left-0 bg-card z-10 min-w-[200px]">Claim #</TableHead>
+                <TableHead className="section-label">Store</TableHead>
+                <TableHead className="section-label hidden md:table-cell">Submitter</TableHead>
+                <TableHead className="section-label hidden lg:table-cell">Expense</TableHead>
+                <TableHead className="section-label text-right">Amount</TableHead>
+                <TableHead className="section-label">Status</TableHead>
+                <TableHead className="section-label text-center hidden lg:table-cell">OCR</TableHead>
+                <TableHead className="section-label hidden xl:table-cell">Date</TableHead>
+                <TableHead className="section-label hidden xl:table-cell">Alert</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="text-center text-sm text-muted-foreground py-12">
+                    No claims match the current filters.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((c) => (
+                  <TableRow
+                    key={c.claim_no}
+                    className="cursor-pointer hover:bg-secondary/50"
+                    onClick={() => navigate(`/claims/${c.claim_no}`)}
+                  >
+                    <TableCell className="font-mono text-xs font-medium sticky left-0 bg-card z-10">{c.claim_no}</TableCell>
+                    <TableCell className="text-sm">{c.store_name}</TableCell>
+                    <TableCell className="text-sm hidden md:table-cell">{c.submitter_name}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground hidden lg:table-cell max-w-[220px] truncate" title={c.expense_type}>
+                      {c.expense_type}
+                    </TableCell>
+                    <TableCell className="text-sm font-medium text-right tabular-nums whitespace-nowrap">
+                      {c.amount.toLocaleString("en-US")} <span className="text-[10px] text-muted-foreground">THB</span>
+                    </TableCell>
+                    <TableCell><StatusPill status={c.status} /></TableCell>
+                    <TableCell className="hidden lg:table-cell text-center">
+                      <OcrIcon status={c.ocr_status} />
+                    </TableCell>
+                    <TableCell className="text-xs text-muted-foreground hidden xl:table-cell whitespace-nowrap">
+                      {formatDateDMY(c.transaction_date)}
+                    </TableCell>
+                    <TableCell className="hidden xl:table-cell">
+                      {c.alert ? (
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span
+                              className="inline-flex items-center gap-1 text-[11px] text-amber-700 dark:text-amber-300 max-w-[220px]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
+                              <span className="truncate">{truncate(c.alert.message, 30)}</span>
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top" className="max-w-xs text-xs">
+                            <p className="font-medium">{c.alert.type}</p>
+                            <p>{c.alert.message}</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TooltipProvider>
       </div>
-
-      {/* Detail Drawer */}
-      <Sheet open={!!selectedClaim} onOpenChange={(open) => !open && setSelectedClaim(null)}>
-        <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-          {selectedClaim && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <span className="font-mono">{selectedClaim.claimNumber}</span>
-                  <StatusBadge status={selectedClaim.status} />
-                </SheetTitle>
-              </SheetHeader>
-              <div className="mt-6 space-y-6">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="section-label">Store</p>
-                    <p className="text-sm font-medium mt-0.5">{selectedClaim.store}</p>
-                    <p className="text-xs text-muted-foreground">{selectedClaim.storeType} · {selectedClaim.country}</p>
-                  </div>
-                  <div>
-                    <p className="section-label">Amount</p>
-                    <p className="text-xl font-bold mt-0.5 tabular-nums">{selectedClaim.amount.toLocaleString()} {selectedClaim.currency}</p>
-                  </div>
-                  <div>
-                    <p className="section-label">Submitter</p>
-                    <p className="text-sm mt-0.5">{selectedClaim.submitter}</p>
-                  </div>
-                  <div>
-                    <p className="section-label">Expense Type</p>
-                    <p className="text-sm mt-0.5">{selectedClaim.expenseType}</p>
-                    <p className="text-xs text-muted-foreground">{selectedClaim.subcategory}</p>
-                  </div>
-                  <div>
-                    <p className="section-label">Vendor</p>
-                    <p className="text-sm mt-0.5">{selectedClaim.vendor}</p>
-                  </div>
-                  <div>
-                    <p className="section-label">Receipt Date</p>
-                    <p className="text-sm mt-0.5">{selectedClaim.receiptDate}</p>
-                  </div>
-                  <div>
-                    <p className="section-label">OCR Confidence</p>
-                    <p className={`text-sm font-semibold mt-0.5 ${selectedClaim.ocrConfidence >= 90 ? "text-status-approved" : selectedClaim.ocrConfidence >= 75 ? "text-status-validating" : "text-status-hold"}`}>
-                      {selectedClaim.ocrConfidence > 0 ? `${selectedClaim.ocrConfidence}%` : "Pending"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="section-label">Payment Mode</p>
-                    <p className="text-sm mt-0.5">{selectedClaim.paymentMode}</p>
-                  </div>
-                </div>
-
-                <Separator />
-
-                <div>
-                  <p className="section-label mb-1">Notes</p>
-                  <p className="text-sm text-muted-foreground">{selectedClaim.notes}</p>
-                </div>
-
-                <Separator />
-
-                <div className="flex gap-2">
-                  <Button size="sm" onClick={() => { setSelectedClaim(null); navigate(`/claims/${selectedClaim.id}`); }}>
-                    View Full Detail
-                  </Button>
-                  <Button size="sm" variant="outline">Add Note</Button>
-                </div>
-              </div>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
     </div>
   );
 }
