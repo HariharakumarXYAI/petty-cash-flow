@@ -1,15 +1,10 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck, Link2,
-  Pencil, Check as CheckIcon, Copy, Zap,
+  ArrowLeft, CheckCircle, AlertTriangle, XCircle, ShieldCheck,
+  Zap,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "@/hooks/use-toast";
 import { stores, advances, expenseTypes } from "@/lib/mock-data";
 import { useGlobalFilter } from "@/contexts/GlobalFilterContext";
@@ -23,6 +18,7 @@ import {
   ExpenseLineV2,
 } from "@/components/claim/ExpenseLinesSection";
 import { RequesterDetailsCard } from "@/components/claim/RequesterDetailsCard";
+import { ClaimDetailsCard } from "@/components/claim/ClaimDetailsCard";
 
 // FX → THB (mock)
 const FX_TO_THB: Record<string, number> = {
