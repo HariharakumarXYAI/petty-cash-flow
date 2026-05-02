@@ -207,86 +207,22 @@ export default function NewClaim() {
           />
 
           {/* ═══════════════════════════════════════════ */}
-          {/* CLAIM INFORMATION (header-level)             */}
+          {/* CLAIM DETAILS                                */}
           {/* ═══════════════════════════════════════════ */}
-          <div className="bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-            <div className="px-4 py-3 border-b border-border bg-muted/30">
-              <h3 className="text-sm font-semibold text-foreground">Claim Information</h3>
-              <p className="text-[11px] text-muted-foreground mt-0.5">Claim-level details. Per-receipt fields go in Expense Lines below.</p>
-            </div>
-
-            <div className="p-4 space-y-4">
-              {/* Auto-generated read-only meta row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Number</Label>
-                  <div className="relative">
-                    <Input
-                      readOnly tabIndex={-1} value={claimNumber} placeholder="Select store first"
-                      className="h-9 text-sm bg-muted/50 font-mono tabular-nums pr-9 cursor-default focus-visible:ring-0"
-                    />
-                    <button
-                      type="button" onClick={copyClaimNumber} disabled={!claimNumber} tabIndex={-1}
-                      aria-label="Copy claim number"
-                      className="absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground disabled:opacity-40"
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">Auto-generated. Cannot be edited.</p>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Creation Date</Label>
-                  <Input
-                    readOnly tabIndex={-1} value={creationDateDisplay}
-                    className="h-9 text-sm bg-muted/50 tabular-nums cursor-default focus-visible:ring-0"
-                  />
-                  <p className="text-[11px] text-muted-foreground">Auto-set when claim is created.</p>
-                </div>
-              </div>
-
-              {/* Link to Advance */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-                    <Link2 className="h-3 w-3" /> Link to Advance
-                  </Label>
-                  <Select value={linkedAdvance} onValueChange={setLinkedAdvance}>
-                    <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No linked advance</SelectItem>
-                      {openAdvances.map(a => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.advanceNumber} · {(a.amount - a.settledAmount - a.returnedCash).toLocaleString()} {a.currency} remaining
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-muted-foreground">One advance covers the whole trip.</p>
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Claim Status</Label>
-                  <div className="h-9 flex items-center px-3 rounded-md border border-border bg-muted/50">
-                    <Badge variant="draft">Draft</Badge>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">Draft → Submitted → Approved.</p>
-                </div>
-              </div>
-
-              {/* Purpose */}
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                  Purpose <span className="text-destructive">*</span>
-                </Label>
-                <Textarea
-                  required placeholder="Enter purpose of this claim…" rows={3} maxLength={1750}
-                  value={purpose} onChange={(e) => setPurpose(e.target.value)}
-                  className="text-sm resize-none"
-                />
-                <p className="text-[11px] text-muted-foreground">Required · up to 250 words</p>
-              </div>
-            </div>
-          </div>
+          <ClaimDetailsCard
+            claimNumber={claimNumber}
+            createdAtDisplay={creationDateDisplay}
+            status="Draft"
+            purpose={purpose}
+            onPurposeChange={setPurpose}
+            openAdvances={openAdvances.map(a => ({
+              id: a.id,
+              reference: a.advanceNumber,
+              remainingLabel: `${(a.amount - a.settledAmount - a.returnedCash).toLocaleString()} ${a.currency} remaining`,
+            }))}
+            linkedAdvanceId={linkedAdvance && linkedAdvance !== "none" ? linkedAdvance : null}
+            onLinkAdvance={(id) => setLinkedAdvance(id ?? "")}
+          />
 
           {/* ═══════════════════════════════════════════ */}
           {/* EXPENSE LINES — master-detail with doc policy */}
