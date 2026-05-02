@@ -286,6 +286,10 @@ export const subExpenseTypeDocPolicy: DocPolicyRow[] = [
   { subExpenseTypeId: "lt-car",       docTypeCode: "FUEL_RECEIPT",    requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-fuel" },
   { subExpenseTypeId: "lt-car",       docTypeCode: "MILEAGE_TEXT",    requirement: "REQUIRED",    kind: "STRUCTURED_TEXT" },
 
+  // EV Car — Mileage
+  { subExpenseTypeId: "lt-ev",        docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
+  { subExpenseTypeId: "lt-ev",        docTypeCode: "MILEAGE_TEXT",    requirement: "REQUIRED",    kind: "STRUCTURED_TEXT" },
+
   // Toll Fees
   { subExpenseTypeId: "lt-toll",      docTypeCode: "RECEIPT",         requirement: "REQUIRED",    kind: "FILE", ocrTemplateId: "tpl-receipt" },
 
