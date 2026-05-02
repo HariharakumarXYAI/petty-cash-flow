@@ -12,7 +12,7 @@ import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell,
 } from "recharts";
 import { useAuth } from "@/contexts/AuthContext";
-import { investigations, alerts, stores } from "@/lib/mock-data";
+import { investigations } from "@/lib/mock-data";
 import { MOCK_CLAIMS } from "@/data/mockClaims";
 import { SeverityBadge } from "@/components/StatusBadge";
 
