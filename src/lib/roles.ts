@@ -85,11 +85,8 @@ export const scopeLabels: Record<ScopeType, string> = {
 const storeUserNav: NavGroup[] = [
   {
     label: "",
-    items: [{ title: "Dashboard", url: "/dashboard", icon: Home, end: true }],
-  },
-  {
-    label: "My Work",
     items: [
+      { title: "Dashboard", url: "/dashboard", icon: Home, end: true },
       { title: "New Claim", url: "/claims/new", icon: FilePlus },
       { title: "My Claims", url: "/claims", icon: FileText },
       { title: "My Advances", url: "/advances", icon: Wallet },

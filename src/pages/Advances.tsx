@@ -17,10 +17,18 @@ import { Badge } from "@/components/ui/badge";
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Cell } from "recharts";
 import type { Advance } from "@/lib/mock-data";
 
+import { useAuth } from "@/contexts/AuthContext";
+import { StoreUserAdvances } from "@/components/advance/StoreUserAdvances";
+
 export default function Advances() {
   const { country } = useGlobalFilter();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selected, setSelected] = useState<Advance | null>(null);
+
+  if (user?.role === "store_user") {
+    return <StoreUserAdvances />;
+  }
 
   const filtered = country === "all" ? advances : advances.filter(a => a.country === country);
   const open = filtered.filter(a => a.status === "Open" || a.status === "Partially Settled");

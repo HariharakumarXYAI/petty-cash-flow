@@ -24,6 +24,7 @@ import {
 
 import { useAuth } from "@/contexts/AuthContext";
 import { StoreManagerDashboard } from "@/components/dashboard/StoreManagerDashboard";
+import { StoreUserDashboard } from "@/components/dashboard/StoreUserDashboard";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -31,6 +32,9 @@ export default function Dashboard() {
   const { user } = useAuth();
   const metrics = getDashboardMetrics(country);
 
+  if (user?.role === "store_user") {
+    return <StoreUserDashboard />;
+  }
   if (user?.role === "store_manager") {
     return <StoreManagerDashboard />;
   }
