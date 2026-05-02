@@ -633,7 +633,8 @@ export default function ClaimsList() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))
+                  );
+                })
               )}
             </TableBody>
           </Table>
