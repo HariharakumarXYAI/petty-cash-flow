@@ -32,6 +32,7 @@ import AdminAccess from "./pages/AdminAccess";
 import NotFound from "./pages/NotFound";
 import NoAccess from "./pages/NoAccess";
 import SetPassword from "./pages/SetPassword";
+import AuditTrail from "./pages/AuditTrail";
 import EntitiesPage from "./pages/admin/EntitiesPage";
 import EntityEditPage from "./pages/admin/EntityEditPage";
 import EntityDetailPage from "./pages/admin/EntityDetailPage";
@@ -107,6 +108,7 @@ function AppRoutes() {
         <Route path="alerts" element={<AlertsPage />} />
         <Route path="investigations" element={<Investigations />} />
         <Route path="audit" element={<AuditPage />} />
+        <Route path="audit-trail" element={<AuditTrail />} />
         {/* Redirect old masters/expense-types to admin */}
         <Route path="masters/expense-types" element={<Navigate to="/admin/expense-types" replace />} />
         <Route path="masters/stores" element={<Navigate to="/admin/stores" replace />} />

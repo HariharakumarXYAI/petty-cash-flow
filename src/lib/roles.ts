@@ -182,14 +182,22 @@ const hoFinanceNav: NavGroup[] = [
 const auditNav: NavGroup[] = [
   {
     label: "",
-    items: [{ title: "Audit Dashboard", url: "/dashboard", icon: Home, end: true }],
+    items: [{ title: "Dashboard", url: "/dashboard", icon: Home, end: true }],
   },
   {
-    label: "Audit",
+    label: "Operations",
     items: [
-      { title: "Sample Requests", url: "/audit", icon: ClipboardCheck },
-      { title: "Findings", url: "/reports/audit-findings", icon: FileSearch },
-      { title: "Audit Trail", url: "/audit", icon: Eye },
+      { title: "All Claims", url: "/claims", icon: FileText },
+      { title: "All Advances", url: "/advances", icon: Wallet },
+    ],
+  },
+  {
+    label: "Control",
+    items: [
+      { title: "Investigations", url: "/investigations", icon: SearchIcon },
+      { title: "Audit Trail", url: "/audit-trail", icon: Eye },
+      { title: "Exceptions", url: "/alerts", icon: AlertTriangle },
+      { title: "Reports", url: "/reports/audit-findings", icon: BarChart3 },
     ],
   },
 ];

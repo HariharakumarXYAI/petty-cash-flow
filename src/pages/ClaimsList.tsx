@@ -110,8 +110,9 @@ export default function ClaimsList() {
   const isStoreManager = user?.role === "store_manager";
   const isRegionalManager = user?.role === "regional_manager";
   const isHoFinance = user?.role === "ho_finance";
+  const isInternalAudit = user?.role === "internal_audit";
   const [scopeMode, setScopeMode] = useState<"self" | "store" | "region" | "all">(
-    isHoFinance ? "all" : isRegionalManager ? "region" : "store",
+    isInternalAudit ? "all" : isHoFinance ? "all" : isRegionalManager ? "region" : "store",
   );
   // For RM, "store" mode requires a chosen store from their region.
   const regionStores = useMemo(
@@ -134,6 +135,7 @@ export default function ClaimsList() {
   // Effective scope for filtering MOCK_CLAIMS.
   const scope: Scope | null = useMemo(() => {
     if (!user) return null;
+    if (isInternalAudit) return { type: "global" };
     if (isHoFinance) {
       if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
       if (scopeMode === "store") return { type: "store", store_id: hoStoreId === "all" ? null : hoStoreId };
@@ -151,7 +153,7 @@ export default function ClaimsList() {
         : { type: "store", store_id: user.store_id };
     }
     return getDefaultScope(user);
-  }, [user, isStoreManager, isRegionalManager, isHoFinance, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
+  }, [user, isStoreManager, isRegionalManager, isHoFinance, isInternalAudit, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
 
   // Scope-filtered base list (everything else filters off this).
   const scopedClaims = useMemo<MockClaim[]>(() => {
@@ -189,9 +191,10 @@ export default function ClaimsList() {
 
   // Hide Store column when scope is fixed to a single store.
   const isStoreUser = user?.role === "store_user";
-  const hideStoreColumn = !isHoFinance && (scope?.type === "store" || scope?.type === "self");
-  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance;
-  const showCountryColumn = isHoFinance;
+  const hideStoreColumn = !isHoFinance && !isInternalAudit && (scope?.type === "store" || scope?.type === "self");
+  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance && !isInternalAudit;
+  const showCountryColumn = isHoFinance || isInternalAudit;
+  const showAuditColumns = isInternalAudit;
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
@@ -251,6 +254,7 @@ export default function ClaimsList() {
   const pageTitle = isStoreUser ? "My Claims"
     : isRegionalManager ? "Regional Claims"
     : isHoFinance ? "All Claims"
+    : isInternalAudit ? "All Claims (Audit View)"
     : "Claims";
   const subtitle = isStoreUser
     ? `Showing only claims you submitted at ${storeName}`
@@ -258,6 +262,8 @@ export default function ClaimsList() {
     ? `Region: ${regionName} · ${regionStores.length} stores · ${claimsThisMonth.length} claims this month`
     : isHoFinance
     ? `${distinctStores} store${distinctStores === 1 ? "" : "s"} · ${distinctCountries} countr${distinctCountries === 1 ? "y" : "ies"} · ${claimsThisMonth.length} claims this month`
+    : isInternalAudit
+    ? `Read-only · audit trail enabled · ${distinctStores} stores · ${distinctCountries} countries`
     : isStoreManager
     ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
     : `${filtered.length} claims found`;
@@ -428,7 +434,9 @@ export default function ClaimsList() {
             </div>
           )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
-          <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
+          {!isInternalAudit && (
+            <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
+          )}
         </div>
       </div>
 
@@ -576,12 +584,14 @@ export default function ClaimsList() {
                 <TableHead className="section-label text-center hidden lg:table-cell">OCR</TableHead>
                 <TableHead className="section-label hidden xl:table-cell">Date</TableHead>
                 <TableHead className="section-label hidden xl:table-cell">Alert</TableHead>
+                {showAuditColumns && <TableHead className="section-label text-center">Risk score</TableHead>}
+                {showAuditColumns && <TableHead className="section-label">Review status</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9 + (showCountryColumn ? 1 : 0) - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
+                  <TableCell colSpan={9 + (showCountryColumn ? 1 : 0) - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0) + (showAuditColumns ? 2 : 0)} className="text-center text-sm text-muted-foreground py-12">
                     No claims match the current filters.
                   </TableCell>
                 </TableRow>
@@ -632,6 +642,42 @@ export default function ClaimsList() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </TableCell>
+                    {showAuditColumns && (() => {
+                      // Risk score: 0–100, derived from alert presence, OCR status, status.
+                      let score = 5;
+                      if (c.alert) score += 35;
+                      if (c.ocr_status === "low_confidence") score += 25;
+                      if (c.ocr_status === "processing") score += 5;
+                      if (c.status === "On Hold") score += 30;
+                      else if (c.status === "Approved with Alert") score += 20;
+                      else if (c.status === "Rejected") score += 15;
+                      if (c.amount >= 5000) score += 10;
+                      score = Math.min(score, 100);
+                      const tone = score >= 60 ? "bg-status-hold/10 text-status-hold"
+                        : score >= 30 ? "bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300"
+                        : "bg-muted text-muted-foreground";
+                      // Review status: Open by default; Cleared if Approved without alert; Reviewed if Settled.
+                      const review = c.status === "Settled" ? "Reviewed"
+                        : (c.status === "Approved" && !c.alert) ? "Cleared"
+                        : "Open";
+                      const reviewTone = review === "Cleared" ? "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300"
+                        : review === "Reviewed" ? "bg-teal-100 text-teal-700 dark:bg-teal-500/15 dark:text-teal-300"
+                        : "bg-muted text-muted-foreground";
+                      return (
+                        <>
+                          <TableCell className="text-center">
+                            <span className={cn("inline-flex items-center justify-center rounded-full px-2 py-0.5 text-[11px] font-semibold tabular-nums", tone)}>
+                              {score}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium", reviewTone)}>
+                              {review}
+                            </span>
+                          </TableCell>
+                        </>
+                      );
+                    })()}
                   </TableRow>
                   );
                 })
