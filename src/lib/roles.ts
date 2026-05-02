@@ -205,12 +205,31 @@ const auditNav: NavGroup[] = [
 const sysAdminNav: NavGroup[] = [
   {
     label: "",
-    items: [{ title: "Dashboard", url: "/dashboard", icon: Home, end: true }],
+    items: [{ title: "Dashboard", url: "/admin/dashboard", icon: Home, end: true }],
   },
   {
-    label: "Administration",
+    label: "Admin",
     items: [
-      { title: "Admin Settings", url: "/admin", icon: Settings },
+      { title: "Users", url: "/admin/employees", icon: Users },
+      { title: "Roles & Permissions", url: "/admin/roles", icon: ShieldCheck },
+      { title: "Stores", url: "/admin/stores", icon: Store },
+      { title: "Regions", url: "/admin/regions", icon: TrendingUp },
+      { title: "Sub-types", url: "/admin/expense-types", icon: FileSearch },
+      { title: "Doc Requirements", url: "/admin/documents", icon: FileText },
+      { title: "System Settings", url: "/admin/system-settings", icon: Settings },
+    ],
+  },
+  {
+    label: "Audit",
+    items: [
+      { title: "System Audit Logs", url: "/audit-trail", icon: Eye },
+    ],
+  },
+  {
+    label: "Operations",
+    items: [
+      { title: "All Claims", url: "/claims", icon: FileText },
+      { title: "All Advances", url: "/advances", icon: Wallet },
     ],
   },
 ];

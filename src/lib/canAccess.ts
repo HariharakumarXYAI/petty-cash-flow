@@ -5,9 +5,10 @@ import type { AppRole } from "@/lib/roles";
 
 export const PAGE_ACCESS: Record<string, AppRole[]> = {
   "/dashboard":              ["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit", "system_admin"],
-  "/claims":                 ["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit"],
+  "/admin/dashboard":        ["system_admin"],
+  "/claims":                 ["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit", "system_admin"],
   "/claims/new":             ["store_user", "store_manager", "regional_manager", "ho_finance"],
-  "/advances":               ["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit"],
+  "/advances":               ["store_user", "store_manager", "regional_manager", "ho_finance", "internal_audit", "system_admin"],
   "/advances/new":           ["store_user", "store_manager", "regional_manager", "ho_finance"],
   "/approvals":              ["store_manager", "regional_manager", "ho_finance"],
   "/store-overview":         ["store_manager", "regional_manager", "ho_finance"],
@@ -18,6 +19,9 @@ export const PAGE_ACCESS: Record<string, AppRole[]> = {
   "/reports/audit-findings": ["regional_manager", "ho_finance", "internal_audit"],
   "/audit-trail":            ["internal_audit", "system_admin"],
   "/admin/users":            ["system_admin"],
+  "/admin/employees":        ["system_admin"],
+  "/admin/roles":            ["system_admin"],
+  "/admin/regions":          ["system_admin"],
   "/admin/stores":           ["system_admin", "ho_finance"],
   "/admin/expense-types":    ["system_admin", "ho_finance"],
   "/admin/documents":        ["system_admin", "ho_finance"],
