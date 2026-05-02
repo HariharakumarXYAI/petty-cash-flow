@@ -82,6 +82,7 @@ export default function NewClaim() {
     employeeId: "EMP-10247",
     fullName: "Somchai Prathumwan",
     position: "Store Manager",
+    store: stores.find(s => s.id === selectedStoreId)?.name ?? "Makro Rama 4",
     email: "somchai.p@cpaxtra.com",
     phone: "081-234-5678",
   };
