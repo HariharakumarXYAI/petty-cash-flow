@@ -91,13 +91,11 @@ export default function NewAdvance() {
     { label: "Amount within policy limit", pass: amountNum > 0 && withinPolicy, pending: amountNum === 0, blocking: false },
     { label: "Amount within recipient's tier limit", pass: amountNum > 0 && withinTier, pending: amountNum === 0, blocking: false },
     { label: "Expected settlement date within 60 days", pass: settleWithin60, pending: !settlementDate, blocking: false },
-    { label: "Account Code selected", pass: accountSelected, pending: false, blocking: false },
-    { label: "Approver selected", pass: approverSelected, pending: false, blocking: false },
   ];
   const passedCount = checks.filter(c => c.pass).length;
   const allPass = passedCount === checks.length;
 
-  const requiredFilled = !!purpose.trim() && accountSelected && !!settlementDate && amountNum > 0 && approverSelected;
+  const requiredFilled = !!purpose.trim() && !!settlementDate && amountNum > 0;
   // Delegation: if user opened "Issue to someone else", both fields are required.
   // (When neither is set, recipient defaults to self and there's nothing to validate.)
   const delegationStarted = issueToEmployeeId !== null || issueReason !== null;
@@ -229,22 +227,6 @@ export default function NewAdvance() {
                   </Select>
                 </div>
 
-                {/* Account Code */}
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    Account Code <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value={accountCode} onValueChange={setAccountCode} required>
-                    <SelectTrigger className="h-9 text-sm" tabIndex={10}><SelectValue placeholder="Search GL account…" /></SelectTrigger>
-                    <SelectContent>
-                      {ACCOUNT_CODES.map(a => (
-                        <SelectItem key={a.code} value={a.code}>{a.code} – {a.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground">Required for GL posting. Auto-suggested from Expense Type.</p>
-                </div>
-
                 {/* Expected Settlement Date */}
                 <div className="space-y-1.5">
                   <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
@@ -321,22 +303,6 @@ export default function NewAdvance() {
                   </Select>
                 </div>
 
-                {/* Approver */}
-                <div className="space-y-1.5">
-                  <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">
-                    Approver <span className="text-destructive">*</span>
-                  </Label>
-                  <Select value={approver} onValueChange={setApprover} required>
-                    <SelectTrigger className="h-9 text-sm" tabIndex={14}><SelectValue placeholder="Select approver" /></SelectTrigger>
-                    <SelectContent>
-                      {APPROVERS.map(a => (
-                        <SelectItem key={a.id} value={a.id}>{a.name} — {a.role}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[10px] text-muted-foreground">Routed based on amount and your reporting line.</p>
-                </div>
-                <div />
               </div>
 
               {/* Notes — full width */}
