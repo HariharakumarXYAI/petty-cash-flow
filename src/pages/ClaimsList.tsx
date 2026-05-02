@@ -254,6 +254,7 @@ export default function ClaimsList() {
   const pageTitle = isStoreUser ? "My Claims"
     : isRegionalManager ? "Regional Claims"
     : isHoFinance ? "All Claims"
+    : isInternalAudit ? "All Claims (Audit View)"
     : "Claims";
   const subtitle = isStoreUser
     ? `Showing only claims you submitted at ${storeName}`
@@ -261,6 +262,8 @@ export default function ClaimsList() {
     ? `Region: ${regionName} · ${regionStores.length} stores · ${claimsThisMonth.length} claims this month`
     : isHoFinance
     ? `${distinctStores} store${distinctStores === 1 ? "" : "s"} · ${distinctCountries} countr${distinctCountries === 1 ? "y" : "ies"} · ${claimsThisMonth.length} claims this month`
+    : isInternalAudit
+    ? `Read-only · audit trail enabled · ${distinctStores} stores · ${distinctCountries} countries`
     : isStoreManager
     ? `${storeName} · ${submitterCount} submitter${submitterCount === 1 ? "" : "s"} · ${claimsThisMonth.length} claims this month`
     : `${filtered.length} claims found`;
@@ -431,7 +434,9 @@ export default function ClaimsList() {
             </div>
           )}
           <Button variant="outline" size="sm"><Download className="h-3.5 w-3.5 mr-1.5" />Export</Button>
-          <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
+          {!isInternalAudit && (
+            <Button size="sm" onClick={() => navigate("/claims/new")}><Plus className="h-3.5 w-3.5 mr-1.5" />New Claim</Button>
+          )}
         </div>
       </div>
 
