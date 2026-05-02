@@ -111,8 +111,10 @@ export default function ClaimsList() {
   const isRegionalManager = user?.role === "regional_manager";
   const isHoFinance = user?.role === "ho_finance";
   const isInternalAudit = user?.role === "internal_audit";
+  const isSystemAdmin = user?.role === "system_admin";
+  const isReadOnlyOversight = isInternalAudit || isSystemAdmin;
   const [scopeMode, setScopeMode] = useState<"self" | "store" | "region" | "all">(
-    isInternalAudit ? "all" : isHoFinance ? "all" : isRegionalManager ? "region" : "store",
+    isReadOnlyOversight ? "all" : isHoFinance ? "all" : isRegionalManager ? "region" : "store",
   );
   // For RM, "store" mode requires a chosen store from their region.
   const regionStores = useMemo(
@@ -135,7 +137,7 @@ export default function ClaimsList() {
   // Effective scope for filtering MOCK_CLAIMS.
   const scope: Scope | null = useMemo(() => {
     if (!user) return null;
-    if (isInternalAudit) return { type: "global" };
+    if (isReadOnlyOversight) return { type: "global" };
     if (isHoFinance) {
       if (scopeMode === "self") return { type: "self", user_id: user.user_id, store_id: user.store_id };
       if (scopeMode === "store") return { type: "store", store_id: hoStoreId === "all" ? null : hoStoreId };
@@ -153,7 +155,7 @@ export default function ClaimsList() {
         : { type: "store", store_id: user.store_id };
     }
     return getDefaultScope(user);
-  }, [user, isStoreManager, isRegionalManager, isHoFinance, isInternalAudit, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
+  }, [user, isStoreManager, isRegionalManager, isHoFinance, isReadOnlyOversight, scopeMode, rmStoreId, hoStoreId, hoRegionId]);
 
   // Scope-filtered base list (everything else filters off this).
   const scopedClaims = useMemo<MockClaim[]>(() => {
@@ -191,9 +193,9 @@ export default function ClaimsList() {
 
   // Hide Store column when scope is fixed to a single store.
   const isStoreUser = user?.role === "store_user";
-  const hideStoreColumn = !isHoFinance && !isInternalAudit && (scope?.type === "store" || scope?.type === "self");
-  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance && !isInternalAudit;
-  const showCountryColumn = isHoFinance || isInternalAudit;
+  const hideStoreColumn = !isHoFinance && !isReadOnlyOversight && (scope?.type === "store" || scope?.type === "self");
+  const hideSubmitterColumn = scope?.type === "self" && !isHoFinance && !isReadOnlyOversight;
+  const showCountryColumn = isHoFinance || isReadOnlyOversight;
   const showAuditColumns = isInternalAudit;
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
@@ -255,6 +257,7 @@ export default function ClaimsList() {
     : isRegionalManager ? "Regional Claims"
     : isHoFinance ? "All Claims"
     : isInternalAudit ? "All Claims (Audit View)"
+    : isSystemAdmin ? "All Claims (Admin View)"
     : "Claims";
   const subtitle = isStoreUser
     ? `Showing only claims you submitted at ${storeName}`
