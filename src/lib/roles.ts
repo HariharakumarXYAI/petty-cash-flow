@@ -22,13 +22,23 @@ export interface UserScope {
   label: string;
 }
 
+export type CountryCode = "TH" | "KH" | "MM" | "LA";
+
 export interface AppUser {
   id: string;
+  /** Stable scope-service identifier (mirrors `id` for the prototype). */
+  user_id: string;
   email: string;
   displayName: string;
+  /** Full name used by scope service & route guards. */
+  full_name: string;
   initials: string;
   role: AppRole;
   scope: UserScope;
+  /** Scope-service fields — used by src/lib/scope.ts. */
+  store_id: string | null;
+  region_id: string | null;
+  country_code: CountryCode | null;
   approvalLimit: number | null; // null = no approval authority
   lastLogin: string;
   status: "active" | "suspended" | "pending";
@@ -206,53 +216,73 @@ export function getNavForRole(role: AppRole): NavGroup[] {
 // Mock users for the admin page
 export const mockUsers: AppUser[] = [
   {
-    id: "u1", email: "thanyarat.c@makro.co.th", displayName: "Thanyarat Chaiyaphum",
+    id: "u1", user_id: "u1", email: "thanyarat.c@makro.co.th",
+    displayName: "Thanyarat Chaiyaphum", full_name: "Thanyarat Chaiyaphum",
     initials: "TC", role: "ho_finance", scope: { type: "enterprise", id: "all", label: "Enterprise" },
+    store_id: null, region_id: null, country_code: null,
     approvalLimit: null, lastLogin: "2026-03-07T08:12:00Z", status: "active",
   },
   {
-    id: "u2", email: "somchai.p@makro.co.th", displayName: "Somchai Prathumwan",
-    initials: "SP", role: "store_manager", scope: { type: "store", id: "s1", label: "Makro Rama IV" },
+    id: "u2", user_id: "u2", email: "somchai.p@makro.co.th",
+    displayName: "Somchai Prathumwan", full_name: "Somchai Prathumwan",
+    initials: "SP", role: "store_manager", scope: { type: "store", id: "s3", label: "Makro Rama 4" },
+    store_id: "s3", region_id: "r-bkk", country_code: "TH",
     approvalLimit: 25000, lastLogin: "2026-03-07T07:45:00Z", status: "active",
   },
   {
-    id: "u3", email: "nattaya.k@makro.co.th", displayName: "Nattaya Kittisak",
-    initials: "NK", role: "regional_manager", scope: { type: "region", id: "r1", label: "Bangkok Metro" },
+    id: "u3", user_id: "u3", email: "nattaya.k@makro.co.th",
+    displayName: "Nattaya Kittisak", full_name: "Nattaya Kittisak",
+    initials: "NK", role: "regional_manager", scope: { type: "region", id: "r-bkk", label: "Bangkok Metro" },
+    store_id: null, region_id: "r-bkk", country_code: "TH",
     approvalLimit: 100000, lastLogin: "2026-03-06T16:30:00Z", status: "active",
   },
   {
-    id: "u4", email: "priya.m@makro.co.th", displayName: "Priya Mongkol",
-    initials: "PM", role: "store_user", scope: { type: "store", id: "s2", label: "Makro Bangna" },
+    id: "u4", user_id: "u4", email: "priya.m@makro.co.th",
+    displayName: "Priya Mongkol", full_name: "Priya Mongkol",
+    initials: "PM", role: "store_user", scope: { type: "store", id: "s1", label: "Makro Bangkapi" },
+    store_id: "s1", region_id: "r-bkk", country_code: "TH",
     approvalLimit: null, lastLogin: "2026-03-07T09:00:00Z", status: "active",
   },
   {
-    id: "u5", email: "david.l@makro.co.th", displayName: "David Lertpanya",
+    id: "u5", user_id: "u5", email: "david.l@makro.co.th",
+    displayName: "David Lertpanya", full_name: "David Lertpanya",
     initials: "DL", role: "internal_audit", scope: { type: "country", id: "TH", label: "Thailand" },
+    store_id: null, region_id: null, country_code: "TH",
     approvalLimit: null, lastLogin: "2026-03-05T14:22:00Z", status: "active",
   },
   {
-    id: "u6", email: "kanya.s@makro.co.th", displayName: "Kanya Supachai",
+    id: "u6", user_id: "u6", email: "kanya.s@makro.co.th",
+    displayName: "Kanya Supachai", full_name: "Kanya Supachai",
     initials: "KS", role: "system_admin", scope: { type: "enterprise", id: "all", label: "Enterprise" },
+    store_id: null, region_id: null, country_code: null,
     approvalLimit: null, lastLogin: "2026-03-07T06:00:00Z", status: "active",
   },
   {
-    id: "u7", email: "chan.v@makro.kh", displayName: "Chan Virak",
-    initials: "CV", role: "store_manager", scope: { type: "store", id: "s4", label: "Makro Phnom Penh" },
+    id: "u7", user_id: "u7", email: "chan.v@makro.kh",
+    displayName: "Chan Virak", full_name: "Chan Virak",
+    initials: "CV", role: "store_manager", scope: { type: "store", id: "s7", label: "Makro Phnom Penh 1" },
+    store_id: "s7", region_id: "r-kh", country_code: "KH",
     approvalLimit: 500, lastLogin: "2026-03-06T11:15:00Z", status: "active",
   },
   {
-    id: "u8", email: "aung.m@makro.mm", displayName: "Aung Myint",
-    initials: "AM", role: "store_user", scope: { type: "store", id: "s6", label: "Makro Yangon" },
+    id: "u8", user_id: "u8", email: "aung.m@makro.mm",
+    displayName: "Aung Myint", full_name: "Aung Myint",
+    initials: "AM", role: "store_user", scope: { type: "store", id: "s9", label: "Makro Yangon Central" },
+    store_id: "s9", region_id: "r-mm", country_code: "MM",
     approvalLimit: null, lastLogin: "2026-03-04T09:30:00Z", status: "suspended",
   },
   {
-    id: "u9", email: "narong.t@makro.co.th", displayName: "Narong Tanachai",
+    id: "u9", user_id: "u9", email: "narong.t@makro.co.th",
+    displayName: "Narong Tanachai", full_name: "Narong Tanachai",
     initials: "NT", role: "ho_finance", scope: { type: "country", id: "TH", label: "Thailand" },
+    store_id: null, region_id: null, country_code: "TH",
     approvalLimit: null, lastLogin: "2026-03-07T07:00:00Z", status: "active",
   },
   {
-    id: "u10", email: "new.hire@makro.co.th", displayName: "Pending User",
-    initials: "PU", role: "store_user", scope: { type: "store", id: "s1", label: "Makro Rama IV" },
+    id: "u10", user_id: "u10", email: "new.hire@makro.co.th",
+    displayName: "Pending User", full_name: "Pending User",
+    initials: "PU", role: "store_user", scope: { type: "store", id: "s3", label: "Makro Rama 4" },
+    store_id: "s3", region_id: "r-bkk", country_code: "TH",
     approvalLimit: null, lastLogin: "", status: "pending",
   },
 ];

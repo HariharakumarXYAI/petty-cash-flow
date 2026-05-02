@@ -42,6 +42,7 @@ export interface StoreInfo {
   id: string;
   name: string;
   country: Country;
+  region_id: string;
   type: StoreType;
   legalEntity: string;
   currency: string;
@@ -188,16 +189,16 @@ export const countries = [
 // --- Stores ---
 
 export const stores: StoreInfo[] = [
-  { id: "s1", name: "Makro Bangkapi", country: "TH", type: "Hypermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 50000, minBalance: 10000, maxFloat: 80000, replenishmentThreshold: 15000, currentBalance: 42500 },
-  { id: "s2", name: "Makro Sathorn", country: "TH", type: "Supermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 30000, minBalance: 5000, maxFloat: 50000, replenishmentThreshold: 8000, currentBalance: 6200 },
-  { id: "s3", name: "Makro Rama 4", country: "TH", type: "Hypermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 50000, minBalance: 10000, maxFloat: 80000, replenishmentThreshold: 15000, currentBalance: 38900 },
-  { id: "s4", name: "Makro Chaengwattana", country: "TH", type: "Mini", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 15000, minBalance: 3000, maxFloat: 25000, replenishmentThreshold: 5000, currentBalance: 4100 },
-  { id: "s5", name: "Makro Pattaya", country: "TH", type: "Hypermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 50000, minBalance: 10000, maxFloat: 80000, replenishmentThreshold: 15000, currentBalance: 31200 },
-  { id: "s6", name: "Makro Chiang Mai", country: "TH", type: "Supermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 30000, minBalance: 5000, maxFloat: 50000, replenishmentThreshold: 8000, currentBalance: 22800 },
-  { id: "s7", name: "Makro Phnom Penh 1", country: "KH", type: "Hypermarket", legalEntity: "Makro Cambodia Co Ltd", currency: "KHR", floatLimit: 2000, minBalance: 500, maxFloat: 3500, replenishmentThreshold: 700, currentBalance: 1450 },
-  { id: "s8", name: "Makro Siem Reap", country: "KH", type: "Supermarket", legalEntity: "Makro Cambodia Co Ltd", currency: "KHR", floatLimit: 1200, minBalance: 300, maxFloat: 2000, replenishmentThreshold: 400, currentBalance: 320 },
-  { id: "s9", name: "Makro Yangon Central", country: "MM", type: "Hypermarket", legalEntity: "Makro Myanmar Ltd", currency: "MMK", floatLimit: 3000000, minBalance: 500000, maxFloat: 5000000, replenishmentThreshold: 800000, currentBalance: 2100000 },
-  { id: "s10", name: "Makro Mandalay", country: "MM", type: "Supermarket", legalEntity: "Makro Myanmar Ltd", currency: "MMK", floatLimit: 1500000, minBalance: 300000, maxFloat: 2500000, replenishmentThreshold: 500000, currentBalance: 890000 },
+  { id: "s1", name: "Makro Bangkapi", country: "TH", region_id: "r-bkk", type: "Hypermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 50000, minBalance: 10000, maxFloat: 80000, replenishmentThreshold: 15000, currentBalance: 42500 },
+  { id: "s2", name: "Makro Sathorn", country: "TH", region_id: "r-bkk", type: "Supermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 30000, minBalance: 5000, maxFloat: 50000, replenishmentThreshold: 8000, currentBalance: 6200 },
+  { id: "s3", name: "Makro Rama 4", country: "TH", region_id: "r-bkk", type: "Hypermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 50000, minBalance: 10000, maxFloat: 80000, replenishmentThreshold: 15000, currentBalance: 38900 },
+  { id: "s4", name: "Makro Chaengwattana", country: "TH", region_id: "r-bkk", type: "Mini", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 15000, minBalance: 3000, maxFloat: 25000, replenishmentThreshold: 5000, currentBalance: 4100 },
+  { id: "s5", name: "Makro Pattaya", country: "TH", region_id: "r-east", type: "Hypermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 50000, minBalance: 10000, maxFloat: 80000, replenishmentThreshold: 15000, currentBalance: 31200 },
+  { id: "s6", name: "Makro Chiang Mai", country: "TH", region_id: "r-north", type: "Supermarket", legalEntity: "Siam Makro PCL", currency: "THB", floatLimit: 30000, minBalance: 5000, maxFloat: 50000, replenishmentThreshold: 8000, currentBalance: 22800 },
+  { id: "s7", name: "Makro Phnom Penh 1", country: "KH", region_id: "r-kh", type: "Hypermarket", legalEntity: "Makro Cambodia Co Ltd", currency: "KHR", floatLimit: 2000, minBalance: 500, maxFloat: 3500, replenishmentThreshold: 700, currentBalance: 1450 },
+  { id: "s8", name: "Makro Siem Reap", country: "KH", region_id: "r-kh", type: "Supermarket", legalEntity: "Makro Cambodia Co Ltd", currency: "KHR", floatLimit: 1200, minBalance: 300, maxFloat: 2000, replenishmentThreshold: 400, currentBalance: 320 },
+  { id: "s9", name: "Makro Yangon Central", country: "MM", region_id: "r-mm", type: "Hypermarket", legalEntity: "Makro Myanmar Ltd", currency: "MMK", floatLimit: 3000000, minBalance: 500000, maxFloat: 5000000, replenishmentThreshold: 800000, currentBalance: 2100000 },
+  { id: "s10", name: "Makro Mandalay", country: "MM", region_id: "r-mm", type: "Supermarket", legalEntity: "Makro Myanmar Ltd", currency: "MMK", floatLimit: 1500000, minBalance: 300000, maxFloat: 2500000, replenishmentThreshold: 500000, currentBalance: 890000 },
 ];
 
 // --- Expense Types ---
