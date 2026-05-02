@@ -94,6 +94,7 @@ const PRESETS: { id: Exclude<DatePreset, "custom">; label: string }[] = [
 
 export default function ClaimsList() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState(0);
   const [expenseFilter, setExpenseFilter] = useState<string>("all");
@@ -102,13 +103,42 @@ export default function ClaimsList() {
   const [dateFrom, setDateFrom] = useState<Date | undefined>(initialMonth.from);
   const [dateTo, setDateTo] = useState<Date | undefined>(initialMonth.to);
 
-  const activePreset = useMemo(() => detectPreset(dateFrom, dateTo), [dateFrom, dateTo]);
+  // Role-aware scope toggle (currently only Store Manager has a toggle).
+  const isStoreManager = user?.role === "store_manager";
+  const [scopeMode, setScopeMode] = useState<"self" | "store">("store");
+
+  // Effective scope for filtering MOCK_CLAIMS.
+  const scope: Scope | null = useMemo(() => {
+    if (!user) return null;
+    if (isStoreManager) {
+      return scopeMode === "self"
+        ? { type: "self", user_id: user.user_id, store_id: user.store_id }
+        : { type: "store", store_id: user.store_id };
+    }
+    return getDefaultScope(user);
+  }, [user, isStoreManager, scopeMode]);
+
+  // Scope-filtered base list (everything else filters off this).
+  const scopedClaims = useMemo<MockClaim[]>(() => {
+    if (!user || !scope) return [];
+    return applyScope(MOCK_CLAIMS, scope, user);
+  }, [user, scope]);
+
+  const storeName = useMemo(() => {
+    if (!user?.store_id) return user?.scope?.label ?? "All stores";
+    return stores.find((s) => s.id === user.store_id)?.name ?? user.scope?.label ?? "Your store";
+  }, [user]);
+
+  // Hide Store column when scope is fixed to a single store.
+  const hideStoreColumn = scope?.type === "store" || scope?.type === "self";
 
   const applyPreset = (id: Exclude<DatePreset, "custom">) => {
     const r = computePreset(id);
     setDateFrom(r.from);
     setDateTo(r.to);
   };
+
+  const activePreset = useMemo(() => detectPreset(dateFrom, dateTo), [dateFrom, dateTo]);
 
   // Tab counts based on full data set (independent of active tab)
   const tabCounts = useMemo(
