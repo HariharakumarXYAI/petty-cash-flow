@@ -351,7 +351,7 @@ export default function ClaimsList() {
               <TableRow className="hover:bg-transparent">
                 <TableHead className="section-label sticky left-0 bg-card z-10 min-w-[200px]">Claim #</TableHead>
                 {!hideStoreColumn && <TableHead className="section-label">Store</TableHead>}
-                <TableHead className="section-label">Submitter</TableHead>
+                {!hideSubmitterColumn && <TableHead className="section-label">Submitter</TableHead>}
                 <TableHead className="section-label hidden lg:table-cell">Expense</TableHead>
                 <TableHead className="section-label text-right">Amount</TableHead>
                 <TableHead className="section-label">Status</TableHead>
@@ -363,7 +363,7 @@ export default function ClaimsList() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={hideStoreColumn ? 8 : 9} className="text-center text-sm text-muted-foreground py-12">
+                  <TableCell colSpan={9 - (hideStoreColumn ? 1 : 0) - (hideSubmitterColumn ? 1 : 0)} className="text-center text-sm text-muted-foreground py-12">
                     No claims match the current filters.
                   </TableCell>
                 </TableRow>
@@ -376,7 +376,7 @@ export default function ClaimsList() {
                   >
                     <TableCell className="font-mono text-xs font-medium sticky left-0 bg-card z-10">{c.claim_no}</TableCell>
                     {!hideStoreColumn && <TableCell className="text-sm">{c.store_name}</TableCell>}
-                    <TableCell className="text-sm">{c.submitter_name}</TableCell>
+                    {!hideSubmitterColumn && <TableCell className="text-sm">{c.submitter_name}</TableCell>}
                     <TableCell className="text-sm text-muted-foreground hidden lg:table-cell max-w-[220px] truncate" title={c.expense_type}>
                       {c.expense_type}
                     </TableCell>
