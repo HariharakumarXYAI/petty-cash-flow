@@ -22,6 +22,7 @@ import {
   evaluateLine,
   ExpenseLineV2,
 } from "@/components/claim/ExpenseLinesSection";
+import { RequesterDetailsCard } from "@/components/claim/RequesterDetailsCard";
 
 // FX → THB (mock)
 const FX_TO_THB: Record<string, number> = {
